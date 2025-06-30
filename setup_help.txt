@@ -1,7 +1,0 @@
-Setup failed:
-'npm install' command failed because the 'package.json' file is missing from the repository root '/usr/src/prompttosoftware-frontend'.
-The directory contains 'package-lock.json' but not 'package.json'.
-'package.json' is required by npm to identify project dependencies and execute 'npm install'.
-
-This issue prevents further setup as dependencies cannot be installed without this file, which contradicts the instruction "You should be able to get them to run without editing any files."
-A 'package.json' file needs to be provided in the repository for setup to proceed.
