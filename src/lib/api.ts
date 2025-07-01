@@ -39,7 +39,8 @@ api.interceptors.response.use(
           break;
         case 404:
           errorMessage =
-            data.message || 'Not Found: The requested resource could not be found.';
+            data.message ||
+            'Not Found: The requested resource could not be found.';
           break;
         case 500:
           errorMessage =
@@ -47,8 +48,7 @@ api.interceptors.response.use(
             'Internal Server Error: Something went wrong on the server.';
           break;
         default:
-          errorMessage =
-            data.message || `HTTP Error: ${status}`;
+          errorMessage = data.message || `HTTP Error: ${status}`;
           break;
       }
     } else if (error instanceof Error) {
@@ -59,10 +59,10 @@ api.interceptors.response.use(
       message: errorMessage,
       type: 'error',
       details: errorDetails,
-    },);
+    });
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

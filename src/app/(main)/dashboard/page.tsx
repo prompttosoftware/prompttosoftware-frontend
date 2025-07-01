@@ -6,7 +6,7 @@ import React from 'react';
 
 export default function DashboardPage() {
   // setError is no longer directly used here as axios interceptor will handle it
-  const { setError } = useGlobalError(); // Keep it for now, might be useful if specific local errors still need direct handling
+  const {} = useGlobalError(); // Because `setError` is explicitly unused, but `useGlobalError` might be needed for other reasons, destructure nothing.
 
   const handleTriggerError = async () => {
     try {
