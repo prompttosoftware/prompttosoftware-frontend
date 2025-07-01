@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import SideNavBar from './components/SideNavBar';
 import { Bars3Icon } from '@heroicons/react/24/outline'; // Import the hamburger icon
+import ErrorModal from './components/ErrorModal';
 
 export default function MainLayout({
   children,
@@ -95,6 +96,7 @@ export default function MainLayout({
       >
         {children}
       </main>
+      <ErrorModal />
     </div>
   );
 }
