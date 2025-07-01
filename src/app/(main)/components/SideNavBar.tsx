@@ -1,7 +1,7 @@
 // src/app/(main)/components/SideNavBar.tsx
-"use client";
+'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import {
   HomeIcon,
@@ -10,7 +10,7 @@ import {
   RocketLaunchIcon,
   QuestionMarkCircleIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
 
@@ -63,7 +63,9 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
           <button
             onClick={toggleExpansion}
             className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden md:flex" // Hide on mobile nav
-            aria-label={isExpanded ? "Collapse navigation" : "Expand navigation"}
+            aria-label={
+              isExpanded ? 'Collapse navigation' : 'Expand navigation'
+            }
           >
             {isExpanded ? (
               <ChevronLeftIcon className="h-6 w-6 text-white" />
@@ -91,7 +93,9 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                   } text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={item.name}
                 >
-                  <item.icon className={`h-6 w-6 ${isExpanded ? 'mr-3' : ''}`} />
+                  <item.icon
+                    className={`h-6 w-6 ${isExpanded ? 'mr-3' : ''}`}
+                  />
                   <span className={`${isExpanded ? '' : 'hidden'}`}>
                     {item.name}
                   </span>
