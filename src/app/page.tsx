@@ -1,11 +1,82 @@
+'use client';
+
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import LoadingSpinner from './(main)/components/LoadingSpinner';
+import EmptyState from './(main)/components/EmptyState';
+import SkeletonLoader from './(main)/components/SkeletonLoader'; // Import SkeletonLoader
+
 export default function Home() {
+  const [componentState, setComponentState] = useState(0); // 0: Loading, 1: Empty, 2: Skeleton, 3: Content
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setComponentState(1); // Simulate Empty after 3 seconds
+    }, 3000);
+
+    const timer2 = setTimeout(() => {
+      setComponentState(2); // Simulate Skeleton after 6 seconds
+    }, 6000);
+
+    const timer3 = setTimeout(() => {
+      setComponentState(3); // Simulate Content after 9 seconds
+    }, 9000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
+
+  // Conditional rendering based on state
+  if (componentState === 0) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-24">
+        <LoadingSpinner size="large" color="border-purple-500" />
+        <p className="mt-4 text-xl text-gray-600">Loading your content...</p>
+      </main>
+    );
+  }
+
+  if (componentState === 1) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-24">
+        <EmptyState
+          message="No items found. Try adjusting your filters!"
+          actionButton={
+            <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+              Reset Filters
+            </button>
+          }
+        />
+      </main>
+    );
+  }
+
+  if (componentState === 2) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-24">
+        <h2 className="text-2xl font-bold mb-4">Loading with Skeleton...</h2>
+        <div className="space-y-4 w-64">
+          <SkeletonLoader height="20px" width="100%" />
+          <SkeletonLoader height="20px" width="90%" />
+          <SkeletonLoader height="20px" width="80%" />
+          <SkeletonLoader height="80px" width="100%" />
+        </div>
+      </main>
+    );
+  }
+  
+  // Default content after all states
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-
       <h1 className="text-3xl font-bold text-blue-600 mb-8">
-        Hello TailwindCSS!
+        Welcome to the Next.js App!
       </h1>
+      <p className="text-lg">
+        This is the main content after demonstrating all loading and empty states.
+      </p>
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
           Get started by editing&nbsp;
