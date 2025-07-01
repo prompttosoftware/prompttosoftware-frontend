@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import SideNavBar from './components/SideNavBar';
 import { Bars3Icon } from '@heroicons/react/24/outline'; // Import the hamburger icon
 import ErrorModal from './components/ErrorModal';
+import ProfileButton from './components/ProfileButton';
+import BalanceDisplay from './components/BalanceDisplay';
+import AddPaymentButton from './components/AddPaymentButton';
+import WatchAdButton from './components/WatchAdButton';
 
 export default function MainLayout({
   children,
@@ -42,51 +46,10 @@ export default function MainLayout({
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          {/* Profile Button */}
-          <div className="relative">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6 text-gray-600"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                />
-              </svg>
-            </div>
-          </div>
-          {/* Balance Display */}
-          <div className="bg-green-500 text-white font-bold py-2 px-4 rounded-md cursor-pointer hover:bg-green-600 transition-colors">
-            $0.00
-          </div>
-          {/* Add Payment Button */}
-          <div className="bg-blue-500 text-white py-2 px-4 rounded-md flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5 mr-1"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-            Add Payment
-          </div>
-          {/* Watch Ad Button */}
-          <div className="bg-purple-500 text-white py-2 px-4 rounded-md cursor-pointer hover:bg-purple-600 transition-colors">
-            Watch Ad
-          </div>
+          <ProfileButton />
+          <BalanceDisplay balance={0} /> {/* Static placeholder $0.00 */}
+          <AddPaymentButton />
+          <WatchAdButton />
         </div>
       </header>
 

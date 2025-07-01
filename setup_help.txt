@@ -1,20 +1,3 @@
-Setup Instructions for prompttosoftware-frontend:
-
-1.  **Install Dependencies:**
-    Navigate to the project root directory and run the following command to install all necessary Node.js packages:
-    ```bash
-    npm install
-    ```
-
-2.  **Verify Test Runner:**
-    After installing dependencies, confirm that the test runner (Jest) is working by executing a specific test file. For example:
-    ```bash
-    npx jest src/app/api/mock-error/route.test.ts
-    ```
-    This command should execute the specified test file and show its results (pass/fail). The goal is to confirm that the test environment is functional, not necessarily that all tests pass.
-
-This completes the basic project setup to enable development and test execution.
-You are now ready to proceed with development tasks.
-The next task is to implement the Generic Loading and Empty State Components.
-This completes the basic project setup to enable development and test execution.
-The next task is to implement the Generic Loading and Empty State Components.
+To set up the project:
+1. Run `npm install` to install all dependencies.
+2. The tests can then be run using `npm test`. For example, `npm test src/app/EmptyState.test.tsx` was used to verify the setup.action: NEXT_SUBTASK
