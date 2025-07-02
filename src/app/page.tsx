@@ -71,7 +71,7 @@ export default function Home() {
   // Default content after all states
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1 className="text-3xl font-bold text-blue-600 mb-8">
+      <h1 className="text-3xl font-bold text-blue-600 mb-8 text-red-500 bg-blue-200 p-4">
         Welcome to the Next.js App!
       </h1>
       <p className="text-lg">
