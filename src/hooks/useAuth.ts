@@ -1,23 +1,31 @@
-import { useContext } from 'react';
-import { AuthContext } from '../lib/AuthContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { useBalanceStore } from '@/store/balanceStore'; // Import the balance store
 
-/**
- * Custom React hook to access authentication context.
- *
- * @returns An object containing authentication state and functions:
- *          - isAuthenticated: A boolean indicating if the user is authenticated.
- *          - user: The authenticated user object or null.
- *          - isLoading: A boolean indicating if authentication state is being loaded.
- *          - login: A function to initiate the login process.
- *          - logout: A function to initiate the logout process.
- * @throws {Error} If `useAuth` is used outside of an `AuthProvider`.
- */
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+    const queryClient = useQueryClient();
+    const setBalance = useBalanceStore((state) => state.setBalance); // Get the setBalance action
 
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+    const { data, isLoading, isError } = useQuery(['auth', 'me'], () => api.get('/auth/me'), {
+        retry: false,
+        staleTime: Infinity,
+        onError: (error) => {
+            if (error?.response?.status === 401) {
+                // Handle 401: clear local storage, redirect to login, etc.
+                localStorage.removeItem('jwt');
+                queryClient.cancelQueries(['auth', 'me']); // Cancel any ongoing queries
+            }
+        },
+        onSuccess: (data) => { // Add onSuccess callback
+            const user = data?.data;
+            if (user && typeof user.balance === 'number') { // Check if user and balance exist and is a number
+                setBalance(user.balance); // Update the global balance state
+            }
+        }
+    });
 
-  return context;
+    const user = data?.data; // Assuming the user data is in data.data
+    const isAuthenticated = !!user;
+
+    return { user, isAuthenticated, isLoading, isError };
 };
