@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useGlobalErrorStore } from '../store/globalErrorStore';
 import { logger } from '../utils/logger'; // Import the logger
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { APIErrorResponse, InternalServerErrorMessage } from '../types/common';
 
 const api = axios.create({
   baseURL: '/api', // Adjust this if your API has a different base URL
@@ -13,11 +14,13 @@ const api = axios.create({
 
 logger.info('Axios instance initialized with base URL:', api.defaults.baseURL);
 
+// Global variable to store error details temporarily for display
+let errorDetails: APIErrorResponse | InternalServerErrorMessage | null = null;
+
 export const setupInterceptors = (router: AppRouterInstance) => {
   // Interceptor management (e.g., ejecting to prevent duplicates on hot-reloads)
   // is omitted here as direct access to 'handlers' is not supported in Axios types.
   // For robust handling in development, one might store and eject interceptor IDs.
-
 
   api.interceptors.request.use(
     (config) => {
@@ -43,13 +46,15 @@ export const setupInterceptors = (router: AppRouterInstance) => {
     async (error) => { // Made async for potential await in future (e.g., token refresh)
       const { setError } = useGlobalErrorStore.getState();
       let errorMessage = 'An unexpected error occurred.';
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let errorDetails: any = null;
+      // The errorDetails variable declared here is local to the interceptor,
+      // and shadows the global one. This is fine as it's used for the current error.
+      let localErrorDetails: APIErrorResponse | InternalServerErrorMessage | null = null;
+
 
       if (axios.isAxiosError(error) && error.response) {
         const { status, data } = error.response;
 
-        errorDetails = data;
+        localErrorDetails = data; // Assign the response data to localErrorDetails
 
         switch (status) {
           case 400:
@@ -63,7 +68,6 @@ export const setupInterceptors = (router: AppRouterInstance) => {
               logger.info('JWT token cleared from localStorage.');
             } catch (clearErr) {
               logger.error('Failed to clear JWT token from localStorage:', clearErr as Error);
-
             }
             // Redirect the user
             router.push('/login?sessionExpired=true');
@@ -98,9 +102,9 @@ export const setupInterceptors = (router: AppRouterInstance) => {
       setError({
         message: errorMessage,
         type: 'error',
-        details: errorDetails,
+        details: localErrorDetails, // Use localErrorDetails here
       });
-      logger.error('API Error:', new Error(errorMessage), errorDetails); // Log the error
+      logger.error('API Error:', new Error(errorMessage), localErrorDetails); // Log the error
 
 
       return Promise.reject(error);
