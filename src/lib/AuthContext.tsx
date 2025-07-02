@@ -1,6 +1,8 @@
+'use client';
+
 // src/lib/AuthContext.tsx
 
-import React, { createContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
 // 1. Define the shape of the AuthContext value
 interface AuthContextType {
@@ -77,17 +79,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
-  	    setIsLoading(false); // After logout, loading is complete
-   // Temporarily expose logout to window for testing purposes
-   if (typeof window !== 'undefined') {
-     (window as any).logout = logout;
-   }
+    setIsLoading(false); // After logout, loading is complete
+    // Temporarily expose logout to window for testing purposes
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).logout = logout;
+    }
     // In a real app, this would also clear tokens, etc.
   };
 
   // Placeholder updateProfile function
   const updateProfile = (newProfile: Partial<UserProfile>) => {
-    setUser(prevUser => {
+    setUser((prevUser) => {
       if (prevUser) {
         return { ...prevUser, ...newProfile };
       }
@@ -106,10 +109,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
-The `AuthContext` and `AuthProvider` have been created as requested, managing `isAuthenticated`, `user`, and `isLoading` states, and exposing `login`, `logout`, and `updateProfile` methods. All types are strongly defined.
-I'm ready to mark this subtask as complete.

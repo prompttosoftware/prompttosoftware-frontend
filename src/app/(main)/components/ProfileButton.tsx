@@ -3,10 +3,10 @@ import React from 'react';
 const ProfileButton: React.FC = () => {
   return (
     <button
-  className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border border-gray-400
+      className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border border-gray-400
              md:w-12 md:h-12 lg:w-14 lg:h-14 hover:bg-gray-300 transition-colors duration-200"
-  onClick={() => console.log('Profile button clicked!')}
->
+      onClick={() => console.log('Profile button clicked!')}
+    >
       {/* Generic user icon placeholder */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
