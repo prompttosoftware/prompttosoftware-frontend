@@ -66,7 +66,7 @@ useEffect(() => {
   const login = (token: string, userData: UserProfile) => {
     localStorage.setItem('jwtToken', token);
     // Invalidate the auth query to refetch user data if needed
-    queryClient.invalidateQueries(['auth', 'me']);
+    queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
 
     console.log('AuthProvider: User logged in and token stored.');
 
@@ -89,7 +89,7 @@ useEffect(() => {
     // For Apollo/React Query setup, instead of direct state update,
     // you might trigger a mutation or refetch the 'me' query after a profile update API call.
     // For now, let's just invalidate and refetch.
-    queryClient.invalidateQueries(['auth', 'me']);
+    queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     console.log('AuthProvider: Profile update initiated, refetching user data.');
   };
 
