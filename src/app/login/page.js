@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState, Suspense, useCallback } from 'react';
+import React, { useEffect, useState, Suspense, useCallback } from 'react'; import { useAuth } from '@/hooks/useAuth'; // Import useAuth
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api'; // Import the axios instance
 
@@ -12,7 +12,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [authError, setAuthError] = useState(null);
+    const [authError, setAuthError] = useState(null); const { login } = useAuth(); // Get the login function from the AuthContext
 
   // Memoize exchangeCodeForToken to ensure a stable function reference
   const exchangeCodeForToken = useCallback(
@@ -23,17 +23,12 @@ function LoginContent() {
         const response = await api.post('/auth/github', { code }); // Use axios instance
         console.log('Auth successful:', response.data);
 
-        localStorage.setItem('jwt_token', response.data.token); // Store the JWT
-
-        // Store user data. The backend is expected to provide an 'isNewUser' flag.
-        if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user)); // Store user data
-          if (response.data.user.isNewUser) {
-            localStorage.setItem('show_tutorial', 'true'); // Signal the tutorial component
-            // Future: Consider an event emitter or global state for more direct tutorial trigger
-          } else {
-            localStorage.removeItem('show_tutorial'); // Ensure no stale tutorial flag for existing users
-          }
+        // Instead of directly manipulating localStorage here, use the login function from useAuth
+        // This ensures the AuthContext is updated and handles storing the token/user data
+        if (response.data.token && response.data.user) {
+          login(response.data.token, response.data.user);
+        } else {
+          throw new Error('Authentication response missing token or user data.');
         }
 
         router.push('/dashboard'); // Always redirect to the dashboard
@@ -53,7 +48,7 @@ function LoginContent() {
         setLoading(false);
       }
     },
-    [setLoading, setAuthError, router],
+    [setLoading, setAuthError, router, login], // Add 'login' to dependencies
   ); // Dependencies for useCallback. 'api' is stable and removed.
 
   useEffect(() => {
@@ -90,8 +85,8 @@ function LoginContent() {
       console.error('NEXT_PUBLIC_GITHUB_CLIENT_ID is not set.');
       return;
     }
-    const redirectUri = encodeURIComponent(`${window.location.origin}/login`); // This page itself is the redirect URI
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${redirectUri}&scope=repo,workflow`;
+    const REDIRECT_URI = `${window.location.origin}/login`; // Redirect back to the login page to handle the code
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=repo&redirect_uri=${REDIRECT_URI}`;
   };
 
   return (
