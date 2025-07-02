@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { useBalance, useBalanceStore } from '@/store/balanceStore'; // Import useBalance and useBalanceStore
+import useProtectedRoute from '@/hooks/useProtectedRoute';
 
 export default function DashboardPage() {
+  useProtectedRoute(); // Apply the protection hook
   const balance = useBalance(); // Get the current balance
   const setBalance = useBalanceStore((state) => state.setBalance); // Get the setBalance function
 
