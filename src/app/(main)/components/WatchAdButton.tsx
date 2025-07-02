@@ -3,17 +3,19 @@ import React from 'react';
 const WatchAdButton: React.FC = () => {
   return (
     <button
-  className="relative w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md border border-gray-400
+      className="relative w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md border border-gray-400
              md:w-12 md:h-12 lg:w-14 lg:h-14 hover:bg-gray-300 transition-colors duration-200"
-  onClick={() => {
-    const isAuthenticated = false; // Placeholder for authentication state
-    if (!isAuthenticated) {
-      console.log('Redirect to login for this feature (Watch Ad).');
-    } else {
-      console.log('Watch Ad button clicked! (Will trigger ad functionality from another Epic)');
-    }
-  }}
->
+      onClick={() => {
+        const isAuthenticated = false; // Placeholder for authentication state
+        if (!isAuthenticated) {
+          console.log('Redirect to login for this feature (Watch Ad).');
+        } else {
+          console.log(
+            'Watch Ad button clicked! (Will trigger ad functionality from another Epic)',
+          );
+        }
+      }}
+    >
       {/* Placeholder for "watch ad" icon, e.g., a play button */}
       <svg
         xmlns="http://www.w3.org/2000/svg"

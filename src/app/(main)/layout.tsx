@@ -8,6 +8,8 @@ import ProfileButton from './components/ProfileButton';
 import BalanceDisplay from './components/BalanceDisplay';
 import AddPaymentButton from './components/AddPaymentButton';
 import WatchAdButton from './components/WatchAdButton';
+import BannerDisplay from './components/BannerDisplay'; // Import BannerDisplay
+import { useBannerStore } from '@/store/bannerStore'; // Import useBannerStore
 
 export default function MainLayout({
   children,
@@ -16,6 +18,12 @@ export default function MainLayout({
 }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false); // New state for mobile nav
+
+  const initializeBanners = useBannerStore((state) => state.initializeBanners);
+
+  React.useEffect(() => {
+    initializeBanners();
+  }, [initializeBanners]);
 
   // This class should match the expanded/collapsed width of the SideNavBar
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
@@ -28,37 +36,45 @@ export default function MainLayout({
         isMobileNavOpen={isMobileNavOpen}
         setIsMobileNavOpen={setIsMobileNavOpen}
       />
-      {/* Header */}
-      <header
-        className={`fixed top-0 left-0 right-0 h-16 bg-white shadow-md flex items-center justify-between px-4 md:px-8 z-30 transition-all duration-300 ease-in-out ${isNavExpanded ? 'md:pl-64' : 'md:pl-20'}`}
-      >
-        <div className="flex items-center">
-          <button
-            className="md:hidden p-2 mr-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onClick={() => setIsMobileNavOpen(true)}
-            aria-label="Open navigation"
-          >
-            <Bars3Icon className="h-6 w-6 text-gray-700" />
-          </button>
-          <div className="text-2xl font-semibold text-gray-800">
-            {/* Dynamic Page Title Placeholder */}
-            Page Title
-          </div>
-        </div>
-        <div className="flex items-center space-x-4">
-          <ProfileButton />
-          <BalanceDisplay balance={0} /> {/* Static placeholder $0.00 */}
-          <AddPaymentButton />
-          <WatchAdButton />
-        </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main
-        className={`flex-1 transition-all duration-300 ease-in-out ${navMarginClass} p-8 mt-16`}
+      {/* Main content wrapper */}
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${navMarginClass}`}
       >
-        {children}
-      </main>
+        {/* Header */}
+        <header
+          className={`sticky top-0 h-16 bg-white shadow-md flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0`}
+        >
+          <div className="flex items-center">
+            <button
+              className="md:hidden p-2 mr-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={() => setIsMobileNavOpen(true)}
+              aria-label="Open navigation"
+            >
+              <Bars3Icon className="h-6 w-6 text-gray-700" />
+            </button>
+            <div className="text-2xl font-semibold text-gray-800">
+              {/* Dynamic Page Title Placeholder */}
+              Page Title
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <ProfileButton />
+            <BalanceDisplay balance={0} /> {/* Static placeholder $0.00 */}
+            <AddPaymentButton />
+            <WatchAdButton />
+          </div>
+        </header>
+
+        {/* Banner Display Area */}
+        <div className="p-4 flex-shrink-0">
+          <BannerDisplay />
+        </div>
+
+        {/* Main Content Area */}
+        <main className="flex-1 p-8">{children}</main>
+      </div>
+
       <ErrorModal />
     </div>
   );
