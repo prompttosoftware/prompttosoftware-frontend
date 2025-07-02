@@ -12,7 +12,9 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-    const [authError, setAuthError] = useState(null); const { login } = useAuth(); // Get the login function from the AuthContext
+  const [authError, setAuthError] = useState(null);
+  const { login } = useAuth(); // Get the login function from the AuthContext
+  const sessionExpired = searchParams.get('sessionExpired') === 'true';
 
   // Memoize exchangeCodeForToken to ensure a stable function reference
   const exchangeCodeForToken = useCallback(
@@ -93,7 +95,17 @@ function LoginContent() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome</h1>
-
+      
+        {sessionExpired && (
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            role="alert"
+          >
+            <strong className="font-bold">Session Expired:</strong>
+            <span className="block sm:inline"> Please log in again.</span>
+          </div>
+        )}
+      
         {authError && (
           <div
             className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
