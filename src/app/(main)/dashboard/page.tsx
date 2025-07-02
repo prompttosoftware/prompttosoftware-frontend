@@ -1,36 +1,33 @@
 'use client'; // This is a client component
 
-import { useGlobalError } from '@/hooks/useGlobalError';
-import api from '@/lib/api'; // Import the axios instance
 import React from 'react';
+import { useBalance, useBalanceStore } from '@/store/balanceStore'; // Import useBalance and useBalanceStore
 
 export default function DashboardPage() {
-  // setError is no longer directly used here as axios interceptor will handle it
-  const {} = useGlobalError(); // Because `setError` is explicitly unused, but `useGlobalError` might be needed for other reasons, destructure nothing.
+  const balance = useBalance(); // Get the current balance
+  const setBalance = useBalanceStore((state) => state.setBalance); // Get the setBalance function
 
-  const handleTriggerError = async () => {
-    try {
-      await api.get('/api/mock-error'); // Use the axios instance
-      console.log(
-        'Mock error endpoint returned success (should not happen for this test).',
-      );
-    } catch (error) {
-      // The axios interceptor should catch this error now, so direct setError call is not needed.
-      console.error('Failed to fetch mock error:', error);
-      // Optionally, if there's a network error before the interceptor,
-      // you might want to show a generic message. But typically, axios handles network errors too.
-    }
+  const handleUpdateBalance = () => {
+    const newBalance = Math.floor(Math.random() * 1000) + 1; // Simulate a new balance
+    setBalance(newBalance);
   };
 
   return (
-    <div>
-      <h1>Dashboard Page</h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Dashboard Page</h1>
+      <p className="text-lg mb-4">
+        Current Balance: <span className="font-semibold">${balance.toFixed(2)}</span>
+      </p>
       <button
-        onClick={handleTriggerError}
-        className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        onClick={handleUpdateBalance}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2"
       >
-        Trigger Global Error
+        Simulate Balance Update
       </button>
+      <p className="mt-4 text-sm text-gray-600">
+        (Balance will update automatically if `useAuthApollo` updates the user profile with a new balance,
+        or you can use the button above to simulate a change locally for testing reactivity.)
+      </p>
     </div>
   );
 }

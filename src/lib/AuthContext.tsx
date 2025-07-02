@@ -2,9 +2,12 @@
 
 // src/lib/AuthContext.tsx
 
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { setupInterceptors } from '../lib/api';
+import { useAuth as useAuthApollo } from '../hooks/useAuth'; // Rename to avoid conflict
+import { useQueryClient } from '@tanstack/react-query';
+import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
 
 // 1. Define the shape of the AuthContext value
 interface AuthContextType {
@@ -34,76 +37,41 @@ interface AuthProviderProps {
 }
 
 interface UserProfile {
-  id: string; // Assuming user has an ID
-  email: string; // Assuming user has an email
-  isNewUser: boolean; // Add this property if it's part of your user profile
+  id: string;
+  email: string;
+  isNewUser: boolean;
+  balance: number; // Add balance to UserProfile
   // Add other user properties as needed
 }
 
 // 4. Create the AuthProvider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Initial state is loading
   const router = useRouter(); // Get the router instance
+  const queryClient = useQueryClient(); // Get query client for invalidation
+  const { user, isAuthenticated, isLoading } = useAuthApollo(); // Use the new useAuth hook
+  const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
 
   useEffect(() => {
     // Setup interceptors when the component mounts or router changes
     setupInterceptors(router);
   }, [router]);
 
-  // Simulate initial authentication check on component mount for testing purposes
-  useEffect(() => {
-    const checkAuthStatus = () => {
-      console.log('AuthProvider: Checking authentication status...');
-      const token = localStorage.getItem('jwtToken');
-
-      if (token) {
-        // For a real app, you'd decode the JWT or hit a /me endpoint to get fresh user data
-        // For now, load from localStorage
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          try {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-            console.log('AuthProvider: JWT and user data found. User authenticated.');
-          } catch (e) {
-            console.error('Failed to parse user data from localStorage', e);
-            localStorage.removeItem('jwtToken');
-            localStorage.removeItem('user');
-            setIsAuthenticated(false);
-            setUser(null);
-          }
-        } else {
-          // Token found, but no user data. This scenario might need re-auth or user data fetch.
-          console.warn('AuthProvider: JWT found, but no user data. Treating as authenticated based on token presence for now.');
-          setIsAuthenticated(true); // Still treat as authenticated if token is present
-          setUser(null); // Keep user null if data is missing, or fetch it
-        }
-      } else {
-        setIsAuthenticated(false);
-        setUser(null);
-        console.log('AuthProvider: No JWT found. User not authenticated.');
-      }
-      setIsLoading(false); // Authentication check is complete
-      console.log('AuthProvider: Initial loading finished.');
-    };
-
-    checkAuthStatus();
-  }, []); // Run only once on mount
+useEffect(() => {
+  if (user && user.balance !== undefined) {
+    setBalance(user.balance);
+  }
+}, [user, setBalance]);
 
   // Login function to set authentication state and store token/user data
   const login = (token: string, userData: UserProfile) => {
     localStorage.setItem('jwtToken', token);
-    localStorage.setItem('user', JSON.stringify(userData)); // Store user data
+    // Invalidate the auth query to refetch user data if needed
+    queryClient.invalidateQueries(['auth', 'me']);
 
-    setIsAuthenticated(true);
-    setUser(userData);
-    setIsLoading(false); // After login, loading is complete
-    console.log('AuthProvider: User logged in and data stored.');
+    console.log('AuthProvider: User logged in and token stored.');
 
     // Set show_tutorial flag if it's a new user
-    if (userData?.isNewUser) {
+    if (userData?.isNewUser) { // Assuming userData is passed or derived from a successful login
       localStorage.setItem('show_tutorial', 'true');
       console.log('AuthProvider: show_tutorial flag set.');
     } else {
@@ -111,27 +79,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Placeholder logout function
   const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    setIsLoading(false); // After logout, loading is complete
-    // Temporarily expose logout to window for testing purposes
-    if (typeof window !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).logout = logout;
-    }
-    // In a real app, this would also clear tokens, etc.
+    localStorage.removeItem('jwtToken'); // Clear the token
+    queryClient.setQueryData(['auth', 'me'], null); // Clear user data in query cache
+    console.log('AuthProvider: User logged out and token cleared.');
   };
 
-  // Placeholder updateProfile function
   const updateProfile = (newProfile: Partial<UserProfile>) => {
-    setUser((prevUser) => {
-      if (prevUser) {
-        return { ...prevUser, ...newProfile };
-      }
-      return null;
-    });
+    // For Apollo/React Query setup, instead of direct state update,
+    // you might trigger a mutation or refetch the 'me' query after a profile update API call.
+    // For now, let's just invalidate and refetch.
+    queryClient.invalidateQueries(['auth', 'me']);
+    console.log('AuthProvider: Profile update initiated, refetching user data.');
   };
 
   // The value provided to the consumers of the context

@@ -60,7 +60,7 @@ export default function MainLayout({
           </div>
           <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
             <ProfileButton />
-            <BalanceDisplay balance={0} /> {/* Static placeholder $0.00 */}
+            <BalanceDisplay /> {/* Now fetches balance from store */}
             <AddPaymentButton />
             <WatchAdButton />
           </div>
