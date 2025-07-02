@@ -58,7 +58,7 @@ export default function MainLayout({
               Page Title
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
             <ProfileButton />
             <BalanceDisplay balance={0} /> {/* Static placeholder $0.00 */}
             <AddPaymentButton />

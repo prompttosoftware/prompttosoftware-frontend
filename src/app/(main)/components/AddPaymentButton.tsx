@@ -1,29 +1,39 @@
+'use client';
+
 import React from 'react';
 
 const AddPaymentButton: React.FC = () => {
+  // For now, assume unauthenticated for simplicity as per instructions.
+  // In a real application, this would come from a global auth context or state.
+  const isAuthenticated = false; // Placeholder for authentication status
+
+  const handleClick = () => {
+    if (!isAuthenticated) {
+      console.log('Redirect to login for this feature.');
+    } else {
+      console.log('Payment button clicked. Initiating payment functionality.');
+    }
+  };
+
   return (
     <button
-      className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md border border-gray-400
-             md:w-12 md:h-12 lg:w-14 lg:h-14 hover:bg-gray-300 transition-colors duration-200"
-      onClick={() => {
-        const isAuthenticated = false; // Placeholder for authentication state
-        if (!isAuthenticated) {
-          console.log('Redirect to login for this feature (Add Payment).');
-        } else {
-          console.log(
-            'Add Payment button clicked! (Will trigger payment flow from another Epic)',
-          );
-        }
-      }}
+      onClick={handleClick}
+      className="
+        flex items-center justify-center
+        w-10 h-10 md:w-12 md:h-12 rounded-lg
+        bg-green-500 hover:bg-green-600 active:bg-green-700
+        text-white transition-colors duration-200 ease-in-out
+        shadow-md
+      "
+      aria-label="Add Payment"
     >
-      {/* Plus icon placeholder */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
-        className="w-6 h-6 text-gray-700"
+        className="w-6 h-6"
       >
         <path
           strokeLinecap="round"

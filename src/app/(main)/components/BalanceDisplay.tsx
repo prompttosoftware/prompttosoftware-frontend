@@ -3,13 +3,16 @@ import React from 'react';
 interface BalanceDisplayProps {
   balance: number;
 }
+
 const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ balance }) => {
+  const formattedBalance = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(balance);
+
   return (
-    <div className="w-24 h-10 bg-gray-200 flex items-center justify-center rounded-md border border-gray-400">
-      <span className="text-gray-800 font-semibold text-sm">
-        $ {balance.toFixed(2)}
-      </span>{' '}
-      {/* Placeholder for balance */}
+    <div className="flex items-center justify-center w-24 h-12 bg-gray-200 text-gray-800 rounded-md border border-gray-400 font-semibold text-lg">
+      {formattedBalance}
     </div>
   );
 };
