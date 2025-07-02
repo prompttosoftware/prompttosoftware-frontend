@@ -21,5 +21,6 @@ interface UserProfile {
   firstName?: string; // Optional: User's first name
   lastName?: string; // Optional: User's last name
   roles?: string[]; // Optional: Array of roles/permissions assigned to the user
+  isNewUser?: boolean; // Indicates if the user is new and should see a tutorial
   // Add more fields as per Epic PROM-82, section 3.2 "Data models or schema"
 }

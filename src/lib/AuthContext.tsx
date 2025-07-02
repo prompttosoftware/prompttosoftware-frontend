@@ -9,7 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: UserProfile | null;
   isLoading: boolean;
-  login: (userData: UserProfile) => void;
+  login: (token: string, user: UserProfile) => void; // Modified to accept token and user
   logout: () => void;
   updateProfile: (newProfile: Partial<UserProfile>) => void;
 }
@@ -44,17 +44,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem('jwt_token');
 
       if (token) {
-        // In a real app, you'd validate the token with a backend API
-        // For now, simulate a successful authentication
-        setIsAuthenticated(true);
-        setUser({
-          id: 'user-123',
-          email: 'test@example.com',
-          firstName: 'John',
-          lastName: 'Doe',
-          roles: ['user'],
-        });
-        console.log('AuthProvider: JWT found. User authenticated.');
+        // For a real app, you'd decode the JWT or hit a /me endpoint to get fresh user data
+        // For now, load from localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+            setIsAuthenticated(true);
+            console.log('AuthProvider: JWT and user data found. User authenticated.');
+          } catch (e) {
+            console.error('Failed to parse user data from localStorage', e);
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user');
+            setIsAuthenticated(false);
+            setUser(null);
+          }
+        } else {
+          // Token found, but no user data. This scenario might need re-auth or user data fetch.
+          console.warn('AuthProvider: JWT found, but no user data. Treating as authenticated based on token presence for now.');
+          setIsAuthenticated(true); // Still treat as authenticated if token is present
+          setUser(null); // Keep user null if data is missing, or fetch it
+        }
       } else {
         setIsAuthenticated(false);
         setUser(null);
@@ -67,12 +77,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []); // Run only once on mount
 
-  // Placeholder login function (will be implemented in future tasks)
-  const login = (userData: UserProfile) => {
-    // For now, just set the state. Actual login logic will involve API calls.
+  // Login function to set authentication state and store token/user data
+  const login = (token: string, userData: UserProfile) => {
+    localStorage.setItem('jwt_token', token);
+    localStorage.setItem('user', JSON.stringify(userData)); // Store user data
+
     setIsAuthenticated(true);
     setUser(userData);
     setIsLoading(false); // After login, loading is complete
+    console.log('AuthProvider: User logged in and data stored.');
+
+    // Set show_tutorial flag if it's a new user
+    if (userData?.isNewUser) {
+      localStorage.setItem('show_tutorial', 'true');
+      console.log('AuthProvider: show_tutorial flag set.');
+    } else {
+      localStorage.removeItem('show_tutorial'); // Ensure no stale tutorial flag
+    }
   };
 
   // Placeholder logout function
