@@ -3,6 +3,8 @@
 // src/lib/AuthContext.tsx
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { setupInterceptors } from '../lib/api';
 
 // 1. Define the shape of the AuthContext value
 interface AuthContextType {
@@ -31,17 +33,30 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+interface UserProfile {
+  id: string; // Assuming user has an ID
+  email: string; // Assuming user has an email
+  isNewUser: boolean; // Add this property if it's part of your user profile
+  // Add other user properties as needed
+}
+
 // 4. Create the AuthProvider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Initial state is loading
+  const router = useRouter(); // Get the router instance
+
+  useEffect(() => {
+    // Setup interceptors when the component mounts or router changes
+    setupInterceptors(router);
+  }, [router]);
 
   // Simulate initial authentication check on component mount for testing purposes
   useEffect(() => {
     const checkAuthStatus = () => {
       console.log('AuthProvider: Checking authentication status...');
-      const token = localStorage.getItem('jwt_token');
+      const token = localStorage.getItem('jwtToken');
 
       if (token) {
         // For a real app, you'd decode the JWT or hit a /me endpoint to get fresh user data
@@ -54,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('AuthProvider: JWT and user data found. User authenticated.');
           } catch (e) {
             console.error('Failed to parse user data from localStorage', e);
-            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('jwtToken');
             localStorage.removeItem('user');
             setIsAuthenticated(false);
             setUser(null);
@@ -79,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Login function to set authentication state and store token/user data
   const login = (token: string, userData: UserProfile) => {
-    localStorage.setItem('jwt_token', token);
+    localStorage.setItem('jwtToken', token);
     localStorage.setItem('user', JSON.stringify(userData)); // Store user data
 
     setIsAuthenticated(true);
