@@ -11,9 +11,19 @@ configure({
 class MockBroadcastChannel {
   constructor(name: string) {}
   postMessage(message: any) {}
-  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) {}
-  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions) {}
-  dispatchEvent(event: Event): boolean { return true; }
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ) {}
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | EventListenerOptions,
+  ) {}
+  dispatchEvent(event: Event): boolean {
+    return true;
+  }
   close() {}
 }
 

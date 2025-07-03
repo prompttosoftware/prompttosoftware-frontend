@@ -18,9 +18,9 @@ const createLogger = (name: string): Logger => {
     // Special handling for the error method's specific arguments
     if (level === 'error') {
       const actualErrorInstance = args[0]; // This is the 'errorInstance' argument
-      const actualDetails = args[1];     // This is the 'details' argument
+      const actualDetails = args[1]; // This is the 'details' argument
       const otherUserArgs = args.slice(2); // These are the `...args` from the logger.error call
-    
+
       if (actualErrorInstance instanceof Error) {
         logMessage += `\nError: ${actualErrorInstance.message}`;
         if (actualErrorInstance.stack) {
@@ -33,7 +33,7 @@ const createLogger = (name: string): Logger => {
             : String(actualErrorInstance)
         }`;
       }
-    
+
       if (actualDetails !== undefined) {
         logMessage += `\nDetails: ${
           typeof actualDetails === 'object' && actualDetails !== null
@@ -41,7 +41,7 @@ const createLogger = (name: string): Logger => {
             : String(actualDetails)
         }`;
       }
-    
+
       if (otherUserArgs.length > 0) {
         logMessage += `\nAdditional Arguments: ${JSON.stringify(otherUserArgs)}`;
       }
@@ -49,7 +49,7 @@ const createLogger = (name: string): Logger => {
     } else {
       // General handling for other levels (info, warn, debug)
       processedArgs = [...args]; // Take all arguments from the log call initially
-    
+
       // Check if the last argument is an Error object for general levels and format it
       if (processedArgs.length > 0) {
         const lastArg = processedArgs[processedArgs.length - 1];
