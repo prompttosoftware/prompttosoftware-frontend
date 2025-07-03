@@ -6,9 +6,9 @@ import { Bars3Icon } from '@heroicons/react/24/outline'; // Import the hamburger
 import ErrorModal from './components/ErrorModal';
 import ProfileButton from './components/ProfileButton';
 import BalanceDisplay from './components/BalanceDisplay';
-import AddPaymentButton from './components/AddPaymentButton';
 import WatchAdButton from './components/WatchAdButton';
 import BannerDisplay from './components/BannerDisplay'; // Import BannerDisplay
+import { PaymentModal } from './components/PaymentModal'; // Import PaymentModal
 import { useBannerStore } from '@/store/bannerStore'; // Import useBannerStore
 
 export default function MainLayout({
@@ -61,7 +61,6 @@ export default function MainLayout({
           <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
             <ProfileButton />
             <BalanceDisplay /> {/* Now fetches balance from store */}
-            <AddPaymentButton />
             <WatchAdButton />
           </div>
         </header>
@@ -76,6 +75,7 @@ export default function MainLayout({
       </div>
 
       <ErrorModal />
+      <PaymentModal />
     </div>
   );
 }

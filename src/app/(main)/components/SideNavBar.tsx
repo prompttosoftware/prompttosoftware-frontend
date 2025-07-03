@@ -13,6 +13,7 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { AddPaymentButton } from './AddPaymentButton';
 
 const navigationItems = [
   { name: 'Home/Dashboard', href: '/', icon: HomeIcon },
@@ -114,6 +115,14 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
               )}
             </Tooltip.Root>
           ))}
+          {/* Add Funds Button */}
+          <div
+            className={`flex items-center p-3 rounded-lg text-sm font-medium ${
+              isExpanded ? 'justify-start' : 'justify-center'
+            } text-gray-300`}
+          >
+            <AddPaymentButton />
+          </div>
         </nav>
 
         {/* Spacer to push content up if needed or for future bottom items */}
