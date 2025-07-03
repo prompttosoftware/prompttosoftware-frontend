@@ -74,10 +74,21 @@ export default function Home() {
       <h1 className="text-3xl font-bold text-blue-600 mb-8 text-red-500 bg-blue-200 p-4">
         Welcome to the Next.js App!
       </h1>
-      <p className="text-lg">
+      <p className="text-lg mb-4">
         This is the main content after demonstrating all loading and empty
         states.
       </p>
+      <div className="p-6 max-w-sm mx-auto bg-white rounded-xl shadow-lg flex items-center space-x-4 mb-8">
+          <div className="shrink-0">
+              <svg className="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+          </div>
+          <div>
+              <div className="text-xl font-medium text-black">Tailwind CSS Test</div>
+              <p className="text-slate-500">If you see this styled, Tailwind is working!</p>
+          </div>
+      </div>
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
           Get started by editing&nbsp;

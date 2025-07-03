@@ -1,11 +1,12 @@
 'use client';
 
 // src/lib/AuthContext.tsx
+import { UserProfile } from '../types/auth';
 
 import React, { createContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { setupInterceptors } from '../lib/api';
-import { useAuth as useAuthApollo } from '../hooks/useUser'; // Rename to avoid conflict
+import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
 
@@ -25,7 +26,7 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
-  isLoading: true, // Default to true as authentication status is typically determined asynchronously
+  isLoading: true, // will be overridden by the actual loading state from useUserProfileQuery
   login: () => {}, // Placeholder
   logout: () => {}, // Placeholder
   updateProfile: () => {}, // Placeholder
@@ -36,22 +37,11 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-interface UserProfile {
-  id: string;
-  email: string;
-  isNewUser: boolean;
-  balance: number; // Add balance to UserProfile
-  username?: string; // Add username to UserProfile
-  imageUrl?: string; // Add imageUrl to UserProfile
-  role?: string; // Add role to UserProfile
-  // Add other user properties as needed
-}
-
 // 4. Create the AuthProvider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter(); // Get the router instance
   const queryClient = useQueryClient(); // Get query client for invalidation
-  const { user, isAuthenticated, isLoading } = useAuthApollo(); // Use the new useAuth hook
+  const { user, isLoading, error } = useUserProfileQuery(); // Use the new useAuth hook
   const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
 
   useEffect(() => {
@@ -66,26 +56,30 @@ useEffect(() => {
 }, [user, setBalance]);
 
   // Login function to set authentication state and store token/user data
+  // Define isAuthenticated within AuthProvider based on the user data from useUserProfileQuery
+  // The user is authenticated if user data is present and not loading.
+  const isAuthenticated = !!user && !isLoading;
+  
   const login = (token: string, userData: UserProfile) => {
     localStorage.setItem('jwtToken', token);
-    // Invalidate the auth query to refetch user data if needed
+    // After login, invalidate and refetch the auth query to get the latest user profile
     queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-
-    console.log('AuthProvider: User logged in and token stored.');
-
+    console.log('AuthProvider: User logged in and token stored. User profile will be refetched.');
+  
     // Set show_tutorial flag if it's a new user
-    if (userData?.isNewUser) { // Assuming userData is passed or derived from a successful login
+    if (userData?.isNewUser) {
       localStorage.setItem('show_tutorial', 'true');
-      console.log('AuthProvider: show_tutorial flag set.');
+      console.log('AuthProvider: show_tutorial flag set to true.');
     } else {
       localStorage.removeItem('show_tutorial'); // Ensure no stale tutorial flag
     }
   };
-
+  
   const logout = () => {
     localStorage.removeItem('jwtToken'); // Clear the token
-    queryClient.setQueryData(['auth', 'me'], null); // Clear user data in query cache
-    console.log('AuthProvider: User logged out and token cleared.');
+    queryClient.removeQueries({ queryKey: ['auth', 'me'] }); // Completely remove user data from cache
+    setBalance(0); // Reset balance on logout
+    console.log('AuthProvider: User logged out, token and profile cache cleared, balance reset.');
   };
 
   const updateProfile = (newProfile: Partial<UserProfile>) => {

@@ -44,6 +44,11 @@ const ProfileButton = () => {
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email || "user@example.com"}
             </p>
+            {user?.balance !== undefined && (
+<p className="text-xs leading-none text-muted-foreground">
+  Balance: {user.balance} credits
+</p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
