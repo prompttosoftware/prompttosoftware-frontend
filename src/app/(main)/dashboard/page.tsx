@@ -5,9 +5,17 @@ import { useBalance, useBalanceStore } from '@/store/balanceStore'; // Import us
 import useProtectedRoute from '@/hooks/useProtectedRoute';
 
 export default function DashboardPage() {
-  useProtectedRoute(); // Apply the protection hook
+  const { isLoading } = useProtectedRoute(); // Apply the protection hook and get isLoading
   const balance = useBalance(); // Get the current balance
   const setBalance = useBalanceStore((state) => state.setBalance); // Get the setBalance function
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-xl">Loading authentication...</p>
+      </div>
+    );
+  }
 
   const handleUpdateBalance = () => {
     const newBalance = Math.floor(Math.random() * 1000) + 1; // Simulate a new balance

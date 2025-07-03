@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from './useAuth';
-import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Assuming this path is correct
 
 const useProtectedRoute = (allowedRoles?: string[]) => {
   const { isAuthenticated, isLoading, user } = useAuth();
