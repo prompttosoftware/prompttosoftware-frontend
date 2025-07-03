@@ -13,7 +13,7 @@ import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceSto
 // 1. Define the shape of the AuthContext value
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: UserProfile | null;
+  user: UserProfile | null | undefined;
   isLoading: boolean;
   login: (token: string, user: UserProfile) => void; // Modified to accept token and user
   logout: () => void;

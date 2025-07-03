@@ -1,14 +1,22 @@
+**Project Setup Instructions:**
+
 To set up the project environment:
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+1.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-2. Run tests (example: this specific test):
+2.  **Verify Test setup (optional):**
+    ```bash
+    npm test src/app/EmptyState.test.tsx
+    ```
+    (This test should pass, indicating Jest and the environment are correctly configured.)
+
+3. **Verify running a page test:**
    ```bash
-   npm test src/app/\(main\)/new-project/page.test.tsx
+   npm test src/app/(main)/new-project/page.test.tsx
    ```
-   (Note: The tests ran, but produced errors. This is acceptable as per the task instructions.)
+   (This test is expected to execute without "file not found" errors, confirming the correct path. It may still report failing tests, which is acceptable for setup verification.)
 
 The project is now set up for development and testing.
