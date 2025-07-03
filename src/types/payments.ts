@@ -34,7 +34,13 @@ export interface CreatePaymentIntentResponse {
   paymentIntentId: string; // Unique ID of the payment intent
   amount: number;
   currency: string;
-  status: 'requires_payment_method' | 'requires_confirmation' | 'requires_action' | 'processing' | 'succeeded' | 'canceled';
+  status:
+    | 'requires_payment_method'
+    | 'requires_confirmation'
+    | 'requires_action'
+    | 'processing'
+    | 'succeeded'
+    | 'canceled';
   requiresAction?: {
     type: 'url' | 'redirect';
     url: string;
@@ -57,5 +63,3 @@ export interface DeleteSavedCardResponse {
   deletedCardId: string;
   success: boolean;
 }
-
-import { APIErrorResponse, isAPIErrorResponse, InternalServerErrorMessage, isInternalServerErrorMessage } from './common';

@@ -1,6 +1,11 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { CreatePaymentIntentRequest, CreatePaymentIntentResponse, PaymentErrorResponse, SavedCard } from '../types/payments';
+import {
+  CreatePaymentIntentRequest,
+  CreatePaymentIntentResponse,
+  PaymentErrorResponse,
+  SavedCard,
+} from '../types/payments';
 import api from './api'; // Import the axios instance
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { setupInterceptors } from '../lib/api';
@@ -74,7 +79,10 @@ describe('API Type Safety Tests', () => {
     mock.onPost('/payments/create-intent', mockRequest).reply(200, mockResponse);
 
     try {
-      const response = await api.post<CreatePaymentIntentResponse>('/payments/create-intent', mockRequest);
+      const response = await api.post<CreatePaymentIntentResponse>(
+        '/payments/create-intent',
+        mockRequest,
+      );
 
       // Verify the response data structure matches CreatePaymentIntentResponse
       const data: CreatePaymentIntentResponse = response.data; // This line checks type safety at compile time
@@ -168,7 +176,7 @@ describe('API Type Safety Tests', () => {
     // const invalidCardData: SavedCard[] = [
     //   { id: 123, brand: 'visa', last4: '4242', expMonth: 12, expYear: 2025 } as any // Intentionally wrong type
     // ];
-    // @ts-expect-error
+    // @ts-expect-error: Intentional type mismatch for compilation error test
     // processCards(invalidCardData); // This would be a compilation error
   });
 });

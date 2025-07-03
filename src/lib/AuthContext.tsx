@@ -17,7 +17,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (token: string, user: UserProfile) => void; // Modified to accept token and user
   logout: () => void;
-  updateProfile: (newProfile: Partial<UserProfile>) => void;
+  updateProfile: () => void;
 }
 
 // 2. Create the AuthContext with a default unauthenticated state
@@ -41,7 +41,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter(); // Get the router instance
   const queryClient = useQueryClient(); // Get query client for invalidation
-  const { user, isLoading, error } = useUserProfileQuery(); // Use the new useAuth hook
+  const { user, isLoading } = useUserProfileQuery(); // Use the new useAuth hook
   const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
 
   useEffect(() => {
@@ -49,23 +49,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setupInterceptors(router);
   }, [router]);
 
-useEffect(() => {
-  if (user && user.balance !== undefined) {
-    setBalance(user.balance);
-  }
-}, [user, setBalance]);
+  useEffect(() => {
+    if (user && user.balance !== undefined) {
+      setBalance(user.balance);
+    }
+  }, [user, setBalance]);
 
   // Login function to set authentication state and store token/user data
   // Define isAuthenticated within AuthProvider based on the user data from useUserProfileQuery
   // The user is authenticated if user data is present and not loading.
   const isAuthenticated = !!user && !isLoading;
-  
+
   const login = (token: string, userData: UserProfile) => {
     localStorage.setItem('jwtToken', token);
     // After login, invalidate and refetch the auth query to get the latest user profile
     queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     console.log('AuthProvider: User logged in and token stored. User profile will be refetched.');
-  
+
     // Set show_tutorial flag if it's a new user
     if (userData?.isNewUser) {
       localStorage.setItem('show_tutorial', 'true');
@@ -74,8 +74,9 @@ useEffect(() => {
       localStorage.removeItem('show_tutorial'); // Ensure no stale tutorial flag
     }
   };
-  
-  const logout = async () => { // Marked as async
+
+  const logout = async () => {
+    // Marked as async
     try {
       await api.post('/auth/logout'); // Make the API call
       console.log('Logout API call successful.');
@@ -90,10 +91,10 @@ useEffect(() => {
     // The useUserProfileQuery hook will automatically reflect the cleared state
     // (user will be null, isAuthenticated will be false).
     console.log('AuthProvider: User logged out, token and profile cache cleared, balance reset.');
-router.push('/login'); // Redirect to login page
+    router.push('/login'); // Redirect to login page
   };
 
-  const updateProfile = (newProfile: Partial<UserProfile>) => {
+  const updateProfile = () => {
     // For Apollo/React Query setup, instead of direct state update,
     // you might trigger a mutation or refetch the 'me' query after a profile update API call.
     // For now, let's just invalidate and refetch.
@@ -111,7 +112,5 @@ router.push('/login'); // Redirect to login page
     updateProfile,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

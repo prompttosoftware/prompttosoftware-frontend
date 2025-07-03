@@ -1,4 +1,4 @@
-import { useBalanceStore, useBalance } from './balanceStore';
+import { useBalanceStore } from './balanceStore';
 
 describe('balanceStore', () => {
   beforeEach(() => {
@@ -50,10 +50,10 @@ describe('balanceStore', () => {
     const { setBalance } = useBalanceStore.getState();
     setBalance(100);
     expect(useBalanceStore.getState().balance).toBe(100);
-  
+
     setBalance(150);
     expect(useBalanceStore.getState().balance).toBe(150);
-  
+
     setBalance(75);
     expect(useBalanceStore.getState().balance).toBe(75);
   });

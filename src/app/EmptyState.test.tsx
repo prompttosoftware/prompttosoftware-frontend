@@ -21,8 +21,6 @@ describe('EmptyState', () => {
     const testMessage = 'There are no items to display.';
     const actionButton = <button>Click Me</button>;
     render(<EmptyState message={testMessage} actionButton={actionButton} />);
-    expect(
-      screen.getByRole('button', { name: /click me/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
   });
 });

@@ -15,12 +15,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const ProfileButton = () => {
-  const { isAuthenticated, user, login, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
 
   if (!isAuthenticated) {
     return (
-      <Button onClick={() => router.push('/login')} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm">
+      <Button
+        onClick={() => router.push('/login')}
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm"
+      >
         Login
       </Button>
     );
@@ -32,32 +35,30 @@ const ProfileButton = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.imageUrl || "/avatars/01.png"} alt="User Avatar" />
-            <AvatarFallback>{user?.username ? user.username.charAt(0).toUpperCase() : "U"}</AvatarFallback>
+            <AvatarImage src={user?.imageUrl || '/avatars/01.png'} alt="User Avatar" />
+            <AvatarFallback>
+              {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 sm:min-w-[180px] sm:max-w-xs" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.username || "User"}</p>
+            <p className="text-sm font-medium leading-none">{user?.username || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user?.email || "user@example.com"}
+              {user?.email || 'user@example.com'}
             </p>
             {user?.balance !== undefined && (
-<p className="text-xs leading-none text-muted-foreground">
-  Balance: {user.balance} credits
-</p>
+              <p className="text-xs leading-none text-muted-foreground">
+                Balance: {user.balance} credits
+              </p>
             )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/settings')}>
-          Settings
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={logout}>
-          Log out
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
+        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

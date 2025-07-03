@@ -53,10 +53,7 @@ export const useBannerStore = create<BannerState>((set, get) => ({
         dismissedIds = JSON.parse(storedIds);
       }
     } catch (e) {
-      console.error(
-        'Failed to parse dismissed banner IDs from localStorage',
-        e,
-      );
+      console.error('Failed to parse dismissed banner IDs from localStorage', e);
       // Fallback to empty array if parsing fails
       dismissedIds = [];
     }
@@ -90,22 +87,14 @@ export const useBannerStore = create<BannerState>((set, get) => ({
     const { activeBanner, dismissedBannerIds, displayNextBanner } = get();
 
     if (activeBanner && activeBanner.dismissible) {
-      const newDismissedIds = [
-        ...new Set([...dismissedBannerIds, activeBanner.id]),
-      ];
+      const newDismissedIds = [...new Set([...dismissedBannerIds, activeBanner.id])];
       set({ dismissedBannerIds: newDismissedIds });
 
       if (typeof window !== 'undefined') {
         try {
-          localStorage.setItem(
-            BANNER_STORAGE_KEY,
-            JSON.stringify(newDismissedIds),
-          );
+          localStorage.setItem(BANNER_STORAGE_KEY, JSON.stringify(newDismissedIds));
         } catch (e) {
-          console.error(
-            'Failed to save dismissed banner IDs to localStorage',
-            e,
-          );
+          console.error('Failed to save dismissed banner IDs to localStorage', e);
         }
       }
     }

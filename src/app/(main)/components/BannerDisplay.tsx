@@ -9,11 +9,7 @@ const BannerDisplay: React.FC = () => {
   const { activeBanner, dismissCurrentBanner } = useBannerStore();
 
   useEffect(() => {
-    if (
-      activeBanner &&
-      !activeBanner.dismissible &&
-      activeBanner.autoDismissDelay
-    ) {
+    if (activeBanner && !activeBanner.dismissible && activeBanner.autoDismissDelay) {
       const timer = setTimeout(() => {
         dismissCurrentBanner();
       }, activeBanner.autoDismissDelay);
@@ -42,9 +38,7 @@ const BannerDisplay: React.FC = () => {
   const bannerStyle = getBannerStyles(activeBanner.type);
 
   return (
-    <div
-      className={`p-4 rounded-md shadow-md flex items-center justify-between ${bannerStyle}`}
-    >
+    <div className={`p-4 rounded-md shadow-md flex items-center justify-between ${bannerStyle}`}>
       <p className="font-semibold">{activeBanner.message}</p>
       {activeBanner.dismissible && (
         <button

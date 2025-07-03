@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useUserProfileQuery } from './useUserProfileQuery';
 import { fetchUserProfile } from '@/lib/api';
 import { useBalanceStore } from '@/store/balanceStore';
-import axios from 'axios';
 
 // Mock the fetchUserProfile function
 jest.mock('@/lib/api', () => ({
@@ -14,7 +13,6 @@ jest.mock('@/lib/api', () => ({
 jest.mock('@/store/balanceStore', () => ({
   useBalanceStore: jest.fn(),
 }));
-
 
 describe('useUserProfileQuery', () => {
   let queryClient: QueryClient;
@@ -38,13 +36,20 @@ describe('useUserProfileQuery', () => {
   });
 
   const createWrapper = () => {
-    return ({ children }: { children: React.ReactNode }) => (
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
+    Wrapper.displayName = 'TestWrapper'; // Assign a display name
+    return Wrapper;
   };
 
   it('should return loading state initially and then user data on success', async () => {
-    const mockUserProfile = { id: '1', username: 'testuser', email: 'test@example.com', balance: 100 };
+    const mockUserProfile = {
+      id: '1',
+      username: 'testuser',
+      email: 'test@example.com',
+      balance: 100,
+    };
     (fetchUserProfile as jest.Mock).mockResolvedValue(mockUserProfile);
 
     const { result } = renderHook(() => useUserProfileQuery(), { wrapper: createWrapper() });
@@ -77,7 +82,6 @@ describe('useUserProfileQuery', () => {
   });
 
   it('should invalidate queries on 401 error', async () => {
-    const mockAxiosError = axios.create();
     const unauthorizedError = Object.assign(new Error('Unauthorized'), {
       isAxiosError: true,
       response: { status: 401 },

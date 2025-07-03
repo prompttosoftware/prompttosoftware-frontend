@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState, Suspense, useCallback } from 'react'; import { useAuth } from '@/hooks/useAuth'; // Import useAuth
+import React, { useEffect, useState, Suspense, useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth'; // Import useAuth
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api'; // Import the axios instance
 
@@ -37,10 +38,7 @@ function LoginContent() {
       } catch (err) {
         console.error('Error exchanging code:', err);
         if (err.response) {
-          setAuthError(
-            err.response.data.message ||
-              'Authentication failed. Please try again.',
-          );
+          setAuthError(err.response.data.message || 'Authentication failed. Please try again.');
         } else if (err.request) {
           setAuthError('Network error. Please check your internet connection.');
         } else {
@@ -81,9 +79,7 @@ function LoginContent() {
     // client_id should be loaded from environment variables
     const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
     if (!GITHUB_CLIENT_ID) {
-      setAuthError(
-        'GitHub Client ID is not configured. Please contact support.',
-      );
+      setAuthError('GitHub Client ID is not configured. Please contact support.');
       console.error('NEXT_PUBLIC_GITHUB_CLIENT_ID is not set.');
       return;
     }
@@ -95,7 +91,7 @@ function LoginContent() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Welcome</h1>
-      
+
         {sessionExpired && (
           <div
             className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
@@ -105,7 +101,7 @@ function LoginContent() {
             <span className="block sm:inline"> Please log in again.</span>
           </div>
         )}
-      
+
         {authError && (
           <div
             className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
@@ -117,35 +113,28 @@ function LoginContent() {
         )}
 
         <p className="text-gray-700 mb-6">
-          To provide you with the best experience and enable full functionality,
-          we use GitHub for authentication. By signing in with GitHub, you grant
-          us permission to:
+          To provide you with the best experience and enable full functionality, we use GitHub for
+          authentication. By signing in with GitHub, you grant us permission to:
         </p>
         <ul className="text-gray-600 text-left mb-6 list-disc list-inside">
           <li>
-            <strong>Create repositories:</strong> We may create new repositories
-            on your behalf to store generated code or project-related files.
+            <strong>Create repositories:</strong> We may create new repositories on your behalf to
+            store generated code or project-related files.
           </li>
           <li>
-            <strong>Push software:</strong> We will push code and project
-            updates directly to these repositories.
+            <strong>Push software:</strong> We will push code and project updates directly to these
+            repositories.
           </li>
         </ul>
         <p className="text-gray-700 mb-8">
-          This integration streamlines your workflow and ensures your projects
-          are securely managed. We only request the necessary permissions to
-          facilitate these core functionalities.
+          This integration streamlines your workflow and ensures your projects are securely managed.
+          We only request the necessary permissions to facilitate these core functionalities.
         </p>
         <button
           onClick={handleGitHubLogin}
           className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out sm:px-8 sm:py-4 sm:text-lg"
         >
-          <svg
-            className="w-6 h-6 mr-3"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
+          <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fillRule="evenodd"
               d="M12 0C5.37 0 0 5.37 0 12c0 5.62 3.87 10.32 9.08 12C9.6 24.16 9.73 24.11 9.77 24.08c.03-.02.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-.28.48-,.01s-.07-.01-.11z"

@@ -14,9 +14,6 @@ const axiosInstance = axios.create({
 
 logger.info('Axios instance initialized with base URL:', axiosInstance.defaults.baseURL);
 
-// Global variable to store error details temporarily for display
-let errorDetails: APIErrorResponse | InternalServerErrorMessage | null = null;
-
 export const setupInterceptors = (router: AppRouterInstance) => {
   // Interceptor management (e.g., ejecting to prevent duplicates on hot-reloads)
   // is omitted here as direct access to 'handlers' is not supported in Axios types.
@@ -43,13 +40,13 @@ export const setupInterceptors = (router: AppRouterInstance) => {
 
   axiosInstance.interceptors.response.use(
     (response) => response,
-    async (error) => { // Made async for potential await in future (e.g., token refresh)
+    async (error) => {
+      // Made async for potential await in future (e.g., token refresh)
       const { setError } = useGlobalErrorStore.getState();
       let errorMessage = 'An unexpected error occurred.';
       // The errorDetails variable declared here is local to the interceptor,
       // and shadows the global one. This is fine as it's used for the current error.
       let localErrorDetails: APIErrorResponse | InternalServerErrorMessage | null = null;
-
 
       if (axios.isAxiosError(error) && error.response) {
         const { status, data } = error.response;
@@ -58,11 +55,12 @@ export const setupInterceptors = (router: AppRouterInstance) => {
 
         switch (status) {
           case 400:
-            errorMessage =
-              data.message || 'Bad Request: The request was invalid.';
+            errorMessage = data.message || 'Bad Request: The request was invalid.';
             break;
           case 401:
-            logger.warn('401 Unauthorized response received. Clearing JWT and redirecting to login.');
+            logger.warn(
+              '401 Unauthorized response received. Clearing JWT and redirecting to login.',
+            );
             try {
               localStorage.removeItem('jwtToken'); // Clear the invalid or expired JWT
               logger.info('JWT token cleared from localStorage.');
@@ -72,24 +70,19 @@ export const setupInterceptors = (router: AppRouterInstance) => {
             // Redirect the user
             router.push('/login?sessionExpired=true');
             errorMessage =
-              data.message ||
-              'Unauthorized: Authentication is required or has failed.';
+              data.message || 'Unauthorized: Authentication is required or has failed.';
             // Important: Reject the promise to stop further processing for 401 after handling
             return Promise.reject(error);
           case 403:
             errorMessage =
-              data.message ||
-              'Forbidden: You do not have permission to access this resource.';
+              data.message || 'Forbidden: You do not have permission to access this resource.';
             break;
           case 404:
-            errorMessage =
-              data.message ||
-              'Not Found: The requested resource could not be found.';
+            errorMessage = data.message || 'Not Found: The requested resource could not be found.';
             break;
           case 500:
             errorMessage =
-              data.message ||
-              'Internal Server Error: Something went wrong on the server.';
+              data.message || 'Internal Server Error: Something went wrong on the server.';
             break;
           default:
             errorMessage = data.message || `HTTP Error: ${status}`;
@@ -105,7 +98,6 @@ export const setupInterceptors = (router: AppRouterInstance) => {
         details: localErrorDetails, // Use localErrorDetails here
       });
       logger.error('API Error:', new Error(errorMessage), localErrorDetails); // Log the error
-
 
       return Promise.reject(error);
     },
