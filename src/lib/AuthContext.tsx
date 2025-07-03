@@ -5,7 +5,7 @@ import { UserProfile } from '../types/auth';
 
 import React, { createContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { setupInterceptors } from '../lib/api';
+import { api, setupInterceptors } from '../lib/api'; // Import 'api'
 import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
@@ -75,11 +75,22 @@ useEffect(() => {
     }
   };
   
-  const logout = () => {
+  const logout = async () => { // Marked as async
+    try {
+      await api.post('/auth/logout'); // Make the API call
+      console.log('Logout API call successful.');
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Continue with client-side logout even if API call fails
+      // as the token might be invalid or the backend session already expired.
+    }
     localStorage.removeItem('jwtToken'); // Clear the token
     queryClient.removeQueries({ queryKey: ['auth', 'me'] }); // Completely remove user data from cache
     setBalance(0); // Reset balance on logout
+    // The useUserProfileQuery hook will automatically reflect the cleared state
+    // (user will be null, isAuthenticated will be false).
     console.log('AuthProvider: User logged out, token and profile cache cleared, balance reset.');
+router.push('/login'); // Redirect to login page
   };
 
   const updateProfile = (newProfile: Partial<UserProfile>) => {
