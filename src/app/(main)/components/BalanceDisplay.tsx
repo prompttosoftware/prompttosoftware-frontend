@@ -10,7 +10,7 @@ const BalanceDisplay: React.FC = () => { // No longer needs props
   }).format(balance);
 
   return (
-    <div className="flex items-center justify-center w-24 h-12 bg-gray-200 text-gray-800 rounded-md border border-gray-400 font-semibold text-lg">
+    <div className="flex items-center justify-end px-4 py-2 bg-gray-700 text-green-400 rounded-lg text-xl font-bold min-w-[120px]">
       {formattedBalance}
     </div>
   );
