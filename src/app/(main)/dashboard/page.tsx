@@ -35,8 +35,9 @@ export default function DashboardPage() {
         Simulate Balance Update
       </button>
       <p className="mt-4 text-sm text-gray-600">
-        (Balance will update automatically if `useAuthApollo` updates the user profile with a new balance,
-        or you can use the button above to simulate a change locally for testing reactivity.)
+        (Balance will update automatically if `useAuthApollo` updates the user profile with a new
+        balance, or you can use the button above to simulate a change locally for testing
+        reactivity.)
       </p>
     </div>
   );

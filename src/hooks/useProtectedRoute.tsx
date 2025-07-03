@@ -5,7 +5,7 @@ import { useAuth } from './useAuth';
 const useProtectedRoute = (allowedRoles?: string[]) => {
   const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
-const pathname = usePathname();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (isLoading) {
@@ -23,7 +23,7 @@ const pathname = usePathname();
       // For now, focusing on isAuthenticated check as per prompt.
       // router.push('/dashboard'); // Or another appropriate page
     }
-  }, [isAuthenticated, isLoading, router, allowedRoles, user]);
+  }, [isAuthenticated, isLoading, router, allowedRoles, user, pathname]);
 
   return { isAuthenticated, isLoading };
 };

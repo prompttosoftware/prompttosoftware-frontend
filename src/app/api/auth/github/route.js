@@ -4,29 +4,23 @@ export async function POST(request) {
   const { code } = await request.json();
 
   if (!code) {
-    return NextResponse.json(
-      { message: 'Authorization code is missing.' },
-      { status: 400 },
-    );
+    return NextResponse.json({ message: 'Authorization code is missing.' }, { status: 400 });
   }
 
   try {
     // Step 1: Exchange the authorization code for an access token with GitHub
-    const tokenResponse = await fetch(
-      'https://github.com/login/oauth/access_token',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json', // Crucial to get JSON response
-        },
-        body: JSON.stringify({
-          client_id: process.env.GITHUB_CLIENT_ID,
-          client_secret: process.env.GITHUB_CLIENT_SECRET,
-          code,
-        }),
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json', // Crucial to get JSON response
       },
-    );
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+      }),
+    });
 
     const tokenData = await tokenResponse.json();
 

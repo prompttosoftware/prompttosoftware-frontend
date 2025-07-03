@@ -12,11 +12,7 @@ import { PaymentModal } from './components/PaymentModal'; // Import PaymentModal
 import { useBannerStore } from '@/store/bannerStore'; // Import useBannerStore
 import { StripeWrapper } from '@/components/StripeWrapper'; // Import StripeWrapper
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false); // New state for mobile nav
 

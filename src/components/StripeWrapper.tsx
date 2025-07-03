@@ -14,9 +14,5 @@ interface StripeWrapperProps {
 }
 
 export function StripeWrapper({ children }: StripeWrapperProps) {
-  return (
-    <Elements stripe={stripePromise}>
-      {children}
-    </Elements>
-  );
+  return <Elements stripe={stripePromise}>{children}</Elements>;
 }

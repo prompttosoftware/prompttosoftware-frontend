@@ -17,8 +17,6 @@ export interface AdCreditResponse {
   creditedAmount: number; // The amount that was successfully credited in this transaction
 }
 
-
-
 /**
  * Represents a basic Ad creative.
  */
@@ -160,5 +158,3 @@ export interface AdPerformanceMetrics {
   cpc: number; // Cost per click (spend / clicks)
   cpa: number; // Cost per acquisition/conversion (spend / conversions)
 }
-
-import { APIErrorResponse, isAPIErrorResponse } from './common';

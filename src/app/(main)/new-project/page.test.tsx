@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import NewProjectPage from './page'; // Adjust the import path as necessary
+import { useGlobalError } from '@/hooks/useGlobalError'; // Added import for useGlobalError
 
 // Mock the useRouter hook from next/navigation
 jest.mock('next/navigation', () => ({
@@ -26,11 +27,12 @@ jest.mock('@/hooks/useGlobalError', () => ({
 
 const handlers = [
   // Default handler for success scenario based on initial page.tsx logic
-  http.post('/api/projects', async ({ request }) => { // Change signature to use request directly
-    console.log("MSW Handler - Request body:", await request.json()); // Can log request body here
+  http.post('/api/projects', async ({ request }) => {
+    // Change signature to use request directly
+    console.log('MSW Handler - Request body:', await request.json()); // Can log request body here
     return HttpResponse.json(
       { projectId: 'proj_test_123', message: 'Project created successfully!' },
-      { status: 201 }
+      { status: 201 },
     );
   }),
 ];
@@ -84,7 +86,7 @@ describe('NewProjectPage Unit Tests', () => {
   it('displays positive number validation error for Max Budget', async () => {
     render(<NewProjectPage />);
 
-    const maxBudgetInput = screen.getByLabelText(/Max Budget \(\$\)/i);
+    const maxBudgetInput = screen.getByLabelText(/Max Budget (\$) /i);
     fireEvent.change(maxBudgetInput, { target: { value: '-50' } });
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
@@ -103,29 +105,36 @@ describe('NewProjectPage Unit Tests', () => {
   it('does not display validation errors when inputs are valid', async () => {
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), { target: { value: 'Valid description' } });
+    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+      target: { value: 'Valid description' },
+    });
     fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '10' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget \(\$\)/i), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
     // Wait for any potential validation message to NOT appear, or for the submission process to start
-    await waitFor(() => {
-      expect(screen.queryByText(/Project description is required/i)).not.toBeInTheDocument();
-      expect(screen.queryAllByText(/Must be a positive number/i)).toHaveLength(0);
-    }, { timeout: 1000 }); // Short timeout as we expect things to NOT appear quickly
+    await waitFor(
+      () => {
+        expect(screen.queryByText(/Project description is required/i)).not.toBeInTheDocument();
+        expect(screen.queryAllByText(/Must be a positive number/i)).toHaveLength(0);
+      },
+      { timeout: 1000 },
+    ); // Short timeout as we expect things to NOT appear quickly
   });
 });
 
 describe('NewProjectPage Integration Tests (MSW)', () => {
-  it('handles successful project creation (201 Created)', async () => {
-    const { setError: mockSetGlobalError } = require('@/hooks/useGlobalError').useGlobalError(); // Get mock instance
+  const { setError: mockSetGlobalError } = useGlobalError(); // Moved to top-level of this describe block
 
+  it('handles successful project creation (201 Created)', async () => {
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), { target: { value: 'A new project description' } });
+    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+      target: { value: 'A new project description' },
+    });
     fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget \(\$\)/i), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
@@ -144,9 +153,8 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
   });
 
   it('handles API validation errors (400 Bad Request)', async () => {
-    const { setError: mockSetGlobalError } = require('@/hooks/useGlobalError').useGlobalError();
-
     server.use(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       http.post('/api/projects', async ({ request }) => {
         return HttpResponse.json(
           {
@@ -156,21 +164,27 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
               maxRuntimeHours: 'Max runtime cannot exceed 1000 hours.',
             },
           },
-          { status: 400 }
+          { status: 400 },
         );
-      })
+      }),
     );
 
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), { target: { value: 'Invalid Description!' } });
-    fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '1200' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget \(\$\)/i), { target: { value: '50' } });
+    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+      target: { value: 'Invalid Description!' },
+    });
+    fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), {
+      target: { value: '1200' },
+    });
+    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '50' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Description cannot contain special characters./i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Description cannot contain special characters./i),
+      ).toBeInTheDocument();
       expect(screen.getByText(/Max runtime cannot exceed 1000 hours./i)).toBeInTheDocument();
       expect(mockSetGlobalError).toHaveBeenCalledWith({
         message: 'Please check the form for errors.',
@@ -183,22 +197,20 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
   });
 
   it('handles general API errors (500 Internal Server Error)', async () => {
-    const { setError: mockSetGlobalError } = require('@/hooks/useGlobalError').useGlobalError();
-
     server.use(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       http.post('/api/projects', async ({ request }) => {
-        return HttpResponse.json(
-          { message: 'Internal Server Error' },
-          { status: 500 }
-        );
-      })
+        return HttpResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+      }),
     );
 
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), { target: { value: 'Valid description for server error test' } });
+    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+      target: { value: 'Valid description for server error test' },
+    });
     fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '10' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget \(\$\)/i), { target: { value: '100' } });
+    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 

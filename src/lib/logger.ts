@@ -1,9 +1,9 @@
 // Placeholder for logger utility
 const logger = {
-  info: (...args: any[]) => console.log('INFO:', ...args),
-  warn: (...args: any[]) => console.warn('WARN:', ...args),
-  error: (...args: any[]) => console.error('ERROR:', ...args),
-  debug: (...args: any[]) => console.debug('DEBUG:', ...args),
+  info: (...args: unknown[]) => console.log('INFO:', ...args),
+  warn: (...args: unknown[]) => console.warn('WARN:', ...args),
+  error: (...args: unknown[]) => console.error('ERROR:', ...args),
+  debug: (...args: unknown[]) => console.debug('DEBUG:', ...args),
 };
 
 export { logger };

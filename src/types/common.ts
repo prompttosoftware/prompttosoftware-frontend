@@ -17,20 +17,13 @@ export interface InternalServerErrorMessage {
 }
 
 // Type guard for API common error response
-export function isAPIErrorResponse(data: any): data is APIErrorResponse {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'message' in data
-  );
+export function isAPIErrorResponse(data: unknown): data is APIErrorResponse {
+  return typeof data === 'object' && data !== null && 'message' in data;
 }
 
 // Type guard for Internal Server Error Message
-export function isInternalServerErrorMessage(data: any): data is InternalServerErrorMessage {
+export function isInternalServerErrorMessage(data: unknown): data is InternalServerErrorMessage {
   return (
-    typeof data === 'object' &&
-    data !== null &&
-    'message' in data &&
-    Object.keys(data).length === 1 // Typically, only contains a message field
+    typeof data === 'object' && data !== null && 'message' in data && Object.keys(data).length === 1 // Typically, only contains a message field
   );
 }

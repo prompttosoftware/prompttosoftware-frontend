@@ -38,8 +38,9 @@ const DataFetcher: React.FC = () => {
         }
         const result = await response.json();
         setData(result.message);
-      } catch (e: any) {
-        setError(e.message);
+      } catch (e: unknown) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Error can be of any type
+        setError((e as any).message);
       } finally {
         setLoading(false);
       }
@@ -79,7 +80,7 @@ describe('DataFetcher component with MSW', () => {
     server.use(
       http.get('https://api.example.com/data', () => {
         return new HttpResponse(null, { status: 500, statusText: 'Internal Server Error' });
-      })
+      }),
     );
 
     render(<DataFetcher />);

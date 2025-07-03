@@ -7,16 +7,10 @@ export const metadata = {
   description: 'An AI-powered software development platform designed to bring your ideas to life.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
