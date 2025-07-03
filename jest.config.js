@@ -24,20 +24,22 @@ const customJestConfig = {
     ReadableStream: ReadableStream,
     WritableStream: WritableStream,
     TransformStream: TransformStream,
-    MessagePort: MockMessagePort, // Re-adding MessagePort to globals
+    MessagePort: MockMessagePort,
   },
   testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).[jt]s?(x)'],
   setupFiles: ['<rootDir>/jest.setup.js'],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'], // This might be redundant if setupFiles is enough
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@xenova/transformers$': '<rootDir>/__mocks__/@xenova/transformers.js',
   },
   testEnvironment: 'jsdom',
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+    '^.+\\.(ts|tsx)$': 'ts-jest', // Use ts-jest for TypeScript files
+    '^.+\\.(js|jsx)$': ['babel-jest', { presets: ['next/babel'] }], // Use babel-jest for JS/JSX
   },
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!(?:@xenova/transformers)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
 };
