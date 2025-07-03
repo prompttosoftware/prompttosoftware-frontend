@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useGlobalErrorStore } from '../store/globalErrorStore';
-import { logger } from '../utils/logger'; // Import the logger
+import { logger } from './logger'; // Import the logger
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { APIErrorResponse, InternalServerErrorMessage } from '../types/common';
 

@@ -5,7 +5,7 @@ import { UserProfile } from '../types/auth';
 
 import React, { createContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, setupInterceptors } from '../lib/api'; // Import 'api'
+import api, { setupInterceptors } from '../lib/api'; // Import 'api' as default
 import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore

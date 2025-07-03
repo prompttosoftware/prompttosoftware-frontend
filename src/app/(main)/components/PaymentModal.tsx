@@ -27,7 +27,7 @@ export function PaymentModal() {
   const [currentStep, setCurrentStep] = useState<PaymentStep>('initial'); // New state for managing steps
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'paypal'>('card');
   const [isLoading, setIsLoading] = useState(false);
-  const { getUserToken } = useAuth();
+  
   const { setError, clearError } = useGlobalErrorStore();
   const queryClient = useQueryClient(); // Get queryClient
   
@@ -81,7 +81,7 @@ export function PaymentModal() {
       setIsLoading(true);
       clearError(); // Clear any previous errors
       
-      const token = getUserToken();
+      const token = localStorage.getItem('jwtToken');
       if (!token) {
         setError({ message: 'Authentication required. Please log in again.', type: 'error' });
         logger.error('No JWT token found for payment intent creation.');
@@ -122,7 +122,7 @@ export function PaymentModal() {
           }
         );
       
-        const { clientSecret: newClientSecret, paymentIntentId } = response.data; // Renamed to avoid conflicts
+        const { clientSecret: newClientSecret, paymentIntentId } = response.data;
         setClientSecret(newClientSecret);
         logger.info(`Payment Intent created successfully: ${paymentIntentId}`);
         setCurrentStep('cardConfirmation'); // Move to the next step

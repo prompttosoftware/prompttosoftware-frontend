@@ -5,7 +5,7 @@ interface PaymentModalState {
   amount: string; // Amount as a string, e.g., from input
   description: string;
   clientSecret: string | null; // For Stripe Payment Intent client secret
-  openModal: (amount: string, description?: string) => void;
+  openModal: (amount?: string, description?: string) => void;
   closeModal: () => void;
   setClientSecret: (secret: string | null) => void;
   clearState: () => void; // To clear states after a successful payment or modal close
