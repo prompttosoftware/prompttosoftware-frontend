@@ -5,7 +5,7 @@
 import React, { createContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { setupInterceptors } from '../lib/api';
-import { useAuth as useAuthApollo } from '../hooks/useAuth'; // Rename to avoid conflict
+import { useAuth as useAuthApollo } from '../hooks/useUser'; // Rename to avoid conflict
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
 
@@ -41,6 +41,9 @@ interface UserProfile {
   email: string;
   isNewUser: boolean;
   balance: number; // Add balance to UserProfile
+  username?: string; // Add username to UserProfile
+  imageUrl?: string; // Add imageUrl to UserProfile
+  role?: string; // Add role to UserProfile
   // Add other user properties as needed
 }
 

@@ -17,7 +17,7 @@ const pathname = usePathname();
       // If not authenticated, redirect to login page
       // No query parameters for redirection in this step as per instructions
       router.push(`/login?redirect=${pathname}`);
-    } else if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    } else if (allowedRoles && user && user.role && !allowedRoles.includes(user.role)) {
       // If authenticated but role is not allowed, redirect to a forbidden page or dashboard
       // This part is an optional extension for role-based access, but not explicitly requested yet.
       // For now, focusing on isAuthenticated check as per prompt.
