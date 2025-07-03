@@ -10,9 +10,9 @@ import { AutoModelForSequenceClassification, AutoTokenizer, pipeline } from '@xe
 // import { logger } from '../lib/logger'; // Import the logger utility
 // Temporarily using console for debugging during development
 const logger = {
-    info: console.log,
-    warn: console.warn,
-    error: console.error,
+  info: console.log,
+  warn: console.warn,
+  error: console.error,
 };
 
 // Cache for the loaded model and tokenizer
@@ -80,11 +80,20 @@ async function loadModelAndPipeline(): Promise<void> {
     //    For actual duration estimation, a fine-tuned regression model or a text generation model
     //    trained for this task would be required. For this task, we will simulate its output
     //    to match the expected numeric duration.
-    
+
     logger.info('Attempting to load transformers.js model and pipeline...');
     // Log 1: Before model loading
-    console.log('loadModelAndPipeline: Before model loading. model:', model, 'tokenizer:', tokenizer, 'estimationPipelineInstance:', estimationPipelineInstance);
-    model = await AutoModelForSequenceClassification.from_pretrained('Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+    console.log(
+      'loadModelAndPipeline: Before model loading. model:',
+      model,
+      'tokenizer:',
+      tokenizer,
+      'estimationPipelineInstance:',
+      estimationPipelineInstance,
+    );
+    model = await AutoModelForSequenceClassification.from_pretrained(
+      'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
+    );
     // Log 2: After model loading
     console.log('loadModelAndPipeline: After model loading. model:', !!model);
 
@@ -94,26 +103,34 @@ async function loadModelAndPipeline(): Promise<void> {
     // Log 4: After tokenizer loading
     console.log('loadModelAndPipeline: After tokenizer loading. tokenizer:', !!tokenizer);
 
-
     // Create a pipeline for text classification. We will mock its output for duration estimation.
     // Log 5: Before pipeline creation
-    console.log('loadModelAndPipeline: Before pipeline creation. estimationPipelineInstance:', estimationPipelineInstance);
+    console.log(
+      'loadModelAndPipeline: Before pipeline creation. estimationPipelineInstance:',
+      estimationPipelineInstance,
+    );
     estimationPipelineInstance = await pipeline('text-classification', model, tokenizer);
     // Log 6: After pipeline creation
-    console.log('loadModelAndPipeline: After pipeline creation. estimationPipelineInstance:', !!estimationPipelineInstance);
-    
+    console.log(
+      'loadModelAndPipeline: After pipeline creation. estimationPipelineInstance:',
+      !!estimationPipelineInstance,
+    );
+
     // Assign to window for global access, as implied by the task description's use of window.pipeline
     // We will use window.estimationPipeline to avoid conflict if 'pipeline' is a common global name.
     if (typeof window !== 'undefined') {
       window.estimationPipeline = estimationPipelineInstance;
       // Also assign device capability detection to window for consistent access pattern.
-      window.isDeviceCapable = detectDeviceCapability; 
+      window.isDeviceCapable = detectDeviceCapability;
     }
 
     logger.info('Transformers.js model, tokenizer, and pipeline loaded successfully.');
     isMLModelActive = true;
     // Log 7: After setting isMLModelActive to true
-    console.log('loadModelAndPipeline: isMLModelActive set to true. Current value:', isMLModelActive);
+    console.log(
+      'loadModelAndPipeline: isMLModelActive set to true. Current value:',
+      isMLModelActive,
+    );
     mlModelErrorMessage = null;
   } catch (error) {
     logger.error('Failed to load transformers.js model and pipeline:', error);
@@ -131,7 +148,12 @@ async function loadModelAndPipeline(): Promise<void> {
  * @returns An object containing estimatedDuration (in hours) and calculatedCost,
  *          along with whether the ML model was used and any associated error message.
  */
-export async function getEstimatedDurationAndCost(description: string): Promise<{ estimatedDuration: number; calculatedCost: number, modelUsed: boolean, modelErrorMessage: string | null }> {
+export async function getEstimatedDurationAndCost(description: string): Promise<{
+  estimatedDuration: number;
+  calculatedCost: number;
+  modelUsed: boolean;
+  modelErrorMessage: string | null;
+}> {
   let estimatedDuration: number;
   let modelWasUsed: boolean = false; // Initialize to false
 
@@ -139,19 +161,29 @@ export async function getEstimatedDurationAndCost(description: string): Promise<
   // now gracefully handles errors and updates `isMLModelActive` and `mlModelErrorMessage`.
   await loadModelAndPipeline();
 
-  const deviceIsCapable = typeof window !== 'undefined' && window.isDeviceCapable && window.isDeviceCapable(); 
+  const deviceIsCapable =
+    typeof window !== 'undefined' && window.isDeviceCapable && window.isDeviceCapable();
 
   // Log before the condition in getEstimatedDurationAndCost
-  console.log('getEstimatedDurationAndCost: Condition check -> isMLModelActive:', isMLModelActive, 'deviceIsCapable:', deviceIsCapable, 'estimationPipelineInstance:', !!estimationPipelineInstance, 'mlModelErrorMessage:', mlModelErrorMessage);
+  console.log(
+    'getEstimatedDurationAndCost: Condition check -> isMLModelActive:',
+    isMLModelActive,
+    'deviceIsCapable:',
+    deviceIsCapable,
+    'estimationPipelineInstance:',
+    !!estimationPipelineInstance,
+    'mlModelErrorMessage:',
+    mlModelErrorMessage,
+  );
   if (isMLModelActive && deviceIsCapable && estimationPipelineInstance) {
     try {
-      logger.info("Attempting to use transformers.js model for estimation...");
+      logger.info('Attempting to use transformers.js model for estimation...');
       // Use the cached estimationPipelineInstance if available
       const result = await estimationPipelineInstance(description);
-      
+
       let modelOutputDuration: number | undefined;
 
-      // Simulate duration extraction from sentiment analysis output or similar; 
+      // Simulate duration extraction from sentiment analysis output or similar;
       // A real model for duration would return a number directly or predictably.
       // For demonstration, map sentiment to duration: Positive -> shorter, Negative -> longer.
       if (Array.isArray(result) && result.length > 0 && result[0]?.label) {
@@ -160,29 +192,34 @@ export async function getEstimatedDurationAndCost(description: string): Promise<
 
         if (label === 'POSITIVE') {
           // More positive, shorter duration, e.g., 5-15 hours
-          modelOutputDuration = 15 - (score * 10); // Between 5 and 15
+          modelOutputDuration = 15 - score * 10; // Between 5 and 15
         } else if (label === 'NEGATIVE') {
           // More negative, longer duration, e.g., 20-50 hours
-          modelOutputDuration = 20 + (score * 30); // Between 20 and 50
+          modelOutputDuration = 20 + score * 30; // Between 20 and 50
         }
       }
 
-      if (typeof modelOutputDuration === 'number' && !isNaN(modelOutputDuration) && modelOutputDuration > 0) {
+      if (
+        typeof modelOutputDuration === 'number' &&
+        !isNaN(modelOutputDuration) &&
+        modelOutputDuration > 0
+      ) {
         estimatedDuration = Math.max(1, parseFloat(modelOutputDuration.toFixed(2))); // Ensure minimum 1 hour
         logger.info(`Model estimated duration: ${estimatedDuration} hours.`);
         modelWasUsed = true;
       } else {
-        logger.warn("Model output could not be parsed as a valid duration or was unexpected. Falling back to heuristic.");
+        logger.warn(
+          'Model output could not be parsed as a valid duration or was unexpected. Falling back to heuristic.',
+        );
         // If model output is invalid, set an error message and fall back.
-        mlModelErrorMessage = "Model output was unexpected, fell back to heuristic.";
+        mlModelErrorMessage = 'Model output was unexpected, fell back to heuristic.';
         estimatedDuration = calculateHeuristicDuration(description);
         modelWasUsed = false;
       }
-
     } catch (error) {
-      logger.error("Error during transformers.js model inference:", error);
+      logger.error('Error during transformers.js model inference:', error);
       mlModelErrorMessage = `Model inference failed: ${error instanceof Error ? error.message : String(error)}`;
-      logger.info("Falling back to heuristic for estimation...");
+      logger.info('Falling back to heuristic for estimation...');
       estimatedDuration = calculateHeuristicDuration(description);
       modelWasUsed = false;
     }
@@ -190,16 +227,16 @@ export async function getEstimatedDurationAndCost(description: string): Promise<
     // Determine the specific reason for not using the ML model
     let reasonMessage: string;
     if (!deviceIsCapable) {
-      reasonMessage = "Device not capable.";
+      reasonMessage = 'Device not capable.';
       mlModelErrorMessage = reasonMessage; // Explicitly set it here
     } else if (mlModelErrorMessage) {
       // If mlModelErrorMessage was set during model loading failure
       reasonMessage = mlModelErrorMessage;
     } else {
       // General fallback if no specific error message was set
-      reasonMessage = "Transformers.js pipeline not available or device not capable.";
+      reasonMessage = 'Transformers.js pipeline not available or device not capable.';
     }
-  
+
     logger.warn(`${reasonMessage} Using heuristic for estimation...`);
     estimatedDuration = calculateHeuristicDuration(description);
     modelWasUsed = false;
@@ -207,10 +244,16 @@ export async function getEstimatedDurationAndCost(description: string): Promise<
 
   // Calculate the estimated cost using the formula:
   // flat rate (per hour) * completion time + hourly AI API cost * completion time
-  const calculatedCost = (FLAT_RATE_PER_HOUR * estimatedDuration) + (HOURLY_AI_API_COST * estimatedDuration);
+  const calculatedCost =
+    FLAT_RATE_PER_HOUR * estimatedDuration + HOURLY_AI_API_COST * estimatedDuration;
 
   // Return the result, indicating whether the ML model was used and any error message.
-  return { estimatedDuration, calculatedCost, modelUsed: modelWasUsed, modelErrorMessage: modelWasUsed ? null : mlModelErrorMessage };
+  return {
+    estimatedDuration,
+    calculatedCost,
+    modelUsed: modelWasUsed,
+    modelErrorMessage: modelWasUsed ? null : mlModelErrorMessage,
+  };
 }
 
 /**
@@ -247,32 +290,36 @@ export function resetMLModelStatus(): void {
  * @returns Estimated duration in hours.
  */
 function calculateHeuristicDuration(description: string): number {
-  const words = description.split(/\s+/).filter(word => word.length > 0);
+  const words = description.split(/\s+/).filter((word) => word.length > 0);
   const wordCount = words.length;
 
   let baseDuration = wordCount / 20; // 1 hour per 20 words as a base heuristic
 
   // Adjust based on keywords, case-insensitive
   const lowerDescription = description.toLowerCase();
-  if (lowerDescription.includes("complex") || lowerDescription.includes("advanced")) {
+  if (lowerDescription.includes('complex') || lowerDescription.includes('advanced')) {
     baseDuration *= 1.8; // More complex, longer duration
   }
-  if (lowerDescription.includes("simple") || lowerDescription.includes("basic")) {
+  if (lowerDescription.includes('simple') || lowerDescription.includes('basic')) {
     baseDuration *= 0.6; // Simpler, shorter duration
   }
-  if (lowerDescription.includes("large scale") || lowerDescription.includes("extensive")) {
+  if (lowerDescription.includes('large scale') || lowerDescription.includes('extensive')) {
     baseDuration *= 1.5;
   }
-  if (lowerDescription.includes("small project") || lowerDescription.includes("minor")) {
+  if (lowerDescription.includes('small project') || lowerDescription.includes('minor')) {
     baseDuration *= 0.7;
   }
-  if (lowerDescription.includes("prototype") || lowerDescription.includes("quick")) {
+  if (lowerDescription.includes('prototype') || lowerDescription.includes('quick')) {
     baseDuration *= 0.4;
   }
-  if (lowerDescription.includes("data science") || lowerDescription.includes("machine learning") || lowerDescription.includes("ai model")) {
+  if (
+    lowerDescription.includes('data science') ||
+    lowerDescription.includes('machine learning') ||
+    lowerDescription.includes('ai model')
+  ) {
     baseDuration *= 2.0; // AI/ML projects often more complex
   }
-  if (lowerDescription.includes("integration") || lowerDescription.includes("api")) {
+  if (lowerDescription.includes('integration') || lowerDescription.includes('api')) {
     baseDuration *= 1.3;
   }
 

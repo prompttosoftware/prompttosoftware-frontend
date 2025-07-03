@@ -14,7 +14,9 @@ class MockMessagePort {
   removeEventListener() {}
   start() {}
   close() {}
-  dispatchEvent() { return true; }
+  dispatchEvent() {
+    return true;
+  }
 }
 
 const customJestConfig = {

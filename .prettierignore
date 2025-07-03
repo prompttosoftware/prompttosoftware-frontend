@@ -1,0 +1,73 @@
+# IDE and editor files
+.idea
+.vscode
+
+# Node.js
+node_modules
+dist
+build
+.next
+out
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency directories
+jspm_packages/
+
+# Data
+*.db
+
+# Uploads
+uploads/
+
+# Miscellaneous
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+.env
+
+# Storybook cache
+.storybook-cache
+
+# Linter and formatter cache
+.eslintcache
+.prettiercache
+
+# Next.js specific
+.next/
+out/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Next.js build output
+.next
+out
+
+# npm package manager
+node_modules
+
+# TypeScript build files
+dist
+
+# Compiled output
+lib
+
+# Eslint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Cypress
+cypress/videos/
+cypress/screenshots/

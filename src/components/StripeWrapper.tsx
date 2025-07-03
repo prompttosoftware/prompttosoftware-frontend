@@ -3,7 +3,7 @@
 import React, { ReactNode } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import {useTheme} from "next-themes";
+import { useTheme } from 'next-themes';
 
 // Make sure to call loadStripe outside of a component’s render to avoid
 // recreating the Stripe object on every render.
@@ -19,8 +19,8 @@ export function StripeWrapper({ children }: StripeWrapperProps) {
 
   const options = {
     appearance: {
-      theme: theme === "dark" ? "night" : "stripe",
-      labels: "floating" as "floating", 
+      theme: theme === 'dark' ? 'night' : 'stripe',
+      labels: 'floating' as const,
     },
   };
 
