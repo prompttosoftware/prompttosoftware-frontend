@@ -4,7 +4,7 @@ import { logger } from '../utils/logger'; // Import the logger
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { APIErrorResponse, InternalServerErrorMessage } from '../types/common';
 
-const api = axios.create({
+const axiosInstance = axios.create({
   baseURL: '/api', // Adjust this if your API has a different base URL
   timeout: 10000,
   headers: {
@@ -12,7 +12,7 @@ const api = axios.create({
   },
 });
 
-logger.info('Axios instance initialized with base URL:', api.defaults.baseURL);
+logger.info('Axios instance initialized with base URL:', axiosInstance.defaults.baseURL);
 
 // Global variable to store error details temporarily for display
 let errorDetails: APIErrorResponse | InternalServerErrorMessage | null = null;
@@ -22,7 +22,7 @@ export const setupInterceptors = (router: AppRouterInstance) => {
   // is omitted here as direct access to 'handlers' is not supported in Axios types.
   // For robust handling in development, one might store and eject interceptor IDs.
 
-  api.interceptors.request.use(
+  axiosInstance.interceptors.request.use(
     (config) => {
       try {
         const token = localStorage.getItem('jwtToken'); // Assuming 'jwtToken' is the key
@@ -41,7 +41,7 @@ export const setupInterceptors = (router: AppRouterInstance) => {
     },
   );
 
-  api.interceptors.response.use(
+  axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => { // Made async for potential await in future (e.g., token refresh)
       const { setError } = useGlobalErrorStore.getState();
@@ -112,4 +112,11 @@ export const setupInterceptors = (router: AppRouterInstance) => {
   );
 }; // End of setupInterceptors
 
-export default api;
+import { UserProfile } from '../types/auth'; // Import UserProfile
+
+export const fetchUserProfile = async (): Promise<UserProfile> => {
+  const response = await axiosInstance.get<UserProfile>('/auth/me');
+  return response.data;
+};
+
+export default axiosInstance;
