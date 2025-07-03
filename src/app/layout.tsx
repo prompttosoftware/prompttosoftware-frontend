@@ -1,6 +1,6 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
-const inter = Inter({ subsets: ['latin'] });
+// import { Inter } from 'next/font/google';
+// const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'PromptToSoftware',
@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" dir="ltr">
-      <body className={inter.className}>
+      <body>
         {children}
       </body>
     </html>

@@ -1,5 +1,14 @@
-To set up the project:
-1. Run `npm install` to install all dependencies.
-2. The tests can then be run using `npm test`. For example, `npm test src/app/EmptyState.test.tsx` was used to verify the setup.
-3. The tests DO NOT need to pass for setup to be complete.
-4. The instructions in this file were created by running `npm install`, then running `npm test src/app/EmptyState.test.tsx` to verify the tests were runnable. Then `setup_help.txt` was written to with the instructions.action: NEXT_SUBTASK
+To set up the project environment:
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Run tests (example: this specific test):
+   ```bash
+   npm test src/app/\(main\)/new-project/page.test.tsx
+   ```
+   (Note: The tests ran, but produced errors. This is acceptable as per the task instructions.)
+
+The project is now set up for development and testing.
