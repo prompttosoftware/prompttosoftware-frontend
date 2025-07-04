@@ -1,7 +1,14 @@
 'use client'; // This directive indicates that this component should be rendered on the client side.
 
 import { useState, useEffect } from 'react';
-import { useForm, useFieldArray, useFormContext, FormProvider } from 'react-hook-form'; // Add FormProvider
+import {
+  useForm,
+  useFieldArray,
+  useFormContext,
+  FormProvider,
+  FieldArrayWithId, // Add FieldArrayWithId
+  FieldErrorsImpl, // Add FieldErrorsImpl for type safety with nested errors
+} from 'react-hook-form';
 import useDebounce from '@/hooks/useDebounce'; // Import useDebounce hook
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -126,13 +133,15 @@ interface NewProjectResponse {
   // Other fields returned by the API on project creation
 }
 
+type MutationResponseData = {
+  message?: string;
+  errors?: Record<string, string>;
+};
+
 interface MutationAPIError {
   response?: {
     status: number;
-    data?: {
-      message?: string;
-      errors?: Record<string, string>;
-    };
+    data?: MutationResponseData;
   };
   message: string;
 }
@@ -147,7 +156,24 @@ interface CostEstimationResult {
 }
 
 export default function NewProjectPage() {
-  const methods = useForm<NewProjectRequest>(); // Initialize useForm and get all its methods
+  const methods = useForm<NewProjectRequest>({
+    defaultValues: {
+      description: '',
+      githubRepositories: [],
+      advancedOptions: {
+        models: {
+          utility: [],
+          low: [],
+          medium: [],
+          high: [],
+          super: [],
+          backup: [],
+        },
+        installations: [],
+        linkJira: false,
+      },
+    },
+  }); // Initialize useForm and get all its methods
   // Destructure individual properties from methods if needed, or pass 'methods' directly
   const {
     register,
@@ -170,7 +196,7 @@ export default function NewProjectPage() {
     const estimateCost = async () => {
       if (debouncedDescription) {
         setIsEstimating(true);
-        console.log('Debounced description for estimation:', debouncedDescription);
+        // logger.debug('Debounced description for estimation:', debouncedDescription); // Use logger instead of console.log
         try {
           const { estimatedDuration, calculatedCost, modelUsed, modelErrorMessage } =
             await getEstimatedDurationAndCost(debouncedDescription);
@@ -300,17 +326,19 @@ export default function NewProjectPage() {
 
       if (axios.isAxiosError(error)) {
         if (error.response) {
+          // Destructure safely, assuming error.response is already checked
           const { status, data: errorData } = error.response;
           // The errorData might be structured as { message: string, errors: {} } or just { message: string }
           // Ensure errorData is treated as the correct type. Cast to the expected inner data structure.
-          const apiError = errorData as MutationAPIError['response']['data'];
+          const apiError = errorData as MutationResponseData;
 
           // Handle API validation errors (e.g., 400 Bad Request)
           if (status === 400 && apiError && apiError.errors) {
             for (const field in apiError.errors) {
               if (Object.prototype.hasOwnProperty.call(apiError.errors, field)) {
                 // Adjust field mapping for nested 'description'
-                const formField = (field === 'description') ? 'description' : (field as keyof NewProjectRequest);
+                const formField =
+                  field === 'description' ? 'description' : (field as keyof NewProjectRequest);
                 setFormFieldError(formField, {
                   type: 'server',
                   message: apiError.errors[field],
@@ -332,7 +360,8 @@ export default function NewProjectPage() {
         } else if (error.request) {
           // The request was made but no response was received (e.g., network error, CORS issues)
           setGlobalError({
-            message: 'Network error: No response received from server. Please check your connection or CORS settings.',
+            message:
+              'Network error: No response received from server. Please check your connection or CORS settings.',
             type: 'error',
           });
           logger.error('Axios error without response (request made):', String(error));
@@ -347,7 +376,8 @@ export default function NewProjectPage() {
       } else {
         // Handle non-Axios errors
         setGlobalError({
-          message: 'An unexpected client-side error occurred while trying to create the project. Please try again.',
+          message:
+            'An unexpected client-side error occurred while trying to create the project. Please try again.',
           type: 'error',
         });
         logger.error('Non-Axios error:', String(error));
@@ -357,7 +387,7 @@ export default function NewProjectPage() {
 
   // Handler for form submission
   const onSubmit = async (data: NewProjectRequest) => {
-    console.log('Submitting new project data:', JSON.stringify(data, null, 2)); // Log the data before sending, stringified for easier inspection
+    // logger.debug('Submitting new project data:', JSON.stringify(data, null, 2)); // Use logger instead of console.log
     try {
       // Use mutateAsync to trigger the API call via React Query
       // The handling of loading, success, and error is now managed by useMutation's callbacks
@@ -371,21 +401,23 @@ export default function NewProjectPage() {
   };
 
   // Define a type for the intelligence levels to ensure type safety
-  type AIModelLevel = keyof NonNullable<NewProjectRequest['advancedOptions']>['models'];
+  type AIModelLevel = 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
 
   // Render function for AI model selection UI for a specific intelligence level
-  const renderAiModelSelection = (
-    type: AIModelLevel,
+  const renderAiModelSelection = <TLevel extends AIModelLevel>( // Make it generic
+    type: TLevel, // Use the generic type here
     title: string,
-    fields: typeof utilityModels, // Use a generic type for fields
-    append: typeof appendUtilityModel, // Use a generic type for append
-    remove: typeof removeUtilityModel, // Use a generic type for remove
+    // Use the generic type in FieldArrayWithId
+    fields: FieldArrayWithId<NewProjectRequest, `advancedOptions.models.${TLevel}`, 'id'>[],
+    append: (value: AIModelConfig) => void,
+    remove: (index?: number | number[]) => void,
   ) => {
-    // Define a type for the dynamic field names to ensure type safety with register
-    type FieldName =
-      | `advancedOptions.models.${AIModelLevel}.${number}.provider`
-      | `advancedOptions.models.${AIModelLevel}.${number}.modelName`
-      | `advancedOptions.models.${AIModelLevel}.${number}.apiKey`;
+    // Safely access the errors for the current model type, ensuring it's treated as an array of error objects
+    // The FieldErrorsImpl type from react-hook-form correctly represents errors for array fields.
+    type ModelErrorsArray = FieldErrorsImpl<AIModelConfig>[];
+    const currentModelTypeErrors = errors.advancedOptions?.models?.[type] as
+      | ModelErrorsArray
+      | undefined;
 
     return (
       <div key={type} className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
@@ -409,7 +441,7 @@ export default function NewProjectPage() {
                 </label>
                 <select
                   id={`${type}-provider-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.provider` as FieldName, {
+                  {...register(`advancedOptions.models.${type}.${index}.provider`, {
                     required: 'Provider is required',
                   })}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
@@ -421,16 +453,12 @@ export default function NewProjectPage() {
                     </option>
                   ))}
                 </select>
-                {errors.advancedOptions?.models &&
-                  errors.advancedOptions.models[type] &&
-                  (errors.advancedOptions.models[type]?.[index] as any)?.provider && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {/* Type assertion to access message property */}
-                      {String(
-                        (errors.advancedOptions.models[type]?.[index] as any)?.provider?.message,
-                      )}
-                    </p>
-                  )}
+                {currentModelTypeErrors?.[index]?.provider && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {/* Accessing message directly from the error object */}
+                    {currentModelTypeErrors[index].provider.message}
+                  </p>
+                )}
               </div>
 
               {/* Model Name Textbox */}
@@ -444,22 +472,17 @@ export default function NewProjectPage() {
                 <input
                   type="text"
                   id={`${type}-modelName-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.modelName` as FieldName, {
+                  {...register(`advancedOptions.models.${type}.${index}.modelName`, {
                     required: 'Model name is required',
                   })}
                   placeholder="e.g., gpt-4-turbo"
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
                 />
-                {errors.advancedOptions?.models &&
-                  errors.advancedOptions.models[type] &&
-                  (errors.advancedOptions.models[type]?.[index] as any)?.modelName && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {/* Type assertion to access message property */}
-                      {String(
-                        (errors.advancedOptions.models[type]?.[index] as any)?.modelName?.message,
-                      )}
-                    </p>
-                  )}
+                {currentModelTypeErrors?.[index]?.modelName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {currentModelTypeErrors[index].modelName.message}
+                  </p>
+                )}
               </div>
 
               {/* API Key Textbox (Optional) */}
@@ -473,7 +496,7 @@ export default function NewProjectPage() {
                 <input
                   type="text"
                   id={`${type}-apiKey-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.apiKey` as FieldName)}
+                  {...register(`advancedOptions.models.${type}.${index}.apiKey`)}
                   placeholder="e.g., sk-..."
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
                 />
@@ -591,14 +614,16 @@ export default function NewProjectPage() {
                 <div className="flex gap-4">
                   <Button
                     type="button"
-                    onClick={() => appendGithubRepository({ type: 'new', isPrivate: false })}
+                    onClick={() =>
+                      appendGithubRepository({ type: 'new', name: '', isPrivate: false })
+                    }
                     className="bg-green-600 hover:bg-green-700"
                   >
                     Add New Repository
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => appendGithubRepository({ type: 'existing' })}
+                    onClick={() => appendGithubRepository({ type: 'existing', url: '' })}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     Add Existing Repository
@@ -683,8 +708,9 @@ export default function NewProjectPage() {
                         </span>{' '}
                         hours
                       </p>
-                      {estimatedCostResult.completionTimeHours > parseFloat(maxRuntimeHours) &&
-                        parseFloat(maxRuntimeHours) > 0 && (
+                      {maxRuntimeHours !== undefined &&
+                        maxRuntimeHours > 0 &&
+                        estimatedCostResult.completionTimeHours > maxRuntimeHours && (
                           <p className="text-sm text-yellow-600 mt-2">
                             Warning: Estimated completion time (
                             {estimatedCostResult.completionTimeHours.toFixed(2)} hours) exceeds the
@@ -783,7 +809,7 @@ export default function NewProjectPage() {
                 <div className="space-y-6">
                   {(errors.advancedOptions?.models?.utility as any)?.message && (
                     <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions.models.utility as any).message}
+                      {(errors.advancedOptions?.models?.utility as any)?.message}
                     </p>
                   )}
                   {renderAiModelSelection(
@@ -795,7 +821,7 @@ export default function NewProjectPage() {
                   )}
                   {(errors.advancedOptions?.models?.low as any)?.message && (
                     <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions.models.low as any).message}
+                      {(errors.advancedOptions?.models?.low as any)?.message}
                     </p>
                   )}
                   {renderAiModelSelection(
@@ -807,7 +833,7 @@ export default function NewProjectPage() {
                   )}
                   {(errors.advancedOptions?.models?.medium as any)?.message && (
                     <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions.models.medium as any).message}
+                      {(errors.advancedOptions?.models?.medium as any)?.message}
                     </p>
                   )}
                   {renderAiModelSelection(
@@ -819,7 +845,7 @@ export default function NewProjectPage() {
                   )}
                   {(errors.advancedOptions?.models?.high as any)?.message && (
                     <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions.models.high as any).message}
+                      {(errors.advancedOptions?.models?.high as any)?.message}
                     </p>
                   )}
                   {renderAiModelSelection(
@@ -831,7 +857,7 @@ export default function NewProjectPage() {
                   )}
                   {(errors.advancedOptions?.models?.super as any)?.message && (
                     <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions.models.super as any).message}
+                      {(errors.advancedOptions?.models?.super as any)?.message}
                     </p>
                   )}
                   {renderAiModelSelection(
@@ -843,7 +869,7 @@ export default function NewProjectPage() {
                   )}
                   {(errors.advancedOptions?.models?.backup as any)?.message && (
                     <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions.models.backup as any).message}
+                      {(errors.advancedOptions?.models?.backup as any)?.message}
                     </p>
                   )}
                   {renderAiModelSelection(

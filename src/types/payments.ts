@@ -63,3 +63,23 @@ export interface DeleteSavedCardResponse {
   deletedCardId: string;
   success: boolean;
 }
+
+/**
+ * Represents a generic error response from the payments API.
+ */
+export interface PaymentErrorResponse {
+  message: string;
+  statusCode: number;
+  code?: string; // Optional: A specific error code (e.g., 'invalid_data', 'card_declined')
+  param?: string; // Optional: The parameter that caused the error
+}
+
+/**
+ * Represents a generic error response from the payments API.
+ */
+export interface PaymentErrorResponse {
+  message: string;
+  statusCode: number;
+  code?: string; // Optional: A specific error code (e.g., 'invalid_data', 'card_declined')
+  param?: string; // Optional: The parameter that caused the error
+}

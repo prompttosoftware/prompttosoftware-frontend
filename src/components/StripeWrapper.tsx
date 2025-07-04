@@ -19,7 +19,7 @@ export function StripeWrapper({ children }: StripeWrapperProps) {
 
   const options = {
     appearance: {
-      theme: theme === 'dark' ? 'night' : 'stripe',
+      theme: (theme === 'dark' ? 'night' : 'stripe') as 'night' | 'stripe',
       labels: 'floating' as const,
     },
   };

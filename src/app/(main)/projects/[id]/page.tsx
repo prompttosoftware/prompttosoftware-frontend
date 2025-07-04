@@ -129,7 +129,7 @@ const ProjectDetailPage = () => {
       <div className="flex justify-center items-center h-screen p-4">
         <EmptyState
           title="Error Loading Project"
-          message={error}
+          description={error}
           actionButton={
             error.includes('Redirecting') ? undefined : (
               <button
@@ -150,9 +150,15 @@ const ProjectDetailPage = () => {
       <div className="flex justify-center items-center h-screen p-4">
         <EmptyState
           title="Project Not Found"
-          message="The project you are looking for does not exist or you do not have permission to view it."
-          actionText="Go to Projects"
-          onAction={() => router.replace('/projects')}
+          description="The project you are looking for does not exist or you do not have permission to view it."
+          actionButton={
+            <button
+              onClick={() => router.replace('/projects')}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Go to Projects
+            </button>
+          }
         />
       </div>
     );
