@@ -6,7 +6,7 @@ import {
   PaymentErrorResponse,
   SavedCard,
 } from '../types/payments';
-import api from './api'; // Import the axios instance
+import { api } from './api'; // Import the axios instance
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { setupInterceptors } from '../lib/api';
 
@@ -21,13 +21,18 @@ const mockRouter: AppRouterInstance = {
 };
 
 // Mock the global error store
-jest.mock('../store/globalErrorStore', () => ({
-  useGlobalErrorStore: {
-    getState: () => ({
-      setError: jest.fn(),
-    }),
-  },
-}));
+jest.mock('../store/globalErrorStore', () => {
+  const mockSetGlobalError = jest.fn();
+  return {
+    setGlobalError: mockSetGlobalError,
+    useGlobalErrorStore: {
+      getState: () => ({
+        setError: mockSetGlobalError,
+      }),
+      setState: jest.fn(),
+    },
+  };
+});
 
 // Mock logger to prevent console output during tests
 jest.mock('../utils/logger', () => ({
@@ -95,7 +100,7 @@ describe('API Type Safety Tests', () => {
       // const wrongType: number = data.clientSecret; // This would be a compilation error
       // expect(true).toBe(true); // Placeholder to avoid empty test if ts-expect-error is uncommented
     } catch (error) {
-      fail('API call should not have failed: ' + error);
+      throw new Error('API call should not have failed: ' + error);
     }
   });
 
@@ -111,8 +116,15 @@ describe('API Type Safety Tests', () => {
 
     try {
       await api.post('/payments/create-intent', { amount: 100, currency: 'usd' });
-      fail('API call should have failed with a 400 error.');
+      throw new Error('API call should have failed with a 400 error.');
     } catch (error) {
+      console.log('Caught error:', error);
+      console.log('Is Axios Error:', axios.isAxiosError(error));
+      if (axios.isAxiosError(error)) {
+        console.log('Error response data:', error.response?.data);
+        console.log('Error response status:', error.response?.status);
+        console.log('Error response headers:', error.response?.headers);
+      }
       if (axios.isAxiosError(error) && error.response) {
         const errorData: PaymentErrorResponse = error.response.data; // Checks type safety
 
@@ -126,7 +138,7 @@ describe('API Type Safety Tests', () => {
         // @ts-expect-error - This is intended to fail compilation
         // const wrongCodeType: number = errorData.code;
       } else {
-        fail('Error was not an AxiosError with a response.');
+        throw new Error('Error was not an AxiosError with a response.');
       }
     }
   });

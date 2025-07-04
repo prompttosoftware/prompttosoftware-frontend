@@ -1,5 +1,23 @@
 // jest.setup.js
 
+// Minimal MessagePort mock for undici in JSDOM environment
+// Must be placed before undici is 'required' or used.
+class MockMessagePort {
+  postMessage() {}
+  addEventListener() {}
+  removeEventListener() {}
+  start() {}
+  close() {}
+  dispatchEvent() {
+    return true;
+  }
+}
+
+// Declare MessagePort globally
+if (typeof global.MessagePort === 'undefined') {
+  global.MessagePort = MockMessagePort;
+}
+
 // Polyfill TextEncoder and TextDecoder
 if (typeof global.TextEncoder === 'undefined') {
   const { TextEncoder } = require('util');

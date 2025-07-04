@@ -5,7 +5,8 @@ import { UserProfile } from '../types/auth';
 
 import React, { createContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import api, { setupInterceptors } from '../lib/api'; // Import 'api' as default
+import { api, setupInterceptors as setupHttpClientInterceptors } from '../lib/api'; // Import api and setupInterceptors from the new api.ts
+import { logger } from '../utils/logger'; // Import logger
 import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Setup interceptors when the component mounts or router changes
-    setupInterceptors(router);
+    setupHttpClientInterceptors(router);
   }, [router]);
 
   useEffect(() => {
@@ -64,12 +65,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('jwtToken', token);
     // After login, invalidate and refetch the auth query to get the latest user profile
     queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-    console.log('AuthProvider: User logged in and token stored. User profile will be refetched.');
+    logger.info('AuthProvider: User logged in and token stored. User profile will be refetched.');
 
     // Set show_tutorial flag if it's a new user
     if (userData?.isNewUser) {
       localStorage.setItem('show_tutorial', 'true');
-      console.log('AuthProvider: show_tutorial flag set to true.');
+      logger.info('AuthProvider: show_tutorial flag set to true.');
     } else {
       localStorage.removeItem('show_tutorial'); // Ensure no stale tutorial flag
     }
@@ -79,9 +80,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Marked as async
     try {
       await api.post('/auth/logout'); // Make the API call
-      console.log('Logout API call successful.');
+      logger.info('Logout API call successful.');
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      logger.error('Logout API call failed:', error);
       // Continue with client-side logout even if API call fails
       // as the token might be invalid or the backend session already expired.
     }
@@ -90,7 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setBalance(0); // Reset balance on logout
     // The useUserProfileQuery hook will automatically reflect the cleared state
     // (user will be null, isAuthenticated will be false).
-    console.log('AuthProvider: User logged out, token and profile cache cleared, balance reset.');
+    logger.info('AuthProvider: User logged out, token and profile cache cleared, balance reset.');
     router.push('/login'); // Redirect to login page
   };
 
@@ -99,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // you might trigger a mutation or refetch the 'me' query after a profile update API call.
     // For now, let's just invalidate and refetch.
     queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-    console.log('AuthProvider: Profile update initiated, refetching user data.');
+    logger.info('AuthProvider: Profile update initiated, refetching user data.');
   };
 
   // The value provided to the consumers of the context
