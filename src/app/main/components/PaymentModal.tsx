@@ -35,6 +35,7 @@ export function PaymentModal() {
     'input_amount',
   );
   const [isLoadingPaymentIntent, setIsLoadingPaymentIntent] = useState(false);
+  const globalError = useGlobalErrorStore((state) => state.error); // Get global error state
 
   // Reset local states when modal closes or opens fresh
   useEffect(() => {
@@ -55,6 +56,13 @@ export function PaymentModal() {
       }
     }
   }, [isOpen, clearState, clearError, setSuccessMessageStore, clientSecret]);
+
+// Log global errors when they change
+useEffect(() => {
+  if (globalError) {
+    logger.debug('Global error detected in PaymentModal:', globalError);
+  }
+}, [globalError]);
 
   const validateAmount = useCallback(
     (amountStr: string): boolean => {
@@ -132,14 +140,16 @@ export function PaymentModal() {
   );
 
   const handleInitiatePaymentProcess = useCallback(async () => {
+    logger.debug(`handleInitiatePaymentProcess called. inputAmount: ${inputAmount}, isLoadingPaymentIntent: ${isLoadingPaymentIntent}`);
     if (!validateAmount(inputAmount)) {
+      logger.debug('Amount validation failed.');
       return; // validateAmount already sets the error message
     }
     // Only proceed for card payments for sending intent
     if (selectedPaymentMethod === 'card') {
       setIsLoadingPaymentIntent(true);
       clearError();
-
+  
       const token = localStorage.getItem('jwtToken');
       if (!token) {
         setError({ message: 'Authentication required. Please log in again.', type: 'error' });
@@ -147,10 +157,10 @@ export function PaymentModal() {
         setIsLoadingPaymentIntent(false);
         return;
       }
-
+  
       const amountInCents = Math.round(parseFloat(inputAmount) * 100);
       const description = 'Funds added to account'; // Default description
-
+  
       logger.info(
         `Attempting to create payment intent for amount: $${parseFloat(inputAmount).toFixed(2)}`,
       );
@@ -160,7 +170,8 @@ export function PaymentModal() {
           currency: 'usd',
           description: description,
         };
-
+  
+        logger.debug('Sending request to /payments/create-intent with:', requestBody);
         const response = await httpClient.post<
           CreatePaymentIntentRequest,
           CreatePaymentIntentResponse
@@ -169,14 +180,14 @@ export function PaymentModal() {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         const { clientSecret: newClientSecret } = response;
         setClientSecret(newClientSecret);
-        logger.info(`Payment Intent created successfully.`);
+        logger.info(`Payment Intent created successfully. Received clientSecret.`);
         setCurrentModalStep('confirm_card'); // Move to the next step
       } catch (error) {
         logger.error('Failed to create Payment Intent.', error);
-
+  
         if (isAxiosError(error) && error.response) {
           setError({
             message:
@@ -190,6 +201,7 @@ export function PaymentModal() {
           });
         }
       } finally {
+        logger.debug('Finished create payment intent process. Setting isLoadingPaymentIntent to false.');
         setIsLoadingPaymentIntent(false);
       }
     } else if (selectedPaymentMethod === 'paypal') {
@@ -206,6 +218,7 @@ export function PaymentModal() {
     clearError,
     setError,
     closeModal,
+    isLoadingPaymentIntent, // Added to dependency array for logger.debug
   ]);
 
   return (

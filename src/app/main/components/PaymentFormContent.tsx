@@ -36,6 +36,9 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const updateBalance = useBalanceStore((state) => state.updateBalance); // Use updateBalance
+  
+  // Log the state of Stripe, Elements, and Client Secret when component renders or dependencies change
+  logger.debug(`PaymentFormContent rendered. clientSecret: ${!!clientSecret}, stripe: ${!!stripe}, elements: ${!!elements}`);
 
   const [isLoading, setIsLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
