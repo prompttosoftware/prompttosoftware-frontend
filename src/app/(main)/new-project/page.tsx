@@ -1,9 +1,12 @@
 'use client'; // This directive indicates that this component should be rendered on the client side.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
+import useDebounce from '@/hooks/useDebounce'; // Import useDebounce hook
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import LoadingSpinner from '@/src/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
+import { getEstimatedDurationAndCost, FLAT_RATE_PER_HOUR, HOURLY_AI_API_COST } from '@/services/costEstimationService'; // Import cost estimation service
 // import { useRouter } from 'next/navigation'; // Using next/navigation for router functionalities
 import { useGlobalError } from '@/hooks/useGlobalError'; // Importing the global error hook
 
@@ -12,6 +15,15 @@ interface AIModelConfig {
   provider: string;
   modelName: string;
   apiKey?: string; // Optional API key
+}
+
+interface CostEstimationResult {
+  estimatedTotal: number;
+  completionTimeHours: number; // Estimated completion time in hours
+  flatRateComponent: number;
+  aiApiCostComponent: number;
+  modelUsed: boolean;
+  modelErrorMessage: string | null;
 }
 
 interface NewProjectRequest {
@@ -50,11 +62,56 @@ export default function NewProjectPage() {
     handleSubmit,
     setError: setFormFieldError,
     control, // Added control for useFieldArray
+    watch, // Add watch to get form values
     formState: { errors },
   } = useForm<NewProjectRequest>();
   const { setError: setGlobalError } = useGlobalError(); // Destructure setError from the global error hook
   const [isSubmitting, setIsSubmitting] = useState(false); // State to manage form submission loading state
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // State to manage visibility of advanced options
+  const [showCostDetails, setShowCostDetails] = useState(false); // State for cost breakdown visibility
+  const [estimatedCostResult, setEstimatedCostResult] = useState<CostEstimationResult | null>(null); // State for estimated cost result
+  const [isEstimating, setIsEstimating] = useState(false); // State to show loading for estimation
+
+  const projectDescription = watch('description');
+  const debouncedDescription = useDebounce(projectDescription, 500); // Debounce description input by 500ms
+
+  useEffect(() => {
+    const estimateCost = async () => {
+      if (debouncedDescription) {
+        setIsEstimating(true);
+        console.log('Debounced description for estimation:', debouncedDescription);
+        try {
+          const { estimatedDuration, calculatedCost, modelUsed, modelErrorMessage } = await getEstimatedDurationAndCost(debouncedDescription);
+
+          setEstimatedCostResult({
+            estimatedTotal: calculatedCost, // Total cost
+            completionTimeHours: estimatedDuration, // Estimated duration
+            flatRateComponent: FLAT_RATE_PER_HOUR * estimatedDuration, // Component for flat rate
+            aiApiCostComponent: (HOURLY_AI_API_COST * estimatedDuration), // Component for AI API cost
+            modelUsed: modelUsed, // Indicate if ML model was used
+            modelErrorMessage: modelUsed ? '' : modelErrorMessage, // Any message related to model usage/fallback
+          });
+        } catch (error) {
+          console.error("Error calculating estimation:", error);
+          // Handle error, perhaps set an error message in the UI
+          setEstimatedCostResult({
+            estimatedTotal: 0,
+            completionTimeHours: 0,
+            flatRateComponent: 0,
+            aiApiCostComponent: 0,
+            modelUsed: false,
+            modelErrorMessage: "Could not estimate cost. Please try again later.",
+          });
+        } finally {
+          setIsEstimating(false);
+        }
+      } else {
+        setEstimatedCostResult(null); // Clear estimation if description is empty
+      }
+    };
+
+    estimateCost();
+  }, [debouncedDescription]);
 
   // Use useFieldArray for managing dynamic AI model arrays for each intelligence level
   const {
@@ -113,6 +170,8 @@ export default function NewProjectPage() {
 
   // Available AI model companies (providers)
   const AI_COMPANIES = ['OpenAI', 'Google', 'Anthropic', 'Cohere', 'Custom'];
+
+  const maxRuntimeHours = watch('maxRuntimeHours'); // Watch maxRuntimeHours for the warning message
 
   // const router = useRouter(); // Initialize router for potential redirection - Commented out for now to resolve 'unused' lint error. Uncomment later when navigation is implemented.
 
@@ -361,6 +420,84 @@ export default function NewProjectPage() {
             {errors.description && (
               <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
             )}
+
+            {isEstimating && (
+  <div className="mt-2 text-sm text-gray-500 flex items-center">
+    <LoadingSpinner className="mr-2" /> Estimating cost...
+  </div>
+)}
+
+{estimatedCostResult && !isEstimating && (
+  <div className="border border-gray-200 mt-6 pt-6 rounded-md bg-white shadow-sm">
+    <button
+      type="button"
+      className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none px-4"
+      onClick={() => setShowCostDetails(!showCostDetails)}
+      aria-expanded={showCostDetails}
+    >
+      Cost Estimation Breakdown
+      <svg
+        className={`w-5 h-5 transition-transform duration-300 ${showCostDetails ? 'rotate-180' : ''}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M19 9l-7 7-7-7"
+        ></path>
+      </svg>
+    </button>
+
+    <div
+      data-testid="cost-details-content"
+      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+        showCostDetails ? 'max-h-screen opacity-100 p-4' : 'max-h-0 opacity-0'
+      }`}
+    >
+      <div className="bg-white shadow-sm">
+        {estimatedCostResult.modelUsed ? (
+          <div className="flex items-center text-sm text-gray-600 mb-2">
+            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full mr-2">ML Model Used</span>
+            Estimation powered by a machine learning model.
+          </div>
+        ) : (
+          <div className="flex items-center text-sm text-red-600 mb-2">
+            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full mr-2">Using Heuristic</span>
+            ML model not used. {estimatedCostResult.modelErrorMessage || 'Falling back to heuristic estimation.'}
+          </div>
+        )}
+
+        <h3 className="font-semibold text-xl text-gray-800 mb-2">Estimated Project Cost:</h3>
+        <div className="space-y-1 mb-3">
+          <p className="text-gray-700 text-md">
+            Flat Rate Component: <span className="font-medium">${estimatedCostResult.flatRateComponent.toFixed(2)}</span>
+          </p>
+          <p className="text-gray-700 text-md">
+            AI API Cost Component: <span className="font-medium">${estimatedCostResult.aiApiCostComponent.toFixed(2)}</span>
+          </p>
+        </div>
+        <p className="text-lg font-bold text-green-700">
+          Total Estimated Cost: ${estimatedCostResult.estimatedTotal.toFixed(2)}
+        </p>
+        <p className="text-md text-gray-600 mt-2">
+          Estimated Completion Time: <span className="font-semibold">{estimatedCostResult.completionTimeHours.toFixed(2)}</span> hours
+        </p>
+        {estimatedCostResult.completionTimeHours > parseFloat(maxRuntimeHours) && parseFloat(maxRuntimeHours) > 0 && (
+          <p className="text-sm text-yellow-600 mt-2">
+            Warning: Estimated completion time ({estimatedCostResult.completionTimeHours.toFixed(2)} hours) exceeds the maximum runtime ({maxRuntimeHours.toFixed(2)} hours).
+          </p>
+        )}
+        <p className="text-sm text-gray-500 mt-4 px-4 pb-4">
+          Please note: Providing your own API keys for AI models may impact the final project cost, potentially leading to charges beyond the estimated amount.
+        </p>
+      </div>
+    </div>
+  </div>
+)}
           </div>
 
           {/* Max Runtime Hours */}
