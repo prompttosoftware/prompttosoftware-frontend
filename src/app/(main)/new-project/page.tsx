@@ -20,6 +20,7 @@ import { ExistingRepositoryFields } from './ExistingRepositoryFields'; // Import
 import axios from 'axios'; // Import axios
 import { axiosInstance } from '@/lib/httpClient'; // Import axiosInstance
 import { logger } from '@/lib/logger'; // Import logger
+import { useMutation } from '@tanstack/react-query'; // Import useMutation for API calls
 
 // Define the structure for the request payload to the backend
 import { z } from 'zod';
@@ -40,14 +41,14 @@ const formSchema = z.object({
       z.object({
         id: z.string().optional(),
         type: z.literal('new'),
-        name: z.string().min(1, 'Repository name is required'), // Changed from repositoryName to name
+        name: z.string().min(1, 'Repository name is required'),
         organization: z.string().optional(),
         isPrivate: z.boolean(),
       }),
       z.object({
         id: z.string().optional(),
         type: z.literal('existing'),
-        url: z.string().url('Invalid URL format').min(1, 'GitHub Repository URL is required'), // Changed from githubUrl to url
+        url: z.string().url('Invalid URL format').min(1, 'GitHub Repository URL is required'),
       }),
     ]),
   ),
@@ -119,6 +120,23 @@ const formSchema = z.object({
 
 type NewProjectRequest = z.infer<typeof formSchema>;
 
+interface NewProjectResponse {
+  id: string; // Changed from projectId to id to match Project interface
+  message: string;
+  // Other fields returned by the API on project creation
+}
+
+interface MutationAPIError {
+  response?: {
+    status: number;
+    data?: {
+      message?: string;
+      errors?: Record<string, string>;
+    };
+  };
+  message: string;
+}
+
 interface CostEstimationResult {
   estimatedTotal: number;
   completionTimeHours: number; // Estimated completion time in hours
@@ -126,34 +144,6 @@ interface CostEstimationResult {
   aiApiCostComponent: number;
   modelUsed: boolean;
   modelErrorMessage: string | null;
-}
-
-// Define the structure for a successful project creation response
-interface NewProjectResponse {
-  projectId: string;
-  message: string;
-  // Other fields returned by the API on project creation
-}
-
-// Define the shape of an API error response
-interface APIError {
-  status: number;
-  message: string;
-  errors?: Record<string, string>; // For validation errors where keys are field names and values are error messages
-}
-
-// Define the structure for a successful project creation response
-interface NewProjectResponse {
-  projectId: string;
-  message: string;
-  // Other fields returned by the API on project creation
-}
-
-// Define the shape of an API error response
-interface APIError {
-  status: number;
-  message: string;
-  errors?: Record<string, string>; // For validation errors where keys are field names and values are error messages
 }
 
 export default function NewProjectPage() {
@@ -168,7 +158,6 @@ export default function NewProjectPage() {
     formState: { errors },
   } = methods; // Use methods from the initialized useForm
   const { setError: setGlobalError } = useGlobalError(); // Destructure setError from the global error hook
-  const [isSubmitting, setIsSubmitting] = useState(false); // State to manage form submission loading state
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // State to manage visibility of advanced options
   const [showCostDetails, setShowCostDetails] = useState(false); // State for cost breakdown visibility
   const [estimatedCostResult, setEstimatedCostResult] = useState<CostEstimationResult | null>(null); // State for estimated cost result
@@ -287,68 +276,97 @@ export default function NewProjectPage() {
 
   const router = useRouter(); // Initialize router for potential redirection
 
-  // Handler for form submission
-  // Moved imports to the top of the file
-  const onSubmit = async (data: NewProjectRequest) => {
-    setIsSubmitting(true); // Set submission state to true
-    setGlobalError(null); // Clear any previous global errors
+  const createProject = async (data: NewProjectRequest): Promise<NewProjectResponse> => {
+    const response = await axiosInstance.post<NewProjectResponse>('/projects', data);
+    return response.data;
+  };
 
-    try {
-      console.log('Submitting NewProjectRequest:', data);
-      const response = await axiosInstance.post<NewProjectResponse>('/projects', data);
-      const { projectId: newProjectId } = response.data; // Use projectId as defined in NewProjectResponse
-
-      // Handle successful submission
-      logger.info('Project creation successful:', {
-        projectId: newProjectId,
-        responseData: response.data,
-      });
-      router.push(`/projects/${newProjectId}`);
+  const {
+    mutateAsync,
+    isPending, // Renamed from isLoading for React Query v5
+    error: mutationError,
+    reset: resetMutation, // To clear mutation state if needed
+  } = useMutation<NewProjectResponse, MutationAPIError, NewProjectRequest>({
+    mutationFn: createProject,
+    onSuccess: (data) => {
+      logger.info('Project creation successful:', { projectId: data.id, responseData: data });
+      router.push(`/projects/${data.id}`);
       methods.reset(); // Reset form states after successful submission
-    } catch (error: unknown) {
+      resetMutation(); // Clear any mutation errors/state
+    },
+    onError: (error) => {
       logger.error('Failed to create project:', error);
+      setGlobalError(null); // Clear previous global errors
 
-      if (axios.isAxiosError(error) && error.response) {
-        // Corrected: use axios.isAxiosError
-        const { status, data: errorData } = error.response;
-        const apiError = errorData as APIError;
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const { status, data: errorData } = error.response;
+          // The errorData might be structured as { message: string, errors: {} } or just { message: string }
+          // Ensure errorData is treated as the correct type. Cast to the expected inner data structure.
+          const apiError = errorData as MutationAPIError['response']['data'];
 
-        // Handle API validation errors (e.g., 400 Bad Request)
-        if (status === 400 && apiError.errors) {
-          // Iterate over field-specific errors and set them using react-hook-form's setError
-          for (const field in apiError.errors) {
-            if (Object.prototype.hasOwnProperty.call(apiError.errors, field)) {
-              // Ensure the field path matches the form schema (e.g., description, advancedOptions.models.utility.0.provider)
-              // If backend sends 'description' and form uses 'description', it's direct.
-              // If backend sends 'githubRepositories.0.name' and form uses nested paths, map accordingly.
-              setFormFieldError(field as keyof NewProjectRequest, {
-                type: 'server',
-                message: apiError.errors[field],
-              });
+          // Handle API validation errors (e.g., 400 Bad Request)
+          if (status === 400 && apiError && apiError.errors) {
+            for (const field in apiError.errors) {
+              if (Object.prototype.hasOwnProperty.call(apiError.errors, field)) {
+                // Adjust field mapping for nested 'description'
+                const formField = (field === 'description') ? 'description' : (field as keyof NewProjectRequest);
+                setFormFieldError(formField, {
+                  type: 'server',
+                  message: apiError.errors[field],
+                });
+              }
             }
+            setGlobalError({
+              message: apiError.message || 'Please check the form for errors.',
+              type: 'warning',
+            });
           }
-          // Display a general message for validation failure
+          // Handle other API errors
+          else {
+            setGlobalError({
+              message: apiError?.message || `Failed to create project. Status: ${status}`,
+              type: 'error',
+            });
+          }
+        } else if (error.request) {
+          // The request was made but no response was received (e.g., network error, CORS issues)
           setGlobalError({
-            message: apiError.message || 'Please check the form for errors.',
-            type: 'warning',
-          });
-        }
-        // Handle other API errors (e.g., 401, 403, 404, 500)
-        else {
-          setGlobalError({
-            message: apiError.message || `Failed to create project. Status: ${status}`,
+            message: 'Network error: No response received from server. Please check your connection or CORS settings.',
             type: 'error',
           });
+          logger.error('Axios error without response (request made):', String(error));
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          setGlobalError({
+            message: `Request setup error: ${error.message}. Please try again.`,
+            type: 'error',
+          });
+          logger.error('Axios request setup error:', String(error));
         }
       } else {
-        // Handle non-Axios errors or network errors without a response
+        // Handle non-Axios errors
         setGlobalError({
-          message: 'An unexpected error occurred while creating the project.',
+          message: 'An unexpected client-side error occurred while trying to create the project. Please try again.',
           type: 'error',
         });
+        logger.error('Non-Axios error:', String(error));
       }
-    } finally {
-      setIsSubmitting(false); // Reset submission state
+    },
+  });
+
+  // Handler for form submission
+  const onSubmit = async (data: NewProjectRequest) => {
+    console.log('Submitting new project data:', JSON.stringify(data, null, 2)); // Log the data before sending, stringified for easier inspection
+    try {
+      // Use mutateAsync to trigger the API call via React Query
+      // The handling of loading, success, and error is now managed by useMutation's callbacks
+      await mutateAsync(data);
+    } catch (error) {
+      console.error('Mutation error caught in onSubmit:', error);
+      // The error is already handled by useMutation's onError, but this catch ensures we see it here too,
+      // and also logs the specific error for debugging.
+      logger.error('Error during mutateAsync call:', error);
     }
   };
 
@@ -886,10 +904,15 @@ export default function NewProjectPage() {
               <button
                 type="submit"
                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isSubmitting} // Disable button during submission
+                disabled={isPending} // Disable button during submission
               >
-                {isSubmitting ? 'Starting...' : 'Start'}{' '}
-                {/* Change button text based on loading state */}
+                {isPending ? (
+                  <>
+                    <LoadingSpinner className="mr-2" /> Starting...
+                  </>
+                ) : (
+                  'Start'
+                )}{' '}
               </button>
             </div>
           </form>
