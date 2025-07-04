@@ -33,6 +33,9 @@ export const useUserProfileQuery = () => {
           '401 Unauthorized response detected in useUserProfileQuery. Invalidating user profile query.',
         );
         queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      } else {
+        // Generic error logging for other types of errors (e.g., 500)
+        logger.error(`Error fetching user profile:`, error);
       }
     }
   }, [isError, error, queryClient]);
