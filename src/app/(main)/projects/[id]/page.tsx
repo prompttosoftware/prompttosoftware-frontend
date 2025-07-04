@@ -6,6 +6,7 @@ import axios from 'axios'; // Assuming axios is installed and configured
 import { useAuth } from '@/hooks/useAuth'; // Assuming this hook handles authentication state
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Assuming this component exists
 import EmptyState from '@/app/(main)/components/EmptyState'; // Add this import
+import ProjectStatusDemo from '@/app/(main)/components/ProjectStatusDemo'; // Import ProjectStatusDemo
 
 import { format } from 'date-fns'; // Import format function from date-fns
 
@@ -164,23 +165,10 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
               </div>
             </div>
         
-            {/* Placeholders for Live Status Metrics */}
+            {/* Live Status Metrics */}
             <div className="bg-white shadow-md rounded-lg p-6 mb-6">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Live Status</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div className="p-4 border rounded-md bg-gray-50">
-                  <p className="text-lg font-medium text-gray-600">Cost</p>
-                  <p className="text-2xl font-bold text-gray-800">$--.--</p>
-                </div>
-                <div className="p-4 border rounded-md bg-gray-50">
-                  <p className="text-lg font-medium text-gray-600">Elapsed Time</p>
-                  <p className="text-2xl font-bold text-gray-800">--:--:--</p>
-                </div>
-                <div className="p-4 border rounded-md bg-gray-50">
-                  <p className="text-lg font-medium text-gray-600">Progress</p>
-                  <p className="text-2xl font-bold text-gray-800">--%</p>
-                </div>
-              </div>
+              <ProjectStatusDemo projectId={id} />
             </div>
         
             {/* Placeholders for control buttons */}
