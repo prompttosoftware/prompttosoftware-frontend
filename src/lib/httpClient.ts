@@ -6,7 +6,7 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 import { APIErrorResponse, InternalServerErrorMessage } from '../types/common'; // For error types
 
 export const axiosInstance: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api', // Use environment variable for API base URL
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://host.docker.internal:8080/api', // Use environment variable for API base URL
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
