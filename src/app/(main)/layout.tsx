@@ -12,6 +12,7 @@ import { PaymentModal } from './components/PaymentModal'; // Import PaymentModal
 import { useBannerStore } from '@/store/bannerStore'; // Import useBannerStore
 import { StripeWrapper } from '@/components/StripeWrapper'; // Import StripeWrapper
 import { AuthProvider } from '@/lib/AuthContext';
+import ConfirmationDialog from './components/ConfirmationDialog'; // Import ConfirmationDialog
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -74,6 +75,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <ErrorModal />
+        <ConfirmationDialog /> {/* Render ConfirmationDialog here */}
         <StripeWrapper>
           <PaymentModal />
         </StripeWrapper>
