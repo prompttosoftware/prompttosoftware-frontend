@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,23 +16,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
-import { NewRepositoryFields } from '@/app/(main)/new-project/NewRepositoryFields';
-import { ExistingRepositoryFields } from '@/app/(main)/new-project/ExistingRepositoryFields';
+import LoadingSpinner from '@/app/main/components/LoadingSpinner';
+import AIModelConfigurationSection from './components/AIModelConfigurationSection';
+import { NewRepositoryFields } from '@/app/main/new-project/NewRepositoryFields';
+import { ExistingRepositoryFields } from '@/app/main/new-project/ExistingRepositoryFields';
 import { getEstimatedCost } from '@/lib/api'; // Assume this API call exists
 import { JiraLinkResponse, LinkJiraAccount } from '@/lib/jira'; // Import Jira API functions
-import { ProjectFormData } from '@/lib/types';
+import { AIModelConfig, ProjectFormData } from '@/lib/types';
 import { processProject } from '@/services/projectsService'; // Import the service
 
 const MAX_INSTALLATIONS = 20;
-
-type AiModel = {
-  id: string;
-  alias: string;
-  intelligence: 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
-  apiKey: string;
-  note?: string;
-};
 
 const formSchema = z.object({
   description: z.string().min(10, { message: 'Project description must be at least 10 characters.' }),
@@ -51,15 +45,50 @@ const formSchema = z.object({
     ]),
   ),
   advancedOptions: z.object({
-    aiModels: z.array(
-      z.object({
-        id: z.string().uuid(),
-        alias: z.string().min(1, 'Alias is required.'),
-        intelligence: z.enum(['utility', 'low', 'medium', 'high', 'super', 'backup']),
-        apiKey: z.string().min(1, 'API Key is required.'),
-        note: z.string().optional(),
-      }),
-    ),
+    aiModels: z.object({
+      utility: z.array(
+        z.object({
+          provider: z.string().min(1, 'Provider is required.'),
+          modelName: z.string().min(1, 'Model Name is required.'),
+          apiKey: z.string().optional(),
+        })
+      ).optional(),
+      low: z.array(
+        z.object({
+          provider: z.string().min(1, 'Provider is required.'),
+          modelName: z.string().min(1, 'Model Name is required.'),
+          apiKey: z.string().optional(),
+        })
+      ).optional(),
+      medium: z.array(
+        z.object({
+          provider: z.string().min(1, 'Provider is required.'),
+          modelName: z.string().min(1, 'Model Name is required.'),
+          apiKey: z.string().optional(),
+        })
+      ).optional(),
+      high: z.array(
+        z.object({
+          provider: z.string().min(1, 'Provider is required.'),
+          modelName: z.string().min(1, 'Model Name is required.'),
+          apiKey: z.string().optional(),
+        })
+      ).optional(),
+      super: z.array(
+        z.object({
+          provider: z.string().min(1, 'Provider is required.'),
+          modelName: z.string().min(1, 'Model Name is required.'),
+          apiKey: z.string().optional(),
+        })
+      ).optional(),
+      backup: z.array(
+        z.object({
+          provider: z.string().min(1, 'Provider is required.'),
+          modelName: z.string().min(1, 'Model Name is required.'),
+          apiKey: z.string().optional(),
+        })
+      ).optional(),
+    }).optional(),
     installations: z.array(z.string()).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
     jiraLinked: z.boolean(),
   }),
@@ -74,7 +103,7 @@ export default function NewProjectPage() {
       maxBudget: 500, // Default value
       githubRepositories: [], // Default to no repositories
       advancedOptions: {
-        aiModels: [],
+        aiModels: {},
         installations: [],
         jiraLinked: false,
       },
@@ -97,15 +126,6 @@ export default function NewProjectPage() {
   } = useFieldArray({
     control,
     name: 'githubRepositories',
-  });
-
-  const {
-    fields: aiModelFields,
-    append: appendAiModel,
-    remove: removeAiModel,
-  } = useFieldArray({
-    control,
-    name: 'advancedOptions.aiModels',
   });
 
   const {
@@ -153,7 +173,15 @@ export default function NewProjectPage() {
             description,
             maxRuntimeHours,
             maxBudget,
-            aiModels: aiModels.map(model => ({ id: model.id, intelligence: model.intelligence })), // Pass only necessary model info
+            aiModels: Object.entries(aiModels || {}).flatMap(([intelligence, models]) => {
+  if (!models) return [];
+  return (models as AIModelConfig[]).map(model => ({
+    id: crypto.randomUUID(), // Dynamically generated ID
+    intelligence: intelligence, // Use the intelligence level derived from the key
+    provider: model.provider,
+    modelName: model.modelName,
+  }));
+}),
           });
           setEstimatedCostResult(estimation);
         } catch (error) {
@@ -183,92 +211,6 @@ export default function NewProjectPage() {
       }
     });
   };
-
-  const renderAiModelSelection = (
-    intelligence: AiModel['intelligence'],
-    title: string,
-    models: AiModel[],
-    append: (model: AiModel) => void,
-    remove: (index: number) => void,
-  ) => (
-    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
-      <h3 className="text-md font-semibold text-gray-800 mb-3">{title} AI Models</h3>
-      <div className="space-y-3 mb-4">
-        {models.length === 0 ? (
-          <p className="text-sm text-gray-500">No {title.toLowerCase()} models added.</p>
-        ) : (
-          models.map((model, index) => (
-            <div
-              key={model.id}
-              className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
-            >
-              <div className="flex-grow">
-                <p className="text-sm font-medium text-gray-700">{model.alias}</p>
-                <p className="text-xs text-gray-500">{model.apiKey.substring(0, 5)}...{model.apiKey.substring(model.apiKey.length - 5)}</p>
-              </div>
-              <Button
-                type="button"
-                onClick={() => remove(index)}
-                variant="destructive"
-                size="sm"
-              >
-                Remove
-              </Button>
-            </div>
-          ))
-        )}
-      </div>
-      <div className="flex flex-col space-y-3">
-        <Input
-          id={`new-ai-model-alias-${intelligence}`}
-          placeholder="Model Alias (e.g., OpenAI GPT-4)"
-          className="mb-2"
-        />
-        <Input
-          id={`new-ai-model-key-${intelligence}`}
-          type="password"
-          placeholder="API Key"
-          className="mb-2"
-        />
-        <Input
-          id={`new-ai-model-note-${intelligence}`}
-          placeholder="Note (optional)"
-          className="mb-2"
-        />
-        <Button
-          type="button"
-          onClick={() => {
-            const aliasInput = document.getElementById(`new-ai-model-alias-${intelligence}`) as HTMLInputElement;
-            const keyInput = document.getElementById(`new-ai-model-key-${intelligence}`) as HTMLInputElement;
-            const noteInput = document.getElementById(`new-ai-model-note-${intelligence}`) as HTMLInputElement;
-
-            const alias = aliasInput.value;
-            const apiKey = keyInput.value;
-            const note = noteInput.value;
-
-            if (alias && apiKey) {
-              append({ id: crypto.randomUUID(), alias, intelligence, apiKey, note: note || undefined });
-             aliasInput.value = '';
-              keyInput.value = '';
-              noteInput.value = '';
-            } else {
-              toast.error('Alias and API Key are required to add an AI model.');
-            }
-          }}
-        >
-          Add {title} Model
-        </Button>
-      </div>
-    </div>
-  );
-
-  // Filter models by intelligence type for rendering
-  const utilityModels = aiModelFields.filter(model => model.intelligence === 'utility');
-  const lowModels = aiModelFields.filter(model => model.intelligence === 'low');
-  const mediumModels = aiModelFields.filter(model => model.intelligence === 'medium');
-  const highModels = aiModelFields.filter(model => model.intelligence === 'high');
-  const superModels = aiModelFields.filter(model => model.intelligence === 'super');
-  const backupModels = aiModelFields.filter(model => model.intelligence === 'backup');
 
   const handleLinkJira = async () => {
     try {
@@ -548,48 +490,12 @@ export default function NewProjectPage() {
                 >
                   {/* AI Model Selection UI */}
                   <div className="space-y-6">
-                    {renderAiModelSelection(
-                      'utility',
-                      'Utility',
-                      utilityModels,
-                      appendAiModel,
-                      removeAiModel,
-                    )}
-                    {renderAiModelSelection(
-                      'low',
-                      'Low Intelligence',
-                      lowModels,
-                      appendAiModel,
-                      removeAiModel,
-                    )}
-                    {renderAiModelSelection(
-                      'medium',
-                      'Medium Intelligence',
-                      mediumModels,
-                      appendAiModel,
-                      removeAiModel,
-                    )}
-                    {renderAiModelSelection(
-                      'high',
-                      'High Intelligence',
-                      highModels,
-                      appendAiModel,
-                      removeAiModel,
-                    )}
-                    {renderAiModelSelection(
-                      'super',
-                      'Super Intelligence',
-                      superModels,
-                      appendAiModel,
-                      removeAiModel,
-                    )}
-                    {renderAiModelSelection(
-                      'backup',
-                      'Backup',
-                      backupModels,
-                      appendAiModel,
-                      removeAiModel,
-                    )}
+                    <AIModelConfigurationSection level="utility" title="Utility" />
+                    <AIModelConfigurationSection level="low" title="Low" />
+                    <AIModelConfigurationSection level="medium" title="Medium" />
+                    <AIModelConfigurationSection level="high" title="High" />
+                    <AIModelConfigurationSection level="super" title="Super" />
+                    <AIModelConfigurationSection level="backup" title="Backup" />
                     
 
                     {/* Link Jira Account Button */}

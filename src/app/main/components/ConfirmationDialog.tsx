@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import {
   Dialog,
@@ -13,43 +13,51 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react'; // Assuming Loader2 is from lucide-react (common for UI icons)
 
 const ConfirmationDialog: React.FC = () => {
   const { confirmationDialog, hideConfirmation } = useGlobalErrorStore();
   const [inputValue, setInputValue] = useState('');
-  const [isConfirmButtonEnabled, setIsConfirmButtonEnabled] = useState(false);
+  
+  // Determine if the confirm button should be enabled
+  const isConfirmButtonEnabled = useMemo(() => {
+    if (!confirmationDialog) return false;
+    // If isLoading, the button should be disabled
+    if (confirmationDialog.isLoading) return false;
+    // If there's a confirmPhrase, enable button only when input matches
+    if (confirmationDialog.confirmPhrase) {
+      return inputValue === confirmationDialog.confirmPhrase;
+    }
+    // Otherwise, enable button by default for simple confirmations
+    return true;
+  }, [inputValue, confirmationDialog]);
 
   useEffect(() => {
-    // If there's a confirmPhrase, enable button only when input matches
-    // Otherwise, enable button by default for simple confirmations
-    if (confirmationDialog) {
-      setIsConfirmButtonEnabled(
-        confirmationDialog.confirmPhrase ? inputValue === confirmationDialog.confirmPhrase : true, // No phrase means button is always enabled
-      );
-    } else {
-      // Reset state when dialog is closed
+    // Reset input value when dialog opens or changes
+    if (confirmationDialog && confirmationDialog.isOpen) {
       setInputValue('');
-      setIsConfirmButtonEnabled(false);
     }
-  }, [inputValue, confirmationDialog]);
+  }, [confirmationDialog]);
 
   if (!confirmationDialog || !confirmationDialog.isOpen) {
     return null;
   }
 
   const handleConfirm = () => {
-    // If there's a confirmPhrase, check for match, otherwise proceed directly
-    if (!confirmationDialog.confirmPhrase || inputValue === confirmationDialog.confirmPhrase) {
+    // The button's disabled state already handles the logic, but an extra check here is harmless.
+    if (isConfirmButtonEnabled) { // Only proceed if the button is enabled
       confirmationDialog.onConfirm();
-      hideConfirmation();
+      // Do not hide confirmation here; it will be hidden by the caller after API response.
     }
   };
 
   const handleCancel = () => {
-    if (confirmationDialog.onCancel) {
-      confirmationDialog.onCancel();
+    if (!confirmationDialog.isLoading) { // Allow cancel only if not loading
+      if (confirmationDialog.onCancel) {
+        confirmationDialog.onCancel();
+      }
+      hideConfirmation();
     }
-    hideConfirmation();
   };
 
   const showConfirmPhraseInput = !!confirmationDialog.confirmPhrase;
@@ -77,16 +85,24 @@ const ConfirmationDialog: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={confirmationDialog.confirmPhrase}
+                disabled={confirmationDialog.isLoading} // Disable input during loading
               />
             </div>
           </div>
         )}
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="outline" onClick={handleCancel} disabled={confirmationDialog.isLoading}>
             {confirmationDialog.cancelText || 'Cancel'}
           </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={!isConfirmButtonEnabled}>
+          <Button
+            variant="destructive"
+            onClick={handleConfirm}
+            disabled={!isConfirmButtonEnabled}
+          >
             {confirmationDialog.confirmText || 'Confirm'}
+            {confirmationDialog.isLoading && (
+              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

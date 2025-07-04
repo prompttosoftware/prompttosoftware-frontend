@@ -41,13 +41,22 @@ type GithubRepository =
   | { type: 'new'; name: string; isPrivate: boolean }
   | { type: 'existing'; url: string };
 
-type AiModel = {
-  id: string;
-  alias: string;
-  intelligence: 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
-  apiKey: string;
-  note?: string;
-};
+
+
+export interface AIModelConfig {
+    provider: string;
+    modelName: string;
+    apiKey?: string; // Handled by PROM-61, but important for structure
+}
+
+export interface NewProjectModels {
+    utility?: AIModelConfig[];
+    low?: AIModelConfig[];
+    medium?: AIModelConfig[];
+    high?: AIModelConfig[];
+    super?: AIModelConfig[];
+    backup?: AIModelConfig[];
+}
 
 export interface ProjectFormData {
   description: string;
@@ -55,7 +64,7 @@ export interface ProjectFormData {
   maxBudget: number;
   githubRepositories: GithubRepository[];
   advancedOptions: {
-    aiModels: AiModel[];
+    aiModels: NewProjectModels; // Updated to use NewProjectModels
     installations: string[];
     jiraLinked: boolean;
   };

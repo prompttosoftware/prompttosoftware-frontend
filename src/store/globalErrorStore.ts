@@ -17,6 +17,7 @@ interface ConfirmationDialogState {
   onCancel?: () => void;
   cancelText?: string; // Custom text for the cancel button
   confirmText?: string; // Custom text for the confirm button
+  isLoading?: boolean; // New prop for loading state in confirmation dialog
 }
 
 interface GlobalErrorState {
@@ -33,9 +34,11 @@ interface GlobalErrorState {
       onCancel?: () => void;
       cancelText?: string;
       confirmText?: string;
+      isLoading?: boolean; // Add isLoading to options
     },
   ) => void;
   hideConfirmation: () => void;
+  setConfirmationLoading: (isLoading: boolean) => void; // New action to set loading state
 }
 
 export const useGlobalErrorStore = create<GlobalErrorState>((set) => ({
@@ -54,12 +57,26 @@ export const useGlobalErrorStore = create<GlobalErrorState>((set) => ({
         onCancel: options?.onCancel,
         cancelText: options?.cancelText,
         confirmText: options?.confirmText,
+        isLoading: options?.isLoading || false, // Initialize isLoading
       },
     }),
   hideConfirmation: () => set({ confirmationDialog: null }),
+  setConfirmationLoading: (isLoading) =>
+    set((state) => {
+      if (state.confirmationDialog) {
+        return {
+          confirmationDialog: {
+            ...state.confirmationDialog,
+            isLoading: isLoading,
+          },
+        };
+      }
+      return state;
+    }),
 }));
 
 // These exports allow direct access to the store's methods without needing to use the hook inside components
 export const setGlobalError = useGlobalErrorStore.getState().setError;
 export const showConfirmationDialog = useGlobalErrorStore.getState().showConfirmation;
 export const hideConfirmationDialog = useGlobalErrorStore.getState().hideConfirmation;
+export const setConfirmationDialogLoading = useGlobalErrorStore.getState().setConfirmationLoading; // Export new action
