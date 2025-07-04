@@ -56,7 +56,11 @@ const ConfirmationDialog: React.FC = () => {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <p className="text-sm text-muted-foreground">
-            To confirm, please type &quot;<span className="font-semibold text-foreground">{confirmationDialog.confirmPhrase}</span>&quot; in the box below.
+            To confirm, please type &quot;
+            <span className="font-semibold text-foreground">
+              {confirmationDialog.confirmPhrase}
+            </span>
+            &quot; in the box below.
           </p>
           <div className="grid gap-2">
             <Label htmlFor="confirm-input">Confirmation Phrase</Label>

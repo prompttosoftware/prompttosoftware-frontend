@@ -11,11 +11,11 @@ import {
   QuestionMarkCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-Cog6ToothIcon, // Import the settings icon
+  Cog6ToothIcon, // Import the settings icon
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { AddPaymentButton } from './AddPaymentButton';
-import { WatchAdButton } from './WatchAdButton';
+import WatchAdButton from './WatchAdButton';
 
 const navigationItems = [
   { name: 'Home/Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -120,7 +120,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
           >
             <AddPaymentButton />
           </div>
-                  {/* Watch Ad Button */}
+          {/* Watch Ad Button */}
           <div
             className={`flex items-center p-3 rounded-lg text-sm font-medium ${
               isExpanded ? 'justify-start' : 'justify-center'
