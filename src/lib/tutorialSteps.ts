@@ -1,6 +1,4 @@
-import { Step } from 'react-joyride';
-
-export const tutorialSteps: Step[] = [
+export const tutorialSteps: any[] = [
   {
     target: 'body',
     content: 'Welcome to Prompt2Code! This quick tour will show you around.',
