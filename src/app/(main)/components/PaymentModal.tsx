@@ -12,133 +12,141 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useBalanceStore } from '@/store/balanceStore'; // Import the balance store
+import { Input } from '@/components/ui/input'; // Import Input component
+
 
 import { Label } from '@/components/ui/label';
+import PaymentFormContent from './PaymentFormContent'; // Import the new PaymentFormContent
+import { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from '@/types/payments'; // Import payment types
 import axiosInstance from '@/lib/api';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { isAxiosError } from 'axios';
-import { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from '@/types/payments';
+
 import { logger } from '@/lib/logger';
-import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
-type PaymentStep = 'initial' | 'cardConfirmation';
 
-// New component to encapsulate Stripe-related logic
-interface PaymentFormContentProps {
-  amount: string | null;
-  description: string | null;
-  clientSecret: string | null;
-  setClientSecret: (secret: string | null) => void;
-  closeModal: () => void;
-  clearStoreState: () => void; // Renamed to avoid confusion with internal state
-  clearGlobalError: () => void;
-  setGlobalError: (error: { message: string; type: 'error' | 'success' | 'info' }) => void;
-  setSuccessMessageStore: (message: string | null) => void; // Add setSuccessMessageStore prop
-}
 
-const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
-  amount,
-  description,
-  clientSecret,
-  setClientSecret,
-  closeModal,
-  clearStoreState,
-  clearGlobalError,
-  setGlobalError,
-  setSuccessMessageStore, // Add setSuccessMessageStore to destructuring
-}) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const queryClient = useQueryClient();
-const setBalance = useBalanceStore((state) => state.setBalance); // Get the setBalance action
 
-  const [currentStep, setCurrentStep] = useState<PaymentStep>('initial');
+
+export function PaymentModal() {
+  const { isOpen, closeModal, clientSecret, setClientSecret, clearState } =
+    usePaymentModalStore();
+  const { setError, clearError } = useGlobalErrorStore();
+  const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
+
+  // Local states for amount input and step management
+  const [inputAmount, setInputAmount] = useState<string>('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'paypal'>('card');
-  const [isLoading, setIsLoading] = useState(false);
-  const [cardError, setCardError] = useState<string | null>(null);
-
-  // Effect to manage step based on clientSecret when component mounts/updates
-  useEffect(() => {
-    if (clientSecret) {
-      setCurrentStep('cardConfirmation');
-    } else {
-      setCurrentStep('initial');
-    }
-  }, [clientSecret]);
-
-  const cardElementOptions = useMemo(
-    () => ({
-      style: {
-        base: {
-          fontSize: '16px',
-          color: '#32325d',
-          fontFamily: 'Arial, sans-serif',
-          '::placeholder': {
-            color: '#aab7c4',
-          },
-        },
-        invalid: {
-          color: '#fa755a',
-          iconColor: '#fa755a',
-        },
-      },
-      hidePostalCode: true,
-    }),
-    [],
+  const [currentModalStep, setCurrentModalStep] = useState<'input_amount' | 'confirm_card'>(
+    'input_amount',
   );
+  const [isLoadingPaymentIntent, setIsLoadingPaymentIntent] = useState(false);
 
-  const handleCardChange = useCallback((event: any) => {
-    if (event.error) {
-      setCardError(event.error.message);
+  // Reset local states when modal closes or opens fresh
+  useEffect(() => {
+    if (!isOpen) {
+      setInputAmount('');
+      setSelectedPaymentMethod('card');
+      setCurrentModalStep('input_amount');
+      setIsLoadingPaymentIntent(false);
+      clearState(); // Clear the store state
+      clearError(); // Clear any global errors
+      setSuccessMessageStore(null); // Clear success message on modal close
     } else {
-      setCardError(null);
-    }
-  }, []);
-
-  const handleInitiatePaymentProcess = useCallback(async () => {
-    if (selectedPaymentMethod === 'card') {
-      if (!stripe || !elements) {
-        logger.error('Stripe.js has not loaded yet in PaymentFormContent.');
-        setGlobalError({ message: 'Stripe.js is not loaded. Please try again.', type: 'error' });
-        return;
+      // If modal just opened and we have a clientSecret from previous attempt, go to confirm_card
+      if (clientSecret) {
+        setCurrentModalStep('confirm_card');
+      } else {
+        setCurrentModalStep('input_amount');
       }
+    }
+  }, [isOpen, clearState, clearError, setSuccessMessageStore, clientSecret]);
 
-      setIsLoading(true);
-      clearGlobalError();
-
+  
+  const validateAmount = useCallback((amountStr: string): boolean => {
+    clearError(); // Clear any previous global errors
+  
+    if (!amountStr) {
+      setError({ message: 'Amount is required.', type: 'error' });
+      return false;
+    }
+  
+    const amount = parseFloat(amountStr);
+  
+    if (isNaN(amount)) {
+      setError({ message: 'Amount must be a number.', type: 'error' });
+      return false;
+    }
+  
+    if (amount <= 0) {
+      setError({ message: 'Amount must be positive.', type: 'error' });
+      return false;
+    }
+    // Stripe minimum amount is 0.50 USD in most cases. Let's enforce a minimum for now.
+    // Assuming currency is USD.
+    if (amount < 0.5) {
+      setError({ message: 'Minimum amount is $0.50.', type: 'error' });
+      return false;
+    }
+  
+    // Optional: Max amount to prevent abuse or huge transactions
+    if (amount > 10000) {
+      setError({ message: 'Maximum amount is $10,000.00.', type: 'error' });
+      return false;
+    }
+  
+    return true;
+  }, [clearError, setError]);
+  
+  const handleAmountChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      // Allow only numbers and a single decimal point
+      if (/^\d*\.?\d*$/.test(value) || value === '') {
+        setInputAmount(value);
+        // On change, re-validate to clear errors if user fixed input, or show new error
+        if (value) {
+          validateAmount(value);
+        } else {
+          clearError(); // If input is empty, clear any existing amount errors
+        }
+      }
+    },
+    [validateAmount, clearError],
+  );
+  
+  const handleInitiatePaymentProcess = useCallback(async () => {
+    if (!validateAmount(inputAmount)) {
+      setError({
+        message: 'Please correct the amount entered.',
+        type: 'error',
+      });
+      return;
+    }
+    // Only proceed for card payments for sending intent
+    if (selectedPaymentMethod === 'card') {
+      setIsLoadingPaymentIntent(true);
+      clearError();
+  
       const token = localStorage.getItem('jwtToken');
       if (!token) {
-        setGlobalError({ message: 'Authentication required. Please log in again.', type: 'error' });
-        logger.error('No JWT token found for payment intent creation in PaymentFormContent.');
-        setIsLoading(false);
+        setError({ message: 'Authentication required. Please log in again.', type: 'error' });
+        logger.error('No JWT token found for payment intent creation.');
+        setIsLoadingPaymentIntent(false);
         return;
       }
-
-      if (!amount) {
-        setGlobalError({ message: 'Payment amount is missing.', type: 'error' });
-        logger.error('Payment amount is missing in PaymentFormContent.');
-        setIsLoading(false);
-        return;
-      }
-
-      const amountInCents = Math.round(parseFloat(amount) * 100);
-
-      if (amountInCents <= 0) {
-        setGlobalError({ message: 'Payment amount must be greater than zero.', type: 'error' });
-        logger.error('Attempted to create payment intent with non-positive amount in PaymentFormContent.');
-        setIsLoading(false);
-        return;
-      }
-
+  
+      const amountInCents = Math.round(parseFloat(inputAmount) * 100);
+      const description = 'Funds added to account'; // Default description
+      
+      logger.info(`Attempting to create payment intent for amount: $${parseFloat(inputAmount).toFixed(2)}`);
       try {
         const requestBody: CreatePaymentIntentRequest = {
           amount: amountInCents,
           currency: 'usd',
-          description: description || 'Funds added to account',
+          description: description,
         };
-
+      
         const response = await axiosInstance.post<
           CreatePaymentIntentRequest,
           CreatePaymentIntentResponse
@@ -147,250 +155,120 @@ const setBalance = useBalanceStore((state) => state.setBalance); // Get the setB
             Authorization: `Bearer ${token}`,
           },
         });
-
-        const { clientSecret: newClientSecret, paymentIntentId } = response;
+  
+        const { clientSecret: newClientSecret } = response;
         setClientSecret(newClientSecret);
-        logger.info(`Payment Intent created successfully in PaymentFormContent: ${paymentIntentId}`);
-        setCurrentStep('cardConfirmation');
+        logger.info(`Payment Intent created successfully.`);
+        setCurrentModalStep('confirm_card'); // Move to the next step
       } catch (error) {
-        logger.error('Failed to create Payment Intent in PaymentFormContent.', error);
-
+        logger.error('Failed to create Payment Intent.', error);
+  
         if (isAxiosError(error) && error.response) {
-          setGlobalError({
+          setError({
             message:
               error.response.data.message || 'Error creating payment intent. Please try again.',
             type: 'error',
           });
         } else {
-          setGlobalError({
+          setError({
             message: 'An unexpected error occurred while creating payment intent.',
             type: 'error',
           });
         }
       } finally {
-        setIsLoading(false);
+        setIsLoadingPaymentIntent(false);
       }
     } else if (selectedPaymentMethod === 'paypal') {
-      logger.info('Proceeding with PayPal payment (simulated) in PaymentFormContent');
-      setGlobalError({ message: 'PayPal integration is not yet implemented.', type: 'info' });
+      logger.info('Proceeding with PayPal payment (simulated) - PayPal not integrated yet.');
+      setError({ message: 'PayPal integration is not yet implemented.', type: 'info' });
+      // For now, close modal for PayPal after message
       closeModal();
     }
-  }, [amount, description, selectedPaymentMethod, stripe, elements, setClientSecret, closeModal, clearGlobalError, setGlobalError]); // Dependencies for useCallback
-
-  const handleStripeConfirmation = useCallback(async () => {
-    if (!stripe || !elements || !clientSecret) {
-      setGlobalError({ message: 'Stripe.js has not loaded or client secret is missing.', type: 'error' });
-      logger.error('Stripe.js not loaded or clientSecret missing for confirmation in PaymentFormContent.');
-      return;
-    }
-
-    setIsLoading(true);
-    clearGlobalError();
-
-    try {
-      const cardElement = elements.getElement(CardElement);
-
-      if (!cardElement) {
-        setGlobalError({ message: 'Card details not found. Please re-enter.', type: 'error' });
-        logger.error('CardElement not found in PaymentFormContent.');
-        setIsLoading(false);
-        return;
-      }
-
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-        },
-      });
-
-      if (error) {
-        logger.error('Payment failed in PaymentFormContent', error);
-        setGlobalError({ message: error.message || 'Payment failed. Please try again.', type: 'error' });
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        logger.info('Funds added successfully in PaymentFormContent!');
-        setSuccessMessageStore('Funds added successfully!'); // Use dedicated success message store
-        // Fetch updated user data after successful payment
-        try {
-          const token = localStorage.getItem('jwtToken');
-          if (!token) {
-            logger.error('No JWT token found for fetching user data after payment.');
-            queryClient.invalidateQueries({ queryKey: ['auth', 'me'] }); // Fallback to invalidation if no token
-          } else {
-            const userResponse = await axiosInstance.get('/auth/me', {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            if (userResponse.data && typeof userResponse.data.balance === 'number') {
-              setBalance(userResponse.data.balance);
-              logger.info(`Balance updated in store to: ${userResponse.data.balance}`);
-            } else {
-              logger.warn('User data or balance not found in /auth/me response after payment. Invalidating query instead.');
-              queryClient.invalidateQueries({ queryKey: ['auth', 'me'] }); // Fallback to invalidation
-            }
-          }
-        } catch (fetchError) {
-          logger.error('Failed to fetch updated user data after payment in PaymentFormContent. Invalidating query instead.', fetchError);
-          queryClient.invalidateQueries({ queryKey: ['auth', 'me'] }); // Fallback to invalidation
-        }
-        closeModal();
-        clearStoreState(); // Clear modal state on success
-      } else {
-        logger.warn(`Payment not successful in PaymentFormContent: status ${paymentIntent?.status}`);
-        setGlobalError({
-          message: `Payment could not be completed. Status: ${paymentIntent?.status}. Please try again.`,
-          type: 'error',
-        });
-      }
-    } catch (error) {
-      logger.error('An unexpected error occurred during payment confirmation in PaymentFormContent', error);
-      setGlobalError({
-        message: 'An unexpected error occurred during payment. Please try again.',
-        type: 'error',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [stripe, elements, clientSecret, closeModal, clearStoreState, clearGlobalError, setGlobalError, setSuccessMessageStore, queryClient, setBalance]); // Dependencies for useCallback
-
-  return (
-    <>
-      <div className="py-4">
-        {amount && (
-          <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md mb-4">
-            <span className="font-semibold text-lg">Amount to add:</span>
-            <span className="font-bold text-xl text-blue-600">
-              ${parseFloat(amount).toFixed(2)}
-            </span>
-          </div>
-        )}
-        {description && (
-          <div className="text-sm text-gray-700 mb-4">
-            <span className="font-semibold">Description:</span> {description}
-          </div>
-        )}
-
-        {currentStep === 'initial' && (
-          <>
-            <div className="mt-4">
-              <Label
-                htmlFor="paymentMethod"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Select Payment Method
-              </Label>
-              <select
-                id="paymentMethod"
-                value={selectedPaymentMethod}
-                onChange={(e) => setSelectedPaymentMethod(e.target.value as 'card' | 'paypal')}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
-              >
-                <option value="card">Credit Card</option>
-                <option value="paypal">PayPal</option>
-              </select>
-            </div>
-
-            {selectedPaymentMethod === 'card' && (
-              <div className="mt-4 p-3 border rounded-md shadow-sm text-center bg-gray-50">
-                <p className="text-gray-600">You will enter card details on the next step.</p>
-              </div>
-            )}
-
-            {selectedPaymentMethod === 'paypal' && (
-              <div className="mt-4 p-3 border rounded-md shadow-sm text-center">
-                <p className="text-gray-600">
-                  You will be redirected to PayPal to complete your purchase.
-                </p>
-              </div>
-            )}
-          </>
-        )}
-
-        {currentStep === 'cardConfirmation' && selectedPaymentMethod === 'card' && (
-          <div className="mt-4 p-3 border rounded-md shadow-sm">
-            <Label
-              htmlFor="card-element"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Credit or debit card
-            </Label>
-            <div id="card-element">
-              <CardElement options={cardElementOptions} onChange={handleCardChange} />
-              {cardError && <div className="text-red-500 text-sm mt-2">{cardError}</div>}
-            </div>
-          </div>
-        )}
-      </div>
-      <DialogFooter>
-        <Button variant="outline" onClick={closeModal} disabled={isLoading}>
-          Cancel
-        </Button>
-        {currentStep === 'initial' ? (
-          <Button
-            onClick={handleInitiatePaymentProcess}
-            disabled={isLoading || !amount || parseFloat(amount) <= 0}
-          >
-            {isLoading ? 'Processing...' : 'Next'}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleStripeConfirmation}
-            disabled={isLoading || !clientSecret || !stripe || !elements}
-          >
-            {isLoading ? 'Confirming...' : 'Confirm Payment'}
-          </Button>
-        )}
-      </DialogFooter>
-    </>
-  );
-};
-
-
-export function PaymentModal() {
-  const { isOpen, closeModal, amount, description, clientSecret, setClientSecret, clearState } =
-    usePaymentModalStore();
+  }, [inputAmount, selectedPaymentMethod, validateAmount, setClientSecret, clearError, setError, closeModal]);
   
-  const { setError, clearError } = useGlobalErrorStore();
-  const { setMessage: setSuccessMessageStore } = useSuccessMessageStore(); // Use success message store
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      // The internal state (currentStep, selectedPaymentMethod, isLoading, cardError)
-      // will be managed by PaymentFormContent when it unmounts or re-initializes.
-      clearState(); // Clear the store state
-      clearError(); // Clear any global errors
-      setSuccessMessageStore(null); // Clear success message on modal close
-    }
-  }, [isOpen, clearState, clearError, setSuccessMessageStore]);
-
-
-  const stripe = useStripe(); // These hooks are still called here.
-  const elements = useElements(); // But the crucial logic now lives in a child component.
-
   return (
     <Dialog open={isOpen} onOpenChange={closeModal}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Funds</DialogTitle>
           <DialogDescription>
-            Choose a payment method to add funds to your account.
+            {currentModalStep === 'input_amount'
+              ? 'Enter the amount you wish to add to your account.'
+              : 'Confirm your payment details.'}
           </DialogDescription>
         </DialogHeader>
-        {stripe && elements ? (
-          <PaymentFormContent
-            amount={amount}
-            description={description}
-            clientSecret={clientSecret}
-            setClientSecret={setClientSecret}
-            closeModal={closeModal}
-            clearStoreState={clearState}
-            clearGlobalError={clearError}
-            setGlobalError={setError}
-            setSuccessMessageStore={setSuccessMessageStore} // Pass setSuccessMessageStore down
-          />
-        ) : (
-          <div className="flex justify-center items-center h-40">
-            <p>Loading payment form...</p>
-          </div>
+  
+        {currentModalStep === 'input_amount' && (
+          <>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="amount" className="text-right">
+                  Amount
+                </Label>
+                <Input
+                  id="amount"
+                  type="text" // Use text to allow partial input like "1." before final validation
+                  placeholder="e.g., 50.00"
+                  value={inputAmount}
+                  onChange={handleAmountChange}
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4 mt-2">
+                <Label htmlFor="paymentMethod" className="text-right">
+                  Method
+                </Label>
+                <select
+                  id="paymentMethod"
+                  value={selectedPaymentMethod}
+                  onChange={(e) => setSelectedPaymentMethod(e.target.value as 'card' | 'paypal')}
+                  className="col-span-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                >
+                  <option value="card">Credit Card</option>
+                  <option value="paypal" disabled>PayPal (Coming Soon)</option> {/* PayPal disabled for now */}
+                </select>
+              </div>
+            </div>
+  
+            <DialogFooter>
+              <Button variant="outline" onClick={closeModal} disabled={isLoadingPaymentIntent}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleInitiatePaymentProcess}
+                disabled={!inputAmount || isLoadingPaymentIntent}
+              >
+                {isLoadingPaymentIntent ? 'Processing...' : 'Next'}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+  
+        {currentModalStep === 'confirm_card' && clientSecret && (
+          <>
+            <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md mb-4 mt-4">
+              <span className="font-semibold text-lg">Amount to add:</span>
+              <span className="font-bold text-xl text-blue-600">
+                ${parseFloat(inputAmount).toFixed(2)}
+              </span>
+            </div>
+            <PaymentFormContent
+              clientSecret={clientSecret}
+              setClientSecret={setClientSecret}
+              closeModal={closeModal}
+              clearStoreState={clearState}
+              clearGlobalError={clearError}
+              setGlobalError={setError}
+              setSuccessMessageStore={setSuccessMessageStore}
+            />
+          </>
+        )}
+        {/* If clientSecret is null but step is confirm_card, something went wrong. */}
+        {currentModalStep === 'confirm_card' && !clientSecret && (
+            <div className="py-4 text-center text-red-600">
+                Error: Payment details could not be loaded. Please try again.
+            </div>
         )}
       </DialogContent>
     </Dialog>
