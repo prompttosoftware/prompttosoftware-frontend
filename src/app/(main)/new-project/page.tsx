@@ -15,19 +15,73 @@ import { NewRepositoryFields } from './NewRepositoryFields'; // Import NewReposi
 import { ExistingRepositoryFields } from './ExistingRepositoryFields'; // Import ExistingRepositoryFields
 
 // Define the structure for the request payload to the backend
+import { z } from 'zod';
+
 interface AIModelConfig {
   provider: string;
   modelName: string;
   apiKey?: string; // Optional API key
 }
 
-interface GithubRepository {
-  type: 'new' | 'existing';
-  name?: string; // for 'new'
-  organization?: string; // for 'new'
-  isPrivate?: boolean; // for 'new'
-  url?: string; // for 'existing'
-}
+// Define the Zod schema for the form
+const formSchema = z.object({
+  description: z.string().min(1, 'Project description is required'),
+  maxRuntimeHours: z.number().positive('Must be a positive number').optional(),
+  maxBudget: z.number().positive('Must be a positive number').optional(),
+  githubRepositories: z.array(
+    z.discriminatedUnion('type', [
+      z.object({
+        id: z.string().optional(),
+        type: z.literal('new'),
+        name: z.string().min(1, 'Repository name is required'), // Changed from repositoryName to name
+        organizationName: z.string().optional(),
+        isPrivate: z.boolean(),
+      }),
+      z.object({
+        id: z.string().optional(),
+        type: z.literal('existing'),
+        url: z.string().url('Invalid URL format').min(1, 'GitHub Repository URL is required'), // Changed from githubUrl to url
+      }),
+    ])
+  ),
+  advancedOptions: z.object({
+    models: z.object({
+      utility: z.array(z.object({
+        provider: z.string().min(1, 'Provider is required'),
+        modelName: z.string().min(1, 'Model name is required'),
+        apiKey: z.string().optional(),
+      })).optional(),
+      low: z.array(z.object({
+        provider: z.string().min(1, 'Provider is required'),
+        modelName: z.string().min(1, 'Model name is required'),
+        apiKey: z.string().optional(),
+      })).optional(),
+      medium: z.array(z.object({
+        provider: z.string().min(1, 'Provider is required'),
+        modelName: z.string().min(1, 'Model name is required'),
+        apiKey: z.string().optional(),
+      })).optional(),
+      high: z.array(z.object({
+        provider: z.string().min(1, 'Provider is required'),
+        modelName: z.string().min(1, 'Model name is required'),
+        apiKey: z.string().optional(),
+      })).optional(),
+      super: z.array(z.object({
+        provider: z.string().min(1, 'Provider is required'),
+        modelName: z.string().min(1, 'Model name is required'),
+        apiKey: z.string().optional(),
+      })).optional(),
+      backup: z.array(z.object({
+        provider: z.string().min(1, 'Provider is required'),
+        modelName: z.string().min(1, 'Model name is required'),
+        apiKey: z.string().optional(),
+      })).optional(),
+    }).optional(),
+  }).optional(),
+});
+
+type NewProjectRequest = z.infer<typeof formSchema>;
+
 
 interface CostEstimationResult {
   estimatedTotal: number;
@@ -38,21 +92,18 @@ interface CostEstimationResult {
   modelErrorMessage: string | null;
 }
 
-interface NewProjectRequest {
-  description: string;
-  maxRuntimeHours?: number;
-  maxBudget?: number;
-  githubRepositories?: GithubRepository[]; // Add githubRepositories to the request
-  advancedOptions?: {
-    models?: {
-      utility?: AIModelConfig[];
-      low?: AIModelConfig[];
-      medium?: AIModelConfig[];
-      high?: AIModelConfig[];
-      super?: AIModelConfig[];
-      backup?: AIModelConfig[];
-    };
-  };
+// Define the structure for a successful project creation response
+interface NewProjectResponse {
+  projectId: string;
+  message: string;
+  // Other fields returned by the API on project creation
+}
+
+// Define the shape of an API error response
+interface APIError {
+  status: number;
+  message: string;
+  errors?: Record<string, string>; // For validation errors where keys are field names and values are error messages
 }
 
 // Define the structure for a successful project creation response

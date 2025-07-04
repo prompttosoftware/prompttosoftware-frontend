@@ -12,8 +12,6 @@ interface ExistingRepositoryFieldsProps {
 export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> = ({ index, onRemove }) => {
   const { register, formState: { errors } } = useFormContext(); // Use useFormContext
 
-  const githubUrlPattern = /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+(\/.*)?$/;
-
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
       <h4 className="text-md font-semibold text-gray-700 mb-3">
@@ -26,19 +24,14 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
         <Label htmlFor={`existing-repo-url-${index}`}>GitHub Repository URL</Label>
         <Input
           id={`existing-repo-url-${index}`}
-          type="url"
-          {...register(`githubRepositories.${index}.url`, {
-            required: 'GitHub repository URL is required',
-            pattern: {
-              value: githubUrlPattern,
-              message: 'Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)',
-            },
-          })}
-          placeholder="e.g., https://github.com/your-org/your-repo"
+          type="text"
+          {...register(`githubRepositories.${index}.url`)}
+          placeholder="e.g., https://github.com/username/repo"
+          aria-invalid={errors.githubRepositories?.[index]?.type === 'existing' && !!(errors.githubRepositories?.[index] as any)?.url}
         />
-        {errors.githubRepositories?.[index]?.url && (
+        {errors.githubRepositories?.[index]?.type === 'existing' && (errors.githubRepositories[index] as any)?.url && (
           <p className="text-red-500 text-xs mt-1">
-            {errors.githubRepositories[index].url.message as string}
+            {(errors.githubRepositories[index] as any).url.message}
           </p>
         )}
       </div>
