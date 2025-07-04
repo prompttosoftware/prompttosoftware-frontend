@@ -7,10 +7,10 @@ import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FaCcVisa, FaCcMastercard, FaRegCreditCard } from 'react-icons/fa';
+import * as FaIcons from 'react-icons/fa';
 import { logger } from '@/lib/logger';
-import { SkeletonLoader } from './SkeletonLoader';
-import { EmptyState } from './EmptyState';
+import SkeletonLoader from './SkeletonLoader';
+import EmptyState from './EmptyState';
 
 export function SavedCardsList() {
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
@@ -69,14 +69,14 @@ export function SavedCardsList() {
     [fetchSavedCards, setError, setSuccessMessage],
   );
 
-  const getCardIcon = (brand: string) => {
+  const getCardIcon = (brand: string): React.ReactElement => {
     switch (brand.toLowerCase()) {
       case 'visa':
-        return <FaCcVisa className="text-blue-600 w-8 h-8" />;
+        return <FaIcons.FaCcVisa className="text-blue-600 w-8 h-8" />;
       case 'mastercard':
-        return <FaCcMastercard className="text-orange-500 w-8 h-8" />;
+        return <FaIcons.FaCcMastercard className="text-orange-500 w-8 h-8" />;
       default:
-        return <FaRegCreditCard className="text-gray-500 w-8 h-8" />;
+        return <FaIcons.FaRegCreditCard className="text-gray-500 w-8 h-8" />;
     }
   };
 

@@ -118,12 +118,12 @@ describe('API Type Safety Tests', () => {
       await api.post('/payments/create-intent', { amount: 100, currency: 'usd' });
       throw new Error('API call should have failed with a 400 error.');
     } catch (error) {
-      console.log('Caught error:', error);
-      console.log('Is Axios Error:', axios.isAxiosError(error));
+      console.warn('Caught error:', error);
+      console.warn('Is Axios Error:', axios.isAxiosError(error));
       if (axios.isAxiosError(error)) {
-        console.log('Error response data:', error.response?.data);
-        console.log('Error response status:', error.response?.status);
-        console.log('Error response headers:', error.response?.headers);
+        console.warn('Error response data:', error.response?.data);
+        console.warn('Error response status:', error.response?.status);
+        console.warn('Error response headers:', error.response?.headers);
       }
       if (axios.isAxiosError(error) && error.response) {
         const errorData: PaymentErrorResponse = error.response.data; // Checks type safety

@@ -9,9 +9,9 @@ const WatchAdButton: React.FC = () => {
 
   const handleClick = () => {
     if (!isAuthenticated) {
-      console.log('Redirect to login for this feature.');
+      console.warn('Redirect to login for this feature.');
     } else {
-      console.log('Watch Ad button clicked. Initiating ad functionality.');
+      console.warn('Watch Ad button clicked. Initiating ad functionality.');
     }
   };
 

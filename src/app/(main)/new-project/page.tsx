@@ -17,6 +17,9 @@ import { useRouter } from 'next/navigation'; // Using next/navigation for router
 import { useGlobalError } from '@/hooks/useGlobalError'; // Importing the global error hook
 import { NewRepositoryFields } from './NewRepositoryFields'; // Import NewRepositoryFields
 import { ExistingRepositoryFields } from './ExistingRepositoryFields'; // Import ExistingRepositoryFields
+import axios from 'axios'; // Import axios
+import { axiosInstance } from '@/lib/httpClient'; // Import axiosInstance
+import { logger } from '@/lib/logger'; // Import logger
 
 // Define the structure for the request payload to the backend
 import { z } from 'zod';
@@ -293,7 +296,7 @@ export default function NewProjectPage() {
     try {
       console.log('Submitting NewProjectRequest:', data);
       const response = await axiosInstance.post<NewProjectResponse>('/projects', data);
-      const { id: newProjectId } = response.data; // Assuming the Project object returned has an 'id' field, not 'projectId' for consistency with GET /projects/{id}
+      const { projectId: newProjectId } = response.data; // Use projectId as defined in NewProjectResponse
 
       // Handle successful submission
       logger.info('Project creation successful:', {
@@ -305,7 +308,8 @@ export default function NewProjectPage() {
     } catch (error: unknown) {
       logger.error('Failed to create project:', error);
 
-      if (axiosInstance.isAxiosError(error) && error.response) {
+      if (axios.isAxiosError(error) && error.response) {
+        // Corrected: use axios.isAxiosError
         const { status, data: errorData } = error.response;
         const apiError = errorData as APIError;
 
@@ -399,11 +403,16 @@ export default function NewProjectPage() {
                     </option>
                   ))}
                 </select>
-                {errors.advancedOptions?.models?.[type]?.[index]?.provider && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {String(errors.advancedOptions.models[type][index]?.provider?.message)}
-                  </p>
-                )}
+                {errors.advancedOptions?.models &&
+                  errors.advancedOptions.models[type] &&
+                  (errors.advancedOptions.models[type]?.[index] as any)?.provider && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {/* Type assertion to access message property */}
+                      {String(
+                        (errors.advancedOptions.models[type]?.[index] as any)?.provider?.message,
+                      )}
+                    </p>
+                  )}
               </div>
 
               {/* Model Name Textbox */}
@@ -423,11 +432,16 @@ export default function NewProjectPage() {
                   placeholder="e.g., gpt-4-turbo"
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
                 />
-                {errors.advancedOptions?.models?.[type]?.[index]?.modelName && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {String(errors.advancedOptions.models[type][index]?.modelName?.message)}
-                  </p>
-                )}
+                {errors.advancedOptions?.models &&
+                  errors.advancedOptions.models[type] &&
+                  (errors.advancedOptions.models[type]?.[index] as any)?.modelName && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {/* Type assertion to access message property */}
+                      {String(
+                        (errors.advancedOptions.models[type]?.[index] as any)?.modelName?.message,
+                      )}
+                    </p>
+                  )}
               </div>
 
               {/* API Key Textbox (Optional) */}
