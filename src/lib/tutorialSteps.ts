@@ -1,35 +1,75 @@
-export const tutorialSteps: any[] = [
+export interface TutorialStep {
+  id: string;
+  title: string;
+  description: string;
+  targetSelector: string;
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  disableBeacon?: boolean; // From existing structure
+}
+
+export const tutorialSteps: TutorialStep[] = [
   {
-    target: 'body',
-    content: 'Welcome to Prompt2Code! This quick tour will show you around.',
+    id: 'welcome',
+    title: 'Welcome to Prompt2Code!',
+    description: 'This quick tour will show you around.',
+    targetSelector: 'body',
+    position: 'center',
     disableBeacon: true,
-    placement: 'center',
   },
   {
-    target: '.profile-button',
-    content: 'This is your profile button. Click here to manage your account.',
+    id: 'add-funds',
+    title: 'Add Funds',
+    description: 'To generate code, you\'ll need funds. Click the "Add Funds" button to top up your balance.',
+    targetSelector: '[data-test-id="add-payment-button"]', // Target the AddPaymentButton component
+    position: 'right', // Adjusted position to be more general or suitable for a button
   },
   {
-    target: '.balance-display',
-    content: 'Your current balance is shown here. You need balance to generate code.',
+    id: 'watch-ads',
+    title: 'Earn Free Funds with Ads',
+    description: 'You can also earn free funds by watching short ads. Look for the "Watch Ad" button.',
+    targetSelector: '[data-tutorialid="watch-ad-button"]', // Updated to target data-tutorialid
+    position: 'bottom',
   },
   {
-    target: '.add-payment-button',
-    content: 'Click here to add funds to your account.',
+    id: 'explore-projects',
+    title: 'Explore Projects Navigation',
+    description: 'Click on the "Explore" tab to discover and learn from projects created by others in the community.',
+    targetSelector: '#explore-tab', // Assuming an ID for the Explore tab in the SideNavBar
+    position: 'right',
   },
   {
-    target: '.side-navbar',
-    content: 'This is the main navigation. You can access different features from here.',
+    id: 'explore-page',
+    title: 'Explore Page Content',
+    description: 'Welcome to the Explore page! Here you can browse and learn from various projects. Use the search and sort options to find what you need.',
+    targetSelector: '[data-tutorialid="explore-controls-container"]',
+    position: 'top',
   },
   {
-    // This target will likely be more specific once the main page component is finalized
-    target: 'body',
-    content: 'This is where you will input your prompts to generate code. Look for the main input field once the tutorial closes.',
-    placement: 'center',
+    id: 'my-projects',
+    title: 'Your Projects',
+    description: 'Manage and view all your generated projects here.',
+    targetSelector: '#projects-tab', // Assuming an ID for the Projects tab in the SideNavBar
+    position: 'right',
   },
   {
-    target: 'body',
-    content: 'That\'s it for the quick tour! You can always restart the tutorial from your profile settings.',
-    placement: 'center',
+    id: 'projects-page-content',
+    title: 'Projects Page',
+    description: 'This is your projects dashboard. You can view, manage, and interact with all your past and ongoing projects here.',
+    targetSelector: '[data-tutorialid="projects-page-container"]', // Placeholder - to be refined by Epic_ProjectManagementAndCreation.txt for main projects list container
+    position: 'top',
+  },
+  {
+    id: 'create-project',
+    title: 'Create a New Project',
+    description: 'Ready to bring your ideas to life? Start a new project by clicking here.',
+    targetSelector: '[data-testid="new-project-button"]', // Target the New Project link in the SideNavBar
+    position: 'right', // Positioning it to the right of the SideNavBar button
+  },
+  {
+    id: 'final-tour-end',
+    title: 'Tour Complete!',
+    description: 'That\'s it for the quick tour! You can always restart the tutorial from your profile settings. Now, let\'s build something amazing!',
+    targetSelector: 'body',
+    position: 'center',
   },
 ];

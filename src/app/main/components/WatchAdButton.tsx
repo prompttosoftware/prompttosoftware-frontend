@@ -119,7 +119,7 @@ const WatchAdButton: React.FC = () => {
                 transition-colors duration-200 ease-in-out
                 shadow-md
               "
-              aria-label="Watch Ad"
+              aria-label="Watch Ad" data-tutorialid="watch-ad-button"
               disabled={isAdPlaying} // Disable button while ad is playing
             >
               AD

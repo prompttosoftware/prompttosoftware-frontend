@@ -94,6 +94,12 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                     isExpanded ? 'justify-start' : 'justify-center'
                   } text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={item.name}
+                  {...(
+  item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
+  item.name === 'Explore' ? { id: 'explore-tab' } :
+  item.name === 'Projects' ? { id: 'projects-tab' } :
+  {}
+)}
                 >
                   <item.icon className={`h-6 w-6 ${isExpanded ? 'mr-3' : ''}`} />
                   <span className={`${isExpanded ? '' : 'hidden'}`}>{item.name}</span>
