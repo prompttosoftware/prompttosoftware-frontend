@@ -1,6 +1,6 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import api from './api'; // Import the axios instance being used by the app
+import { api } from './api'; // Import the axios instance being used by the app
 import { CreatePaymentIntentRequest, CreatePaymentIntentResponse, PaymentErrorResponse } from '@/types/payments';
 
 const mock = new MockAdapter(api);

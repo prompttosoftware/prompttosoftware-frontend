@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react'; // Import useEffect
 import axios from 'axios'; // Import axios
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useBalanceStore } from '@/store/balanceStore'; // Import the balance store
 
 // Temporary basic logger. In a real app, use a dedicated logging solution.

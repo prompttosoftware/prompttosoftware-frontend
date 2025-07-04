@@ -6,6 +6,7 @@ import { useBalanceStore } from '@/store/balanceStore';
 import { useGlobalError } from '@/hooks/useGlobalError';
 import { logger } from '@/lib/logger'; // Import the global logger
 import { httpClient } from '@/lib/httpClient'; // Import the http client
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const AD_DURATION_SECONDS = 10; // Ad playback duration in seconds
 
@@ -14,12 +15,12 @@ const WatchAdButton: React.FC = () => {
   const [adCountdown, setAdCountdown] = useState(AD_DURATION_SECONDS);
   const [showAdModal, setShowAdModal] = useState(false);
 
-  // Get authentication status and token from useAuth hook
-  const { isAuthenticated, token } = useAuth();
+  // Get authentication status from useAuth hook
+  const { isAuthenticated } = useAuth();
   // Get updateBalance function from useBalanceStore
   const updateBalance = useBalanceStore((state) => state.updateBalance);
-  // Get setGlobalError from useGlobalError hook
-  const { setGlobalError } = useGlobalError();
+  // Get setError from useGlobalError hook
+  const { setError } = useGlobalError();
 
   // ref for the interval to clear it on unmount or when ad completes
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -28,8 +29,10 @@ const WatchAdButton: React.FC = () => {
   useEffect(() => {
     // Function to handle the ad credit API call
     const handleAdCredit = async () => {
+      // Get token from localStorage
+      const token = localStorage.getItem('jwtToken');
       if (!token) {
-        setGlobalError('Authentication token not found. Please log in.');
+        setError({ message: 'Authentication token not found. Please log in.', type: 'error' });
         logger.warn('Ad credit attempt failed: Authentication token not found.');
         return;
       }
@@ -56,11 +59,11 @@ const WatchAdButton: React.FC = () => {
         const errorMessage =
           error.response?.data?.message || 'Failed to credit ad. Please try again.';
         console.error('Error crediting ad:', error); // Keep console.error for immediate debug visibility
-        setGlobalError(errorMessage);
+        setError({ message: errorMessage, type: 'error' });
         logger.error(`Error crediting ad: ${errorMessage}`, error);
       }
     };
-  
+
     if (isAdPlaying && adCountdown > 0) {
       countdownIntervalRef.current = setInterval(() => {
         setAdCountdown((prev) => prev - 1);
@@ -74,18 +77,18 @@ const WatchAdButton: React.FC = () => {
       }
       handleAdCredit(); // Call API to credit the ad
     }
-  
+
     // Cleanup on unmount or if dependencies change
     return () => {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [isAdPlaying, adCountdown, token, updateBalance, setGlobalError]);
+  }, [isAdPlaying, adCountdown, updateBalance, setError]);
 
   const handleClick = () => {
     if (!isAuthenticated) {
-      setGlobalError('You must be logged in to watch ads.');
+      setError({ message: 'You must be logged in to watch ads.', type: 'warning' });
       logger.warn('Ad playback initiation failed: User not authenticated.');
       return;
     }
@@ -98,21 +101,30 @@ const WatchAdButton: React.FC = () => {
 
   return (
     <>
-      <button
-        onClick={handleClick}
-        className="
-          flex items-center justify-center
-          w-10 h-10 md:w-12 md:h-12 rounded-lg
-          bg-blue-500 hover:bg-blue-600 active:bg-blue-700
-          text-white font-bold
-          transition-colors duration-200 ease-in-out
-          shadow-md
-        "
-        aria-label="Watch Ad"
-        disabled={isAdPlaying} // Disable button while ad is playing
-      >
-        AD
-      </button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleClick}
+              className="
+                flex items-center justify-center
+                w-10 h-10 md:w-12 md:h-12 rounded-lg
+                bg-blue-500 hover:bg-blue-600 active:bg-blue-700
+                text-white font-bold
+                transition-colors duration-200 ease-in-out
+                shadow-md
+              "
+              aria-label="Watch Ad"
+              disabled={isAdPlaying} // Disable button while ad is playing
+            >
+              AD
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-sm">Watch an ad to earn credits for your account balance.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {showAdModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
