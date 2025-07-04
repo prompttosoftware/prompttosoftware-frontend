@@ -16,7 +16,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { AddPaymentButton } from './AddPaymentButton';
 
 const navigationItems = [
-  { name: 'Home/Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Home/Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'New Project', href: '/new-project', icon: PlusIcon },
   { name: 'Projects', href: '/projects', icon: FolderIcon },
   { name: 'Explore', href: '/explore', icon: RocketLaunchIcon },

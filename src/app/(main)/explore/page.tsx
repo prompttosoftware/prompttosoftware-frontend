@@ -1,7 +1,9 @@
-export default function ExplorePage() {
+import React from 'react';
+
+const ExplorePage = () => {
   return (
-    <div>
-      <h1>Explore Page</h1>
-    </div>
+    <h1>Explore Page Placeholder</h1>
   );
-}
+};
+
+export default ExplorePage;
