@@ -12,8 +12,9 @@ import {
 import useDebounce from '@/hooks/useDebounce'; // Import useDebounce hook
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Import shadcn/ui DropdownMenu components
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
 import ApiKeyInput from '@/app/(main)/components/ApiKeyInput'; // Import ApiKeyInput
 import {
@@ -51,12 +52,13 @@ const formSchema = z.object({
         type: z.literal('new'),
         name: z.string().min(1, 'Repository name is required'),
         organization: z.string().optional(),
-        isPrivate: z.boolean(),
+         isPrivate: z.boolean(),
       }),
       z.object({
         id: z.string().optional(),
         type: z.literal('existing'),
         url: z.string().url('Invalid URL format').min(1, 'GitHub Repository URL is required'),
+        
       }),
     ]),
   ),
@@ -121,7 +123,7 @@ const formSchema = z.object({
         })
         .optional(),
       installations: z
-        .array(z.object({ value: z.string().min(1, 'Installation must not be empty') }))
+        .array(z.string().min(1, 'Installation must not be empty'))
         .optional(), // ADDED
       linkJira: z.boolean().optional(), // ADDED
     })
@@ -172,7 +174,7 @@ export default function NewProjectPage() {
           super: [],
           backup: [],
         },
-        installations: [], // Still an empty array for default, but will hold { value: '' } objects
+        installations: [], // Now an empty array to hold strings
         linkJira: false,
       },
     },
@@ -308,6 +310,10 @@ export default function NewProjectPage() {
     name: 'githubRepositories',
   });
 
+  const [showInstallationDropdown, setShowInstallationDropdown] = useState(false);
+  const [selectedInstallationType, setSelectedInstallationType] = useState<string | null>(null);
+  const [customInstallationName, setCustomInstallationName] = useState('');
+  
   // State for Jira linking
   const [jiraLinked, setJiraLinked] = useState(false);
 
@@ -906,89 +912,7 @@ export default function NewProjectPage() {
                     appendBackupModel,
                     removeBackupModel,
                   )}
-                  {/* Installations Section */}
-                  <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
-                    <h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
-                    {installationFields.length === 0 && (
-                      <p className="text-sm text-gray-500 mb-3">No installations configured.</p>
-                    )}
-                    <div className="space-y-4">
-                      {installationFields.map((field, index) => (
-                        <div
-                          key={field.id}
-                          className="flex flex-col sm:flex-row gap-3 items-center p-3 border border-gray-100 bg-white rounded-md shadow-sm"
-                        >
-                          <div className="flex-1 w-full sm:w-auto">
-                            <label
-                              htmlFor={`installation-${index}`}
-                              className="block text-xs font-medium text-gray-600 mb-1"
-                            >
-                              Installation ID or Type
-                            </label>
-                            <input
-                              type="text"
-                              id={`installation-${index}`}
-                              {...register(`advancedOptions.installations.${index}.value`, {
-                                required: 'Installation is required',
-                              })}
-                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
-                              placeholder="e.g., programming language, GitHub repo, other"
-                            />
-                            {/* Adjusted error access path */}
-                            {errors.advancedOptions?.installations?.[index]?.value && (
-                              <p className="mt-1 text-sm text-red-600">
-                                {errors.advancedOptions.installations[index]?.value?.message}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            type="button"
-                            onClick={() => removeInstallation(index)}
-                            variant="destructive"
-                            size="icon"
-                            className="mt-4 sm:mt-auto flex-shrink-0"
-                            aria-label={`Remove installation ${index + 1}`}
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              ></path>
-                            </svg>
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => appendInstallation({ value: '' })}
-                      className="mt-4"
-                    >
-                      <svg
-                        className="-ml-1 mr-2 h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        ></path>
-                      </svg>
-                      Add Installation
-                    </Button>
-                  </div>
+                  
 
                   {/* Link Jira Account Button */}
                   <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
@@ -1005,6 +929,119 @@ export default function NewProjectPage() {
                   {jiraLinked && (
                     <p className="mt-2 text-sm text-green-600">Jira account linked successfully!</p>
                   )}
+                  {/* Installations Section */}
+                  <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
+<h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
+{/* Display existing installations */}
+<div className="space-y-3 mb-4">
+  {installationFields.length === 0 ? (
+    <p className="text-sm text-gray-500">No installations added.</p>
+  ) : (
+    installationFields.map((installation, index) => (
+      <div
+        key={index}
+        className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
+      >
+        <span className="text-sm text-gray-700">{installation}</span>
+        <Button
+          type="button"
+          onClick={() => removeInstallation(index)}
+          variant="destructive"
+          size="sm"
+        >
+          Delete
+        </Button>
+      </div>
+    ))
+  )}
+</div>
+
+{/* Add Installation Button */}
+<Button
+  type="button"
+  onClick={() => setShowInstallationDropdown(true)}
+  className="mb-4"
+>
+  Add Installation
+</Button>
+
+{/* Dropdown Menu and Conditional Input */}
+{showInstallationDropdown && (
+  <div className="mt-4 p-3 border border-gray-100 bg-white rounded-md shadow-sm">
+    <DropdownMenu open={showInstallationDropdown} onOpenChange={setShowInstallationDropdown}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="w-full justify-between">
+          {selectedInstallationType || 'Select Installation Type'}
+          <svg
+            className="ml-2 -mr-0.5 h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            ></path>
+          </svg>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+        {['Python', 'JavaScript/TypeScript', 'Java', 'Go', 'Rust', 'Ruby', 'PHP', 'C#/.NET', 'Swift/Objective-C', 'Kotlin', 'Dart/Flutter', 'React.js', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Ruby on Rails', 'Spring Boot', 'Laravel', 'ASP.NET Core', 'Express.js', 'Docker', 'Kubernetes', 'AWS CLI', 'Azure CLI', 'Google Cloud SDK', 'Terraform', 'Ansible', 'Git', 'GitHub CLI', 'Jira CLI', 'Slack CLI', 'VS Code', 'IntelliJ IDEA', 'PyCharm', 'VS Studio', 'Xcode', 'Android Studio', 'Postman', 'Insomnia', 'DBeaver', 'MongoDB Compass', 'RedisInsight', 'Grafana', 'Prometheus', 'ELK Stack (Elasticsearch, Logstash, Kibana)', 'Jupyter Notebook', 'RStudio', 'Tableau', 'Power BI', 'Figma', 'Sketch', 'Adobe XD', 'Photoshop', 'Illustrator', 'OpenAPI/Swagger', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Kafka', 'RabbitMQ', 'Nginx', 'Apache HTTP Server', 'Serverless Framework', 'Heroku CLI', 'Vercel CLI', 'Netlify CLI', 'npm', 'yarn', 'Gradle', 'Maven', 'pip', 'Homebrew (macOS)', 'Chocolatey (Windows)', 'GitHub repo', 'Other'].map((option) => (
+          <DropdownMenuItem
+            key={option}
+            onSelect={() => {
+              setSelectedInstallationType(option);
+              if (option !== 'Other') {
+                appendInstallation(option);
+                setShowInstallationDropdown(false);
+                setCustomInstallationName(''); // Clear custom input
+              }
+            }}
+          >
+            {option}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+
+    {selectedInstallationType === 'Other' && (
+      <div className="flex items-center gap-2 mt-3">
+        <Input
+          type="text"
+          placeholder="Enter custom installation name"
+          value={customInstallationName}
+          onChange={(e) => setCustomInstallationName(e.target.value)}
+          onBlur={() => {
+            if (customInstallationName.trim()) {
+              appendInstallation(customInstallationName.trim());
+              setCustomInstallationName('');
+              setSelectedInstallationType(null);
+              setShowInstallationDropdown(false);
+            }
+          }}
+          className="flex-grow"
+        />
+        <Button
+          type="button"
+          onClick={() => {
+            if (customInstallationName.trim()) {
+              appendInstallation(customInstallationName.trim());
+              setCustomInstallationName('');
+              setSelectedInstallationType(null);
+              setShowInstallationDropdown(false);
+            }
+          }}
+        >
+          Add Custom
+        </Button>
+      </div>
+    )}
+  </div>
+)}
+                  </div>
                 </div>
               </div>
             </div>
