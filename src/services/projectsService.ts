@@ -43,3 +43,12 @@ export async function getProjects(
     throw error; // Re-throw to allow further error handling
   }
 }
+
+export const deleteProjectById = async (id: string): Promise<void> => {
+  try {
+    await httpClient.delete(`/projects/${id}`);
+  } catch (error) {
+    console.error(`Error deleting project with ID ${id}:`, error);
+    throw error;
+  }
+};

@@ -58,11 +58,14 @@ const ProjectDetailPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] }); // Invalidate general project list
       showSuccessMessage('Project deleted successfully!');
-      router.push('/dashboard'); // Redirect to dashboard or projects list
+      router.push('/projects'); // Redirect to projects list
     },
     onError: (error) => {
-      setGlobalError(`Failed to delete project: ${error.message}`);
+      // Safely access error message, default to a generic message if not available
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setGlobalError(`Failed to delete project: ${errorMessage}`);
       toast.error('Failed to delete project. Please try again.');
+      setShowDeleteConfirmation(false); // Dismiss the confirmation modal on error
     },
   });
 
