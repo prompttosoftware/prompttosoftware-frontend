@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react'; // Keep useState for deletingCardId
 import { SavedCard } from '@/types/payments';
-import { paymentsService } from '@/services/paymentsService';
+import { paymentsService } from '@/services/paymentsService'; // Still needed for handleDeleteCard
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { Button } from '@/components/ui/button';
@@ -11,35 +11,15 @@ import * as FaIcons from 'react-icons/fa';
 import { logger } from '@/lib/logger';
 import SkeletonLoader from './SkeletonLoader';
 import EmptyState from './EmptyState';
+import { useSavedCardsQuery } from '@/hooks/useSavedCardsQuery'; // Import the hook
+import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 export function SavedCardsList() {
-  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: savedCards, isLoading, isError, error } = useSavedCardsQuery(); // Use the hook
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
   const { setError, showConfirmation } = useGlobalErrorStore();
   const { setMessage: setSuccessMessage } = useSuccessMessageStore();
-
-  const fetchSavedCards = useCallback(async () => {
-    setIsLoading(true);
-    setError(null); // Clear previous errors
-    try {
-      const response = await paymentsService.getSavedCards();
-      setSavedCards(response.cards);
-    } catch (error: any) {
-      logger.error('Failed to fetch saved cards:', error);
-      setError({
-        message: error.message || 'Error fetching saved cards.',
-        type: 'error',
-      });
-      setSavedCards([]); // Clear cards on error
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setError]);
-
-  useEffect(() => {
-    fetchSavedCards();
-  }, [fetchSavedCards]);
+  const queryClient = useQueryClient(); // Initialize query client
 
   const handleDeleteCard = useCallback(
     (cardId: string) => {
@@ -49,41 +29,43 @@ export function SavedCardsList() {
         confirmText: 'Remove Card',
         cancelText: 'Cancel',
         onConfirm: async () => {
-          // Add async here
           setDeletingCardId(cardId);
           setSuccessMessage(null); // Clear previous success messages
           setError(null); // Clear previous errors
 
-          // In a real scenario, API call would happen here.
-          const originalSavedCards = savedCards; // Store current state for rollback
-          // Optimistically remove the card from the UI
-          setSavedCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-          
+          // Optimistically update the UI
+          const previousSavedCards = queryClient.getQueryData<SavedCard[]>(['savedCards']);
+          queryClient.setQueryData<SavedCard[]>(
+            ['savedCards'],
+            (oldCards) => oldCards?.filter((card) => card.id !== cardId) || []
+          );
+
           try {
             const response = await paymentsService.deleteSavedCard(cardId);
             logger.info(`Card delete response: ${response.message}`);
             setSuccessMessage(response.message || 'Card removed successfully.');
+            // Invalidate the query to refetch fresh data or rely on optimistic update
+            queryClient.invalidateQueries({ queryKey: ['savedCards'] });
           } catch (error: any) {
             logger.error('Failed to delete card:', error);
             setError({
               message: error.message || 'Error deleting card.',
               type: 'error',
             });
-            // Rollback if there's an error
-            setSavedCards(originalSavedCards);
+            // Rollback on error
+            if (previousSavedCards) {
+              queryClient.setQueryData(['savedCards'], previousSavedCards);
+            }
           } finally {
             setDeletingCardId(null);
-            // Always re-fetch to ensure the state is consistent with the backend
-            fetchSavedCards();
           }
         },
         onCancel: () => {
           logger.info(`Card deletion for ID ${cardId} cancelled.`);
-          // No action needed if cancelled, the card remains in the list.
         },
       });
     },
-    [setError, setSuccessMessage, showConfirmation],
+    [setError, setSuccessMessage, showConfirmation, queryClient],
   );
 
   const getCardIcon = (brand: string): React.ReactElement => {
@@ -104,8 +86,17 @@ export function SavedCardsList() {
       </div>
     );
   }
-
-  if (savedCards.length === 0) {
+  
+  if (isError || !savedCards) { // Check for error first, or if data is unexpectedly null/undefined
+    return (
+      <div className="text-center text-red-500 py-8">
+        <p>Failed to load saved payment methods.</p>
+        <p>Please try again later.</p>
+      </div>
+    );
+  }
+  
+  if (savedCards.length === 0) { // Now savedCards is guaranteed to be an array
     return (
       <EmptyState
         title="No Saved Payment Methods"

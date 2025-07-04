@@ -27,3 +27,15 @@ export function isInternalServerErrorMessage(data: unknown): data is InternalSer
     typeof data === 'object' && data !== null && 'message' in data && Object.keys(data).length === 1 // Typically, only contains a message field
   );
 }
+
+/**
+ * Interface for a paginated API response.
+ * @template T The type of the items in the paginated list.
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}

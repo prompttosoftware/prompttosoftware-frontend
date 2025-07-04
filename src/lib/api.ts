@@ -4,6 +4,7 @@ import { paymentsService } from '../services/paymentsService'; // Import the Pay
 
 import { UserProfile } from '@/types/auth'; // Import UserProfile type
 import { Project, ProjectSummary } from '@/types/project'; // Import Project and ProjectSummary types
+import { getAuthenticatedUserProjects } from '../services/projectsService';
 
 export { paymentsService }; // Re-export paymentsService
 
@@ -41,7 +42,7 @@ export const api = {
   getUserProfile: (): Promise<UserProfile> => httpClient.get<UserProfile>("/users/me"),
 
   // Projects
-  getUserProjects: (): Promise<ProjectSummary[]> => httpClient.get<ProjectSummary[]>("/projects"),
+  getUserProjects: getAuthenticatedUserProjects,
   getProject: (id: string): Promise<Project> => httpClient.get<Project>(`/projects/${id}`),
   createNewProject: (projectName: string, githubRepoUrl: string) =>
     httpClient.post<Project>("/projects", { projectName, githubRepoUrl }),
