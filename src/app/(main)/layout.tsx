@@ -12,8 +12,10 @@ import BannerDisplay from './components/BannerDisplay'; // Import BannerDisplay
 import { PaymentModal } from './components/PaymentModal'; // Import PaymentModal
 import { useBannerStore } from '@/store/bannerStore'; // Import useBannerStore
 import { StripeWrapper } from '@/components/StripeWrapper'; // Import StripeWrapper
-import { AuthProvider } from '@/lib/AuthContext';
+import { AuthProvider, AuthContext } from '@/lib/AuthContext'; // Import AuthContext
 import ConfirmationDialog from './components/ConfirmationDialog'; // Import ConfirmationDialog
+import TutorialOverlay from '@/components/TutorialOverlay'; // Import TutorialOverlay
+import { useContext } from 'react'; // Import useContext
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -30,13 +32,44 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <AuthProvider>
-      <div className="flex min-h-screen bg-gray-100">
-        <SideNavBar
-          isExpanded={isNavExpanded}
-          setIsExpanded={setIsNavExpanded}
-          isMobileNavOpen={isMobileNavOpen}
-          setIsMobileNavOpen={setIsMobileNavOpen}
-        />
+      <LayoutContent
+        isNavExpanded={isNavExpanded}
+        setIsNavExpanded={setIsNavExpanded}
+        isMobileNavOpen={isMobileNavOpen}
+        setIsMobileNavOpen={setIsMobileNavOpen}
+      >
+        {children}
+      </LayoutContent>
+    </AuthProvider>
+  );
+}
+
+function LayoutContent({ children, isNavExpanded, setIsNavExpanded, isMobileNavOpen, setIsMobileNavOpen }: {
+  children: React.ReactNode;
+  isNavExpanded: boolean;
+  setIsNavExpanded: (expanded: boolean) => void;
+  isMobileNavOpen: boolean;
+  setIsMobileNavOpen: (open: boolean) => void;
+}) {
+  const { showTutorial, setShowTutorial } = useContext(AuthContext);
+
+  const initializeBanners = useBannerStore((state) => state.initializeBanners);
+
+  React.useEffect(() => {
+    initializeBanners();
+  }, [initializeBanners]);
+
+  // This class should match the expanded/collapsed width of the SideNavBar
+  const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
+
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+      <SideNavBar
+        isExpanded={isNavExpanded}
+        setIsExpanded={setIsNavExpanded}
+        isMobileNavOpen={isMobileNavOpen}
+        setIsMobileNavOpen={setIsMobileNavOpen}
+      />
 
         {/* Main content wrapper */}
         <div
@@ -75,6 +108,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {/* Main Content Area */}
           <main className="flex-1 p-8">{children}</main>
         </div>
+
+        {showTutorial && <TutorialOverlay setShowTutorial={setShowTutorial} />}
 
         <ErrorModal />
         <ConfirmationDialog /> {/* Render ConfirmationDialog here */}

@@ -11,7 +11,7 @@ const BalanceDisplay: React.FC = () => {
   }).format(balance);
 
   return (
-    <div className="flex items-center justify-end px-4 py-2 bg-gray-700 text-green-400 rounded-lg text-xl font-bold min-w-[120px]">
+    <div className="flex items-center justify-end px-4 py-2 bg-gray-700 text-green-400 rounded-lg text-xl font-bold min-w-[120px] balance-display">
       {formattedBalance}
     </div>
   );
