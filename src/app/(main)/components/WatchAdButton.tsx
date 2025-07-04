@@ -7,6 +7,7 @@ import { useGlobalError } from '@/hooks/useGlobalError';
 import { logger } from '@/lib/logger'; // Import the global logger
 import { httpClient } from '@/lib/httpClient'; // Import the http client
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import LoadingSpinner from './LoadingSpinner'; // Import the LoadingSpinner component
 
 const AD_DURATION_SECONDS = 10; // Ad playback duration in seconds
 
@@ -14,6 +15,7 @@ const WatchAdButton: React.FC = () => {
   const [isAdPlaying, setIsAdPlaying] = useState(false);
   const [adCountdown, setAdCountdown] = useState(AD_DURATION_SECONDS);
   const [showAdModal, setShowAdModal] = useState(false);
+  const [adCreditSuccessMessage, setAdCreditSuccessMessage] = useState<string | null>(null);
 
   // Get authentication status from useAuth hook
   const { isAuthenticated } = useAuth();
@@ -50,11 +52,15 @@ const WatchAdButton: React.FC = () => {
         // Assuming the API returns newBalance and creditedAmount
         const { newBalance, creditedAmount } = response.data;
         updateBalance(newBalance);
-        // Display confirmation message (e.g., using a toast or alert)
-        alert(`Ad playback complete! You have been credited ${creditedAmount} tokens.`);
+        setAdCreditSuccessMessage(`Congratulations! You earned ${creditedAmount}!`);
         logger.info(
           `Ad credited successfully. Credited amount: ${creditedAmount}, New balance: ${newBalance}`,
         );
+        // Optionally, close the modal after a short delay to allow user to see the success message
+        setTimeout(() => {
+          setShowAdModal(false);
+          setAdCreditSuccessMessage(null); // Clear message for next time
+        }, 3000); // Close after 3 seconds
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.message || 'Failed to credit ad. Please try again.';
@@ -130,15 +136,24 @@ const WatchAdButton: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
           <div className="bg-white p-6 rounded-lg shadow-xl text-center w-80">
             <h2 className="text-2xl font-bold mb-4">Ad Playing...</h2>
-            <p className="text-lg">Please wait {adCountdown} seconds.</p>
+            <p className="text-lg mb-4">Please wait {adCountdown} seconds.</p>
             {/* Visual representation of an ad */}
-            <div className="my-4 p-4 bg-gray-200 rounded-md">
-              <p className="text-gray-600">Your Ad Content Here</p>
-              <p className="text-sm text-gray-500">(Imagine a video playing)</p>
+            {/* Added a simple div mimicking an ad container */}
+            <div className="my-4 p-4 bg-gray-200 rounded-md flex items-center justify-center h-32">
+              {adCreditSuccessMessage ? (
+                <p className="text-lg text-green-600 font-semibold">{adCreditSuccessMessage}</p>
+              ) : adCountdown > 0 ? (
+                <div className="text-gray-600 text-center">
+                  <LoadingSpinner size="medium" color="border-blue-500" className="mx-auto" />
+                  <p className="mt-2 text-sm text-gray-500">Ad Content Loading...</p>
+                </div>
+              ) : (
+                <p className="text-gray-600">Ad Finished!</p>
+              )}
             </div>
-            {/* Spinner or progress bar can be added here */}
-            {/* For now, just a message */}
-            {adCountdown > 0 && <p className="text-sm text-gray-700">Do not close this window.</p>}
+            {adCountdown > 0 && !adCreditSuccessMessage && (
+              <p className="text-sm text-gray-700 mt-4">Do not close this window.</p>
+            )}
           </div>
         </div>
       )}
