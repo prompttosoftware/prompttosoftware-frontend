@@ -7,18 +7,6 @@ const createJestConfig = nextJest({
 const { TextEncoder, TextDecoder } = require('util');
 const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill');
 
-// Minimal MessagePort mock for undici in JSDOM environment
-class MockMessagePort {
-  postMessage() {}
-  addEventListener() {}
-  removeEventListener() {}
-  start() {}
-  close() {}
-  dispatchEvent() {
-    return true;
-  }
-}
-
 const customJestConfig = {
   globals: {
     TextEncoder: TextEncoder,
@@ -26,7 +14,6 @@ const customJestConfig = {
     ReadableStream: ReadableStream,
     WritableStream: WritableStream,
     TransformStream: TransformStream,
-    MessagePort: MockMessagePort,
   },
   testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).[jt]s?(x)'],
   setupFiles: ['<rootDir>/jest.setup.js'],
