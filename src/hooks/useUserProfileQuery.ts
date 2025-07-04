@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react'; // Import useEffect
 import axios from 'axios'; // Import axios
-import { fetchUserProfile } from '@/lib/api'; // Import fetchUserProfile
+import { api } from '@/lib/api'; // Import api
 import { UserProfile } from '@/types/auth'; // Import UserProfile for explicit typing
 import { useBalanceStore } from '@/store/balanceStore'; // Import the balance store
 
@@ -18,7 +18,7 @@ export const useUserProfileQuery = () => {
 
   const { data, isLoading, isError, isSuccess, error } = useQuery<UserProfile, Error>({
     queryKey: ['auth', 'me'],
-    queryFn: fetchUserProfile, // Use the new fetchUserProfile function
+    queryFn: api.getUserProfile, // Use the api.getUserProfile function
     retry: false,
     staleTime: Infinity,
   });

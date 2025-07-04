@@ -11,14 +11,15 @@ export const metadata = {
 import { Providers } from '../components/Providers';
 import { StripeWrapper } from '../components/StripeWrapper';
 import ErrorBoundary from '../components/ErrorBoundary'; // Import ErrorBoundary
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr">
       <body className={inter.className}>
         <ErrorBoundary>
           <StripeWrapper>
-            <Providers>{children}</Providers>
+            <Providers>
+              {children}
+            </Providers>
           </StripeWrapper>
         </ErrorBoundary>
         <Toaster /> {/* Render Toaster */}

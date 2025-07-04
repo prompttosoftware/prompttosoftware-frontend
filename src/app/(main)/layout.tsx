@@ -81,7 +81,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <StripeWrapper>
           <PaymentModal />
         </StripeWrapper>
-        {showTutorial && <TutorialOverlay showTutorial={showTutorial} setShowTutorial={setShowTutorial} />}
+        {/* {showTutorial && <TutorialOverlay showTutorial={showTutorial} setShowTutorial={setShowTutorial} />} */}
       </div>
     </AuthProvider>
   );
