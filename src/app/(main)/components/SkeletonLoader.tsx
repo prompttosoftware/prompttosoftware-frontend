@@ -20,7 +20,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
     />
   ));
 
-  return <div className="space-y-2">{skeletonItems}</div>;
+  return <div className="space-y-2" data-testid="skeleton-loader">{skeletonItems}</div>;
 };
 
 export default SkeletonLoader;

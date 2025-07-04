@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import DeleteAccountButton from '../components/DeleteAccountButton'; // Import the new component
+import DeleteAccountButton from '../components/DeleteAccountButton';
+import SavedCardsList from '../components/SavedCardsList';
 
 export default function SettingsPage() {
   return (
@@ -14,6 +15,14 @@ export default function SettingsPage() {
           Here you can manage your account settings and preferences.
         </p>
         <DeleteAccountButton /> {/* Render the DeleteAccountButton component */}
+      </section>
+
+      <section className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Payment Methods</h2>
+        <p className="text-gray-700 mb-4">
+          Manage your saved payment cards for quicker transactions.
+        </p>
+        <SavedCardsList />
       </section>
 
       {/* Other settings sections can go here */}

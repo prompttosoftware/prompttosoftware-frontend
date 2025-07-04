@@ -16,7 +16,7 @@ export function SavedCardsList() {
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
-  const { setError } = useGlobalErrorStore();
+  const { setError, showConfirmation } = useGlobalErrorStore();
   const { setMessage: setSuccessMessage } = useSuccessMessageStore();
 
   const fetchSavedCards = useCallback(async () => {
@@ -42,31 +42,40 @@ export function SavedCardsList() {
   }, [fetchSavedCards]);
 
   const handleDeleteCard = useCallback(
-    async (cardId: string) => {
-      if (!confirm('Are you sure you want to delete this saved card?')) {
-        return;
-      }
-
-      setDeletingCardId(cardId);
-      setError(null); // Clear previous errors
-      setSuccessMessage(null); // Clear previous success messages
-      try {
-        const response = await paymentsService.deleteSavedCard(cardId);
-        logger.info(`Card delete response: ${response.message}`);
-        setSuccessMessage(response.message);
-        // Re-fetch the list to ensure UI is synchronized
-        fetchSavedCards();
-      } catch (error: any) {
-        logger.error('Failed to delete card:', error);
-        setError({
-          message: error.message || 'Error deleting card.',
-          type: 'error',
-        });
-      } finally {
-        setDeletingCardId(null);
-      }
+    (cardId: string) => {
+      showConfirmation({
+        title: 'Remove Saved Card',
+        message: 'Are you sure you want to remove this card? This action cannot be undone.',
+        confirmText: 'Remove Card',
+        cancelText: 'Cancel',
+        onConfirm: async () => { // Add async here
+          setDeletingCardId(cardId);
+          setSuccessMessage(null); // Clear previous success messages
+          setError(null); // Clear previous errors
+        
+          // In a real scenario, API call would happen here.
+          try {
+            const response = await paymentsService.deleteSavedCard(cardId);
+            logger.info(`Card delete response: ${response.message}`);
+            setSuccessMessage(response.message);
+            fetchSavedCards(); // Re-fetch or update state directly
+          } catch (error: any) {
+            logger.error('Failed to delete card:', error);
+            setError({
+              message: error.message || 'Error deleting card.',
+              type: 'error',
+            });
+          } finally {
+            setDeletingCardId(null);
+          }
+        },
+        onCancel: () => {
+          logger.info(`Card deletion for ID ${cardId} cancelled.`);
+          // No action needed if cancelled, the card remains in the list.
+        },
+      });
     },
-    [fetchSavedCards, setError, setSuccessMessage],
+    [setError, setSuccessMessage, showConfirmation],
   );
 
   const getCardIcon = (brand: string): React.ReactElement => {
