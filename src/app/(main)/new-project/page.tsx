@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
+import ApiKeyInput from '@/app/(main)/components/ApiKeyInput'; // Import ApiKeyInput
 import {
   getEstimatedDurationAndCost,
   FLAT_RATE_PER_HOUR,
@@ -536,21 +537,15 @@ export default function NewProjectPage() {
                 >
                   API Key (Optional)
                 </label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    id={`${type}-apiKey-${index}`}
-                    {...register(`advancedOptions.models.${type}.${index}.apiKey`)}
-                    placeholder="e.g., sk-..."
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 pr-10" // Add pr-10 for potential reveal icon
-                  />
-                  {/* Conditionally display "protected" or a reveal icon */}
-                  {watch(`advancedOptions.models.${type}.${index}.apiKey`) ? (
-                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-400">
-                      Protected
-                    </span>
-                  ) : null}
-                </div>
+                <ApiKeyInput
+                  id={`${type}-apiKey-${index}`}
+                  name={`advancedOptions.models.${type}.${index}.apiKey`} // Ensure name is correctly passed for RHF
+                  value={field.apiKey || ''} // Pass the value from the field
+                  onChange={(e) => setValue(`advancedOptions.models.${type}.${index}.apiKey`, e.target.value)} // Use setValue for RHF
+                  hasApiKeyProvided={!!field.apiKey} // Determine if key is provided
+                  placeholder="e.g., sk-..."
+                  disabled={false} // Adjust based on desired disable logic
+                />
               </div>
 
               {/* Remove Button */}
