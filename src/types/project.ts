@@ -30,7 +30,9 @@ export interface ProjectSummary {
   description: string;
   status: 'active' | 'stopped' | 'completed' | 'failed';
   repositoryUrl: string;
-  costToDate: number;
-  totalRuntime: number;
-  progress: number;
+  costToDate?: number;
+  totalRuntime?: number;
+  progress?: number;
+  githubStars?: number;
+  createdAt: string;
 }

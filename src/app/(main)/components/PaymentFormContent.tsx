@@ -18,7 +18,7 @@ interface PaymentFormContentProps {
   closeModal: () => void;
   clearStoreState: () => void;
   clearGlobalError: () => void;
-  setGlobalError: (error: { message: string; type: 'error' | 'success' | 'info' }) => void;
+  setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
   setSuccessMessageStore: (message: string | null) => void;
   // Amount and description are no longer passed down here, as they are used by the parent for payment intent creation
   // and displayed there.

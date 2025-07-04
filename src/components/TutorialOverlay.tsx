@@ -7,20 +7,24 @@ const TutorialOverlay: React.FC = () => {
   const { showTutorial, setShowTutorial } = useAuth(); // Get showTutorial and setShowTutorial from AuthContext
   const [stepIndex, setStepIndex] = useState(0);
 
-  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { status, index, type } = data;
+  const handleJoyrideCallback = useCallback(
+    (data: CallBackProps) => {
+      const { status, index, type } = data;
 
-    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-      setStepIndex(0); // Reset step index
-      setShowTutorial(false); // Hide the tutorial overlay via AuthContext
-      localStorage.setItem('prompt2code_tutorial_completed', 'true'); // Set flag in localStorage
-    } else if (type === 'step:after') {
-      const nextIndex = index + (data.action === 'prev' ? -1 : 1);
-      setStepIndex(nextIndex);
-    }
-  }, [setShowTutorial]);
+      if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+        setStepIndex(0); // Reset step index
+        setShowTutorial(false); // Hide the tutorial overlay via AuthContext
+        localStorage.setItem('prompt2code_tutorial_completed', 'true'); // Set flag in localStorage
+      } else if (type === 'step:after') {
+        const nextIndex = index + (data.action === 'prev' ? -1 : 1);
+        setStepIndex(nextIndex);
+      }
+    },
+    [setShowTutorial],
+  );
 
-  if (!showTutorial || tutorialSteps.length === 0) { // Use showTutorial from AuthContext
+  if (!showTutorial || tutorialSteps.length === 0) {
+    // Use showTutorial from AuthContext
     return null;
   }
 

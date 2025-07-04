@@ -9,12 +9,11 @@ import { useGlobalErrorStore } from '../store/globalErrorStore';
  *          or `null` to clear the error.
  */
 export const useGlobalError = () => {
-  // Destructure setError from the global error store.
-  // This provides direct access to the function that updates the global error state.
   const setError = useGlobalErrorStore((state) => state.setError);
 
-  // Return the setError function.
-  // Any component using this hook can then call setError(errorObject)
-  // to dispatch a global error.
-  return { setError };
+  const showError = (message: string, details?: string) => {
+    setError({ message, details });
+  };
+
+  return { setError, showError };
 };

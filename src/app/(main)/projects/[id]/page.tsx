@@ -120,48 +120,47 @@ const ProjectDetailPage = () => {
   }, [id, isAuthenticated, router, logout, hasFetched]);
 
   useEffect(() => {
-  if (liveMetrics?.pendingSensitiveRequest) {
-    toast.custom((t) => (
-      <div
-        className={`${
-          t.visible ? 'animate-enter' : 'animate-leave'
-        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
-      >
-        <div className="flex-1 w-0 p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 pt-0.5">
-              {/* Icon could go here */}
+    if (liveMetrics?.pendingSensitiveRequest) {
+      toast.custom(
+        (t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">{/* Icon could go here */}</div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">Sensitive Information Request</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    A sensitive information request is pending for this project. Please check your
+                    notifications or a dedicated section for details.
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="ml-3 flex-1">
-              <p className="text-sm font-medium text-gray-900">
-                Sensitive Information Request
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                A sensitive information request is pending for this project.
-                Please check your notifications or a dedicated section for details.
-              </p>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                Dismiss
+              </button>
             </div>
           </div>
-        </div>
-        <div className="flex border-l border-gray-200">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            Dismiss
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: Infinity, // Keep toast until dismissed
-      id: 'pendingSensitiveRequestToast', // Unique ID to prevent duplicate toasts
-    });
-  } else {
-    toast.dismiss('pendingSensitiveRequestToast'); // Dismiss if no longer pending
-  }
-}, [liveMetrics?.pendingSensitiveRequest]);
+        ),
+        {
+          duration: Infinity, // Keep toast until dismissed
+          id: 'pendingSensitiveRequestToast', // Unique ID to prevent duplicate toasts
+        },
+      );
+    } else {
+      toast.dismiss('pendingSensitiveRequestToast'); // Dismiss if no longer pending
+    }
+  }, [liveMetrics?.pendingSensitiveRequest]);
 
-if (isLoading || isFetchingProject) {
+  if (isLoading || isFetchingProject) {
     return (
       <div className="flex justify-center items-center h-screen">
         <LoadingSpinner />
@@ -224,7 +223,9 @@ if (isLoading || isFetchingProject) {
   }
 
   return (
-    <> {/* Start of React.Fragment */}
+    <>
+      {' '}
+      {/* Start of React.Fragment */}
       <div className="container mx-auto p-4">
         {/* Project Details Panel */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
@@ -236,11 +237,7 @@ if (isLoading || isFetchingProject) {
             {/* More options button */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-500 hover:text-gray-700"
-                >
+                <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -295,10 +292,8 @@ if (isLoading || isFetchingProject) {
                 Error fetching live metrics: {pollingError.message}
               </div>
             )}
-            {(!liveMetrics && !isPollingLoading) && (
-              <div className="text-gray-500 mb-4">
-                Live metrics not available.
-              </div>
+            {!liveMetrics && !isPollingLoading && (
+              <div className="text-gray-500 mb-4">Live metrics not available.</div>
             )}
             {liveMetrics && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -320,9 +315,7 @@ if (isLoading || isFetchingProject) {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-sm">Elapsed Time:</span>
-                  <span className="text-gray-800 text-lg">
-                    {formattedElapsedTime}
-                  </span>
+                  <span className="text-gray-800 text-lg">{formattedElapsedTime}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-gray-500 text-sm">Estimated Cost:</span>
@@ -349,9 +342,16 @@ if (isLoading || isFetchingProject) {
           {/* Action Buttons - bottom left */}
           <div className="mt-6 pt-6 border-t border-gray-200 flex justify-start">
             {(() => {
-              const isPendingAction = liveMetrics?.status === 'starting' || liveMetrics?.status === 'stopping';
+              const isPendingAction =
+                liveMetrics?.status === 'starting' || liveMetrics?.status === 'stopping';
 
-              if (project && liveMetrics && (liveMetrics.status === 'stopped' || liveMetrics.status === 'failed' || liveMetrics.status === 'completed')) {
+              if (
+                project &&
+                liveMetrics &&
+                (liveMetrics.status === 'stopped' ||
+                  liveMetrics.status === 'failed' ||
+                  liveMetrics.status === 'completed')
+              ) {
                 return (
                   <Button
                     className="flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
@@ -367,7 +367,13 @@ if (isLoading || isFetchingProject) {
                     )}
                   </Button>
                 );
-              } else if (project && liveMetrics && (liveMetrics.status === 'active' || liveMetrics.status === 'in-progress' || liveMetrics.status === 'starting')) {
+              } else if (
+                project &&
+                liveMetrics &&
+                (liveMetrics.status === 'active' ||
+                  liveMetrics.status === 'in-progress' ||
+                  liveMetrics.status === 'starting')
+              ) {
                 return (
                   <Button
                     className="flex items-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
@@ -389,7 +395,6 @@ if (isLoading || isFetchingProject) {
           </div>
         </div>
       </div>
-
       {/* Confirmation Dialog for Delete */}
       {project && (
         <ConfirmationDialog
@@ -407,7 +412,6 @@ if (isLoading || isFetchingProject) {
         />
       )}
     </>
-{/* End of React.Fragment */}
   );
 };
 

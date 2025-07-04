@@ -2,12 +2,11 @@
 
 import React from 'react';
 import { useUserProjects } from '@/hooks/useUserProjects';
-import { ProjectCard } from '@/app/(main)/components/ProjectCard'; // Corrected import path
+import ProjectCard from '@/app/(main)/components/ProjectCard';
 import EmptyState from '@/app/(main)/components/EmptyState'; // Ensure this is the default export
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import SkeletonLoader from '@/app/(main)/components/SkeletonLoader'; // Ensure this is the default export
-
 
 const ProjectsPage = () => {
   const { data: projects, isLoading, isError } = useUserProjects(); // Destructure data as 'projects' for clarity
@@ -17,7 +16,7 @@ const ProjectsPage = () => {
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Your Projects</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <SkeletonLoader count={6} /> {/* Display 6 skeleton loaders to fill space */}
+          <SkeletonLoader count={6} /> {/* Display 6 skeleton loaders to fill space */}
         </div>
       </div>
     );

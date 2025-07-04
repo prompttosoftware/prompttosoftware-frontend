@@ -76,14 +76,14 @@ describe('SavedCardsList', () => {
     // Start with a mock that returns both cards
     mockGetSavedCards.mockResolvedValueOnce({ cards: [...mockCards] });
     render(<SavedCardsList />);
-  
+
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
     });
-  
+
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     fireEvent.click(deleteButtons[0]); // Click delete for the first card (Visa)
-  
+
     // Verify confirmation dialog is shown
     expect(mockShowConfirmation).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -93,30 +93,32 @@ describe('SavedCardsList', () => {
         cancelText: 'Cancel',
       }),
     );
-  
+
     // Prepare the mock for the delete operation
     const mockDeleteCard = paymentsService.deleteSavedCard as jest.Mock;
     mockDeleteCard.mockResolvedValueOnce({ message: 'Card deleted successfully!' });
-  
+
     // Prepare what getSavedCards should return AFTER the delete and refetch
-    mockGetSavedCards.mockResolvedValueOnce({ cards: mockCards.filter(card => card.id !== 'card_123') });
-  
-  
+    mockGetSavedCards.mockResolvedValueOnce({
+      cards: mockCards.filter((card) => card.id !== 'card_123'),
+    });
+
     // Simulate confirmation
     const confirmCallback = mockShowConfirmation.mock.calls[0][0].onConfirm;
     await act(async () => {
       await confirmCallback(); // Await the async confirm callback
     });
-  
+
     // Verify the delete service was called
     expect(mockDeleteCard).toHaveBeenCalledWith('card_123');
     // Verify success message from the actual service call
     expect(mockSetSuccessMessage).toHaveBeenCalledWith('Card deleted successfully!');
-  
-  
+
     // Verify visual removal of the card from the list (this will now re-fetch with a single card)
     await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: /Visa ending in 4242/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', { name: /Visa ending in 4242/i }),
+      ).not.toBeInTheDocument();
     });
     expect(screen.getByRole('heading', { name: /Mastercard ending in 5252/i })).toBeInTheDocument();
   });
@@ -152,18 +154,24 @@ describe('SavedCardsList', () => {
   it.skip('renders empty state when no cards are available', async () => {
     mockGetSavedCards.mockResolvedValueOnce({ cards: [] });
     render(<SavedCardsList />);
-  
-    expect(await screen.findByRole('heading', { name: /No Saved Payment Methods/i })).toBeInTheDocument();
-    expect(await screen.findByRole('paragraph', { name: /You haven't saved any payment methods yet\. They will appear here after your first payment\./i })).toBeInTheDocument();
+
+    expect(
+      await screen.findByRole('heading', { name: /No Saved Payment Methods/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('paragraph', {
+        name: /You haven't saved any payment methods yet\. They will appear here after your first payment\./i,
+      }),
+    ).toBeInTheDocument();
   });
-  
+
   // Test skipped due to persistent findByRole('paragraph') issue.
   // Debug outputs show the element is present, but the query fails.
   it.skip('displays an error if fetching cards fails', async () => {
     const errorMessage = 'Failed to fetch cards';
     mockGetSavedCards.mockRejectedValueOnce(new Error(errorMessage));
     render(<SavedCardsList />);
-  
+
     // Wait for the setError to be called after the fetch attempt
     await waitFor(() => {
       expect(mockSetError).toHaveBeenCalledWith({
@@ -171,9 +179,15 @@ describe('SavedCardsList', () => {
         type: 'error',
       });
     });
-    
+
     // Now, await for the UI elements of the EmptyState to appear
-    expect(await screen.findByRole('heading', { name: /No Saved Payment Methods/i })).toBeInTheDocument();
-    expect(await screen.findByRole('paragraph', { name: /You haven't saved any payment methods yet\. They will appear here after your first payment\./i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /No Saved Payment Methods/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('paragraph', {
+        name: /You haven't saved any payment methods yet\. They will appear here after your first payment\./i,
+      }),
+    ).toBeInTheDocument();
   });
 });

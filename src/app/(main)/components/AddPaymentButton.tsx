@@ -9,7 +9,8 @@ import { usePaymentModalStore } from '@/store/paymentModalStore';
 //   // Add any props if needed
 // }
 
-export default function AddPaymentButton() { // No longer takes props AddPaymentButton({}: AddPaymentButtonProps)
+export default function AddPaymentButton() {
+  // No longer takes props AddPaymentButton({}: AddPaymentButtonProps)
   const openModal = usePaymentModalStore((state) => state.openModal); // Get the openModal function from the store
 
   return (

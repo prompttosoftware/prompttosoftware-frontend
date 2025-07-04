@@ -1,7 +1,4 @@
 import { Configuration, OpenAIApi } from 'openai';
-1. **Context:** `src/app/api/projects/route.ts`
-**Reason:** The `POST` and `GET` handlers in `src/app/api/projects/route.ts` use `require()` statements for importing `Configuration` and `OpenAIApi` from `openai`. This is a `typescript-eslint` rule violation (`@typescript-eslint/no-require-imports`) and causes a build error.
-**Instructions:** Change the `require()` statements to `import` statements in `src/app/api/projects/route.ts`. For example, `const { Configuration, OpenAIApi } = require('openai');` should become `import { Configuration, OpenAIApi } from 'openai';`.
 
 export async function POST(req: Request) {
   try {

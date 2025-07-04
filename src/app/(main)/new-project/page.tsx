@@ -629,7 +629,7 @@ export default function NewProjectPage() {
               {errors.description && (
                 <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
               )}
-              
+
               <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
                 <p className="text-md font-semibold text-gray-700">Estimated Cost:</p>
                 {isEstimating ? (
@@ -644,7 +644,7 @@ export default function NewProjectPage() {
                   </p>
                 )}
               </div>
-              
+
               {/* GitHub Repositories Section */}
               <div className="border border-gray-200 mt-6 pt-6 p-4 rounded-md shadow-sm">
                 <h3 className="text-lg font-medium text-gray-700 mb-4">GitHub Repositories</h3>
@@ -772,15 +772,16 @@ export default function NewProjectPage() {
                         maxRuntimeHours > 0 &&
                         estimatedCostResult.completionTimeHours > maxRuntimeHours && (
                           <div className="mt-2 text-red-700 font-bold bg-red-100 py-2 px-4 rounded-md border border-red-300">
-                            Warning: Estimated runtime ({estimatedCostResult.completionTimeHours.toFixed(
-                              2,
-                            )}{' '}
-                            hours) clamped to Max Runtime ({maxRuntimeHours.toFixed(2)} hours). Project
-                            scope may be too large.
+                            Warning: Estimated runtime (
+                            {estimatedCostResult.completionTimeHours.toFixed(2)} hours) clamped to
+                            Max Runtime ({maxRuntimeHours.toFixed(2)} hours). Project scope may be
+                            too large.
                           </div>
                         )}
                       <p className="text-sm text-gray-500 mt-4 px-4 pb-4">
-                        Note: If you provide your own API keys in Advanced Options, their usage rates will apply and may alter the final expenditure not reflected in this estimate.
+                        Note: If you provide your own API keys in Advanced Options, their usage
+                        rates will apply and may alter the final expenditure not reflected in this
+                        estimate.
                       </p>
                     </div>
                   </div>
