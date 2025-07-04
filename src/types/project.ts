@@ -23,3 +23,14 @@ export interface ProjectStatus {
   cost: number;
   pendingSensitiveRequest?: boolean;
 }
+
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  description: string;
+  status: 'active' | 'stopped' | 'completed' | 'failed';
+  repositoryUrl: string;
+  costToDate: number;
+  totalRuntime: number;
+  progress: number;
+}
