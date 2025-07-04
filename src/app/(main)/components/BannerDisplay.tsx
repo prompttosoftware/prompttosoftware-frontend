@@ -1,7 +1,7 @@
 'use client';
 
     import React from 'react';
-    import { useBannerStore } from '@/store/bannerStore';
+    import useBannerStore from '@/store/bannerStore';
     import { Banner } from '@/types/banner';
     
     const BannerDisplay: React.FC = () => {

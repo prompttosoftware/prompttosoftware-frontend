@@ -9,11 +9,10 @@ import AddPaymentButton from './components/AddPaymentButton';
 import BalanceDisplay from './components/BalanceDisplay';
 import WatchAdButton from './components/WatchAdButton';
 import { PaymentModal } from './components/PaymentModal';
-import { useBannerStore } from '@/store/bannerStore'; // Corrected import
+import useBannerStore from '@/store/bannerStore'; // Corrected import
 import { StripeWrapper } from '@/components/StripeWrapper';
 import ConfirmationDialog from './components/ConfirmationDialog';
-import { AuthProvider, AuthContext } from '@/lib/AuthContext';
-import TutorialOverlay from '@/components/TutorialOverlay';
+import { AuthProvider } from '@/lib/AuthContext';
 import BannerDisplay from './components/BannerDisplay';
 import { Banner } from '@/types/banner';
 
@@ -81,19 +80,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <StripeWrapper>
           <PaymentModal />
         </StripeWrapper>
-        {/* The TutorialOverlay logic will need to correctly use AuthContext within its own scope */}
-        <TutorialOverlayWrapper />
+
       </div>
     </AuthProvider>
   );
-}
-
-// New component to wrap TutorialOverlay and use AuthContext correctly
-function TutorialOverlayWrapper() {
-  // This should be inside a component that is a child of AuthProvider
-  const { showTutorial, setShowTutorial } = useContext(AuthContext);
-
-  if (!showTutorial) return null;
-
-  return <TutorialOverlay showTutorial={showTutorial} setShowTutorial={setShowTutorial} />;
 }
