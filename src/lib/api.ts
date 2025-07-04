@@ -9,6 +9,13 @@ export const api = axiosInstance;
 export const setupInterceptors = setupHttpClientInterceptors;
 
 // Export individual services for specific functionalities
+import { UserProfile } from '@/types/auth'; // Import UserProfile type
+
 export {
   paymentsService,
+};
+
+export const fetchUserProfile = async (): Promise<UserProfile> => {
+  const response = await axiosInstance.get('/auth/me');
+  return response.data;
 };

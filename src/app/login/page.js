@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth'; // Import useAuth
 import { useRouter, useSearchParams } from 'next/navigation';
-import api from '@/lib/api'; // Import the axios instance
+import { api } from '@/lib/api'; // Import the axios instance
 
 // This component contains the core logic and renders the login form.
 // It will be wrapped in Suspense.

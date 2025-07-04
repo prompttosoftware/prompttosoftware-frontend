@@ -11,7 +11,7 @@ import BannerDisplay from './components/BannerDisplay'; // Import BannerDisplay
 import { PaymentModal } from './components/PaymentModal'; // Import PaymentModal
 import { useBannerStore } from '@/store/bannerStore'; // Import useBannerStore
 import { StripeWrapper } from '@/components/StripeWrapper'; // Import StripeWrapper
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/lib/AuthContext';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);

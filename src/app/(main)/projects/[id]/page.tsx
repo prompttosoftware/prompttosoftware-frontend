@@ -1,32 +1,28 @@
-'use client'; // This directive is necessary for client-side components in Next.js 13+
+'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios'; // Assuming axios is installed and configured
-import { useAuth } from '@/hooks/useAuth'; // Assuming this hook handles authentication state
-import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Assuming this component exists
+import { useRouter, useParams } from 'next/navigation'; // Added useParams
+import axios from 'axios';
+import { useAuth } from '@/hooks/useAuth';
+import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import EmptyState from '@/app/(main)/components/EmptyState';
-import { AlertCircle } from 'lucide-react'; // Import AlertCircle for error icon
-import { usePolling } from '@/hooks/usePolling'; // Import usePolling hook
-import { ProjectStatus } from '@/types/project'; // Import ProjectStatus type
+import { AlertCircle } from 'lucide-react';
+import { usePolling } from '@/hooks/usePolling';
+import { ProjectStatus } from '@/types/project';
 
-import { format } from 'date-fns'; // Import format function from date-fns
-import { intervalToDuration } from 'date-fns'; // Import intervalToDuration from date-fns
-import { formatDuration, formatCurrency } from '@/lib/formatters'; // Import formatting utilities
+import { format } from 'date-fns';
+import { intervalToDuration } from 'date-fns';
+import { formatDuration, formatCurrency } from '@/lib/formatters';
 
 
-
-// Define a type for your project data
 interface Project {
   id: string;
   name: string;
   description: string;
   repositoryUrl: string;
-  createdAt: string; // ISO date string
-  // Add other relevant project fields here
+  createdAt: string;
 }
 
-// State for live project metrics
 interface LiveProjectMetrics {
   status: 'pending' | 'in-progress' | 'completed' | 'failed';
   elapsedTime: number;
@@ -34,20 +30,21 @@ interface LiveProjectMetrics {
   progress: number;
 }
 
-interface ProjectDetailProps {
-  params: {
-    id: string;
-  };
-}
+// ProjectDetailProps is no longer needed since params are accessed via useParams hook
+// interface ProjectDetailProps {
+//   params: {
+//     id: string;
+//   };
+// }
 
-const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
-  const { id } = params;
-  const { isAuthenticated, isLoading, logout } = useAuth(); // Get auth state and logout function
-  const router = useRouter(); // Initialize useRouter
+const ProjectDetailPage: React.FC = () => { // Removed params from here
+  const { id } = useParams() as { id: string }; // Use useParams hook
+  const { isAuthenticated, isLoading, logout } = useAuth();
+  const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetchingProject, setIsFetchingProject] = useState<boolean>(true);
-  const [hasFetched, setHasFetched] = useState<boolean>(false); // To prevent re-fetching on re-renders if not needed
+  const [hasFetched, setHasFetched] = useState<boolean>(false);
   
   const [liveMetrics, setLiveMetrics] = useState<LiveProjectMetrics>({
     status: 'pending',
@@ -60,9 +57,8 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
     data: pollingData,
     isLoading: isPollingLoading,
     error: pollingError,
-  } = usePolling(id, { refetchInterval: 60000 }); // Poll every 1 minute (60 seconds) as per acceptance criteria for elapsed time
+  } = usePolling(id, { refetchInterval: 60000 });
   
-  // Update live metrics state when polling data changes
   useEffect(() => {
     if (pollingData) {
       setLiveMetrics({
@@ -74,26 +70,22 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
     }
   }, [pollingData]);
 
-  // Authentication check and redirection
   useEffect(() => {
-    // If authentication state is known and user is not authenticated, redirect to login
     if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
 
-  // Fetch project data
   useEffect(() => {
     const fetchProject = async () => {
-      // Ensure we have an ID and are authenticated AND haven't fetched yet (or want to refetch)
       if (!id || !isAuthenticated || hasFetched) {
         setIsFetchingProject(false);
         return;
       }
   
       setIsFetchingProject(true);
-      setError(null); // Clear previous errors
-      setProject(null); // Clear previous project data to prevent showing old data during re-fetch
+      setError(null);
+      setProject(null);
       
       try {
         const response = await axios.get(`/api/projects/${id}`);
@@ -102,7 +94,7 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
         console.error("Failed to fetch project:", err);
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401 || err.response?.status === 403) {
-            logout(); // Clear invalid token from storage
+            logout();
             router.push('/login');
             setError('Authentication required. Please log in again.');
           } else if (err.response?.status === 404) {
@@ -122,13 +114,12 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
       }
     };
   
-    if (isAuthenticated && id && !hasFetched) { // Only fetch if authenticated, ID present, and not yet fetched
+    if (isAuthenticated && id && !hasFetched) {
       fetchProject();
     }
-  }, [id, isAuthenticated, router, logout, hasFetched]); // Add hasFetched to dependencies
+  }, [id, isAuthenticated, router, logout, hasFetched]);
 
-  // Loading and error states
-  if (isLoading || isFetchingProject) { // Include isFetchingProject for dedicated loading state
+  if (isLoading || isFetchingProject) {
     return (
       <div className="flex justify-center items-center h-screen">
         <LoadingSpinner />
@@ -136,14 +127,12 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
     );
   }
   
-  // Handle errors
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen p-4">
         <EmptyState
           title="Error Loading Project"
           message={error}
-          // Only show action button if not automatically redirecting
           actionButton={
             error.includes("Redirecting") ? undefined : (
               <button
@@ -159,8 +148,6 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
     );
   }
   
-  // Handle case where project is null after fetching (e.g., initial state or truly not found after redirect)
-  // This helps catch cases where the 404 was not explicitly returned, but data is still missing.
   if (!project && !isFetchingProject && hasFetched) {
     return (
       <div className="flex justify-center items-center h-screen p-4">

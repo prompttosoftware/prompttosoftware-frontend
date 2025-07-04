@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input'; // Import Input component
 import { Label } from '@/components/ui/label';
 import PaymentFormContent from './PaymentFormContent'; // Import the new PaymentFormContent
 import { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from '@/types/payments'; // Import payment types
-import axiosInstance from '@/lib/api';
+import { api as axiosInstance } from '@/lib/api';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { isAxiosError } from 'axios';
 
