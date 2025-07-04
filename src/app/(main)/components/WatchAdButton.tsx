@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBalanceStore } from '@/store/balanceStore';
 import { useGlobalError } from '@/hooks/useGlobalError';
 import { logger } from '@/lib/logger'; // Import the global logger
-import httpClient from '@/lib/httpClient'; // Import the http client
+import { httpClient } from '@/lib/httpClient'; // Import the http client
 
 const AD_DURATION_SECONDS = 10; // Ad playback duration in seconds
 
@@ -24,36 +24,43 @@ const WatchAdButton: React.FC = () => {
   // ref for the interval to clear it on unmount or when ad completes
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to handle the ad credit API call
-  const handleAdCredit = async () => {
-    if (!token) {
-      setGlobalError('Authentication token not found. Please log in.');
-      logger.warn('Ad credit attempt failed: Authentication token not found.');
-      return;
-    }
-    logger.info('Attempting to credit ad...');
-    try {
-      const response = await httpClient.post('/ads/credit', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      // Assuming the API returns newBalance and creditedAmount
-      const { newBalance, creditedAmount } = response.data;
-      updateBalance(newBalance);
-      // Display confirmation message (e.g., using a toast or alert)
-      alert(`Ad playback complete! You have been credited ${creditedAmount} tokens.`);
-      logger.info(`Ad credited successfully. Credited amount: ${creditedAmount}, New balance: ${newBalance}`);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to credit ad. Please try again.';
-      console.error("Error crediting ad:", error); // Keep console.error for immediate debug visibility
-      setGlobalError(errorMessage);
-      logger.error(`Error crediting ad: ${errorMessage}`, error);
-    }
-  };
-
   // Handle ad playback countdown
   useEffect(() => {
+    // Function to handle the ad credit API call
+    const handleAdCredit = async () => {
+      if (!token) {
+        setGlobalError('Authentication token not found. Please log in.');
+        logger.warn('Ad credit attempt failed: Authentication token not found.');
+        return;
+      }
+      logger.info('Attempting to credit ad...');
+      try {
+        const response = await httpClient.post(
+          '/ads/credit',
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        // Assuming the API returns newBalance and creditedAmount
+        const { newBalance, creditedAmount } = response.data;
+        updateBalance(newBalance);
+        // Display confirmation message (e.g., using a toast or alert)
+        alert(`Ad playback complete! You have been credited ${creditedAmount} tokens.`);
+        logger.info(
+          `Ad credited successfully. Credited amount: ${creditedAmount}, New balance: ${newBalance}`,
+        );
+      } catch (error: any) {
+        const errorMessage =
+          error.response?.data?.message || 'Failed to credit ad. Please try again.';
+        console.error('Error crediting ad:', error); // Keep console.error for immediate debug visibility
+        setGlobalError(errorMessage);
+        logger.error(`Error crediting ad: ${errorMessage}`, error);
+      }
+    };
+  
     if (isAdPlaying && adCountdown > 0) {
       countdownIntervalRef.current = setInterval(() => {
         setAdCountdown((prev) => prev - 1);
@@ -67,14 +74,14 @@ const WatchAdButton: React.FC = () => {
       }
       handleAdCredit(); // Call API to credit the ad
     }
-
+  
     // Cleanup on unmount or if dependencies change
     return () => {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [isAdPlaying, adCountdown]);
+  }, [isAdPlaying, adCountdown, token, updateBalance, setGlobalError]);
 
   const handleClick = () => {
     if (!isAuthenticated) {
