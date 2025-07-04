@@ -31,7 +31,41 @@ export const handlers = [
     return HttpResponse.json(mockStatus, { status: 200 });
   }),
 
-  // Handler for GET /api/projects/:id
+  // Mock data for saved cards
+const mockSavedCards = [
+  {
+    id: 'card_123abc',
+    brand: 'visa',
+    last4: '4242',
+    expiryMonth: 12,
+    expiryYear: 2025,
+    isDefault: true,
+  },
+  {
+    id: 'card_456def',
+    brand: 'mastercard',
+    last4: '5555',
+    expiryMonth: 10,
+    expiryYear: 2024,
+    isDefault: false,
+  },
+  {
+    id: 'card_789ghi',
+    brand: 'amex',
+    last4: '0000',
+    expiryMonth: 1,
+    expiryYear: 2028,
+    isDefault: false,
+  },
+];
+
+// Handler for GET /payments/cards
+http.get('/payments/cards', () => {
+  console.log('MSW: Returning mock saved cards');
+  return HttpResponse.json({ cards: mockSavedCards }, { status: 200 });
+}),
+
+// Handler for GET /api/projects/:id
   http.get('/api/projects/:id', ({ params }) => {
     const { id } = params;
     const mockProject = {

@@ -15,6 +15,7 @@ import ConfirmationDialog from './components/ConfirmationDialog';
 import { AuthProvider } from '@/lib/AuthContext';
 import BannerDisplay from './components/BannerDisplay';
 import { Banner } from '@/types/banner';
+import SuccessToast from './components/SuccessToast';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -80,6 +81,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <StripeWrapper>
           <PaymentModal />
         </StripeWrapper>
+        <SuccessToast />
 
       </div>
     </AuthProvider>

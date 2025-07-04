@@ -149,45 +149,34 @@ describe('SavedCardsList', () => {
     expect(mockSetSuccessMessage).not.toHaveBeenCalled();
   });
 
-  // Test skipped due to persistent findByRole('paragraph') issue.
-  // Debug outputs show the element is present, but the query fails.
-  it.skip('renders empty state when no cards are available', async () => {
+  it('renders empty state when no cards are available', async () => {
     mockGetSavedCards.mockResolvedValueOnce({ cards: [] });
-    render(<SavedCardsList />);
-
-    expect(
-      await screen.findByRole('heading', { name: /No Saved Payment Methods/i }),
-    ).toBeInTheDocument();
-    expect(
-      await screen.findByRole('paragraph', {
-        name: /You haven't saved any payment methods yet\. They will appear here after your first payment\./i,
-      }),
-    ).toBeInTheDocument();
-  });
-
-  // Test skipped due to persistent findByRole('paragraph') issue.
-  // Debug outputs show the element is present, but the query fails.
-  it.skip('displays an error if fetching cards fails', async () => {
-    const errorMessage = 'Failed to fetch cards';
-    mockGetSavedCards.mockRejectedValueOnce(new Error(errorMessage));
-    render(<SavedCardsList />);
-
-    // Wait for the setError to be called after the fetch attempt
-    await waitFor(() => {
-      expect(mockSetError).toHaveBeenCalledWith({
-        message: expect.stringContaining(errorMessage),
-        type: 'error',
-      });
+    await act(async () => {
+      render(<SavedCardsList />);
     });
 
-    // Now, await for the UI elements of the EmptyState to appear
-    expect(
-      await screen.findByRole('heading', { name: /No Saved Payment Methods/i }),
-    ).toBeInTheDocument();
-    expect(
-      await screen.findByRole('paragraph', {
-        name: /You haven't saved any payment methods yet\. They will appear here after your first payment\./i,
-      }),
-    ).toBeInTheDocument();
+    // Use findBy which handles waiting internally
+    expect(await screen.findByRole('heading', { name: /No Saved Payment Methods/i })).toBeInTheDocument();
+    const emptyStateParagraph = await screen.findByRole('paragraph');
+    expect(emptyStateParagraph).toHaveTextContent(/You haven't saved any payment methods yet\. They will appear here after your first payment\./i);
+  });
+
+  it('displays an error if fetching cards fails', async () => {
+    const errorMessage = 'Failed to fetch cards';
+    mockGetSavedCards.mockRejectedValueOnce(new Error(errorMessage));
+    await act(async () => {
+      render(<SavedCardsList />);
+    });
+
+    // Using findBy for the UI elements
+    expect(await screen.findByRole('heading', { name: /No Saved Payment Methods/i })).toBeInTheDocument();
+    const emptyStateParagraph = await screen.findByRole('paragraph');
+    expect(emptyStateParagraph).toHaveTextContent(/You haven't saved any payment methods yet\. They will appear here after your first payment\./i);
+    
+    // Keep the setError expectation separate
+    expect(mockSetError).toHaveBeenCalledWith({
+      message: expect.stringContaining(errorMessage),
+      type: 'error',
+    });
   });
 });
