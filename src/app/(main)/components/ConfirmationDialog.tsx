@@ -20,8 +20,14 @@ const ConfirmationDialog: React.FC = () => {
   const [isConfirmButtonEnabled, setIsConfirmButtonEnabled] = useState(false);
 
   useEffect(() => {
+    // If there's a confirmPhrase, enable button only when input matches
+    // Otherwise, enable button by default for simple confirmations
     if (confirmationDialog) {
-      setIsConfirmButtonEnabled(inputValue === confirmationDialog.confirmPhrase);
+      setIsConfirmButtonEnabled(
+        confirmationDialog.confirmPhrase
+          ? inputValue === confirmationDialog.confirmPhrase
+          : true, // No phrase means button is always enabled
+      );
     } else {
       // Reset state when dialog is closed
       setInputValue('');
@@ -34,7 +40,11 @@ const ConfirmationDialog: React.FC = () => {
   }
 
   const handleConfirm = () => {
-    if (inputValue === confirmationDialog.confirmPhrase) {
+    // If there's a confirmPhrase, check for match, otherwise proceed directly
+    if (
+      !confirmationDialog.confirmPhrase ||
+      inputValue === confirmationDialog.confirmPhrase
+    ) {
       confirmationDialog.onConfirm();
       hideConfirmation();
     }
@@ -47,6 +57,8 @@ const ConfirmationDialog: React.FC = () => {
     hideConfirmation();
   };
 
+  const showConfirmPhraseInput = !!confirmationDialog.confirmPhrase;
+
   return (
     <Dialog open={confirmationDialog.isOpen} onOpenChange={handleCancel}>
       <DialogContent className="sm:max-w-[425px]">
@@ -54,34 +66,36 @@ const ConfirmationDialog: React.FC = () => {
           <DialogTitle>{confirmationDialog.title}</DialogTitle>
           <DialogDescription>{confirmationDialog.message}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <p className="text-sm text-muted-foreground">
-            To confirm, please type &quot;
-            <span className="font-semibold text-foreground">
-              {confirmationDialog.confirmPhrase}
-            </span>
-            &quot; in the box below.
-          </p>
-          <div className="grid gap-2">
-            <Label htmlFor="confirm-input">Confirmation Phrase</Label>
-            <Input
-              id="confirm-input"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder={confirmationDialog.confirmPhrase}
-            />
+        {showConfirmPhraseInput && (
+          <div className="grid gap-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              To confirm, please type &quot;
+              <span className="font-semibold text-foreground">
+                {confirmationDialog.confirmPhrase}
+              </span>
+              &quot; in the box below.
+            </p>
+            <div className="grid gap-2">
+              <Label htmlFor="confirm-input">Confirmation Phrase</Label>
+              <Input
+                id="confirm-input"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={confirmationDialog.confirmPhrase}
+              />
+            </div>
           </div>
-        </div>
+        )}
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>
-            Cancel
+            {confirmationDialog.cancelText || 'Cancel'}
           </Button>
           <Button
             variant="destructive"
             onClick={handleConfirm}
             disabled={!isConfirmButtonEnabled}
           >
-            {confirmationDialog.title}
+            {confirmationDialog.confirmText || 'Confirm'}
           </Button>
         </DialogFooter>
       </DialogContent>
