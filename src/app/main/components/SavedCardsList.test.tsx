@@ -1,22 +1,39 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SavedCardsList } from './SavedCardsList';
-import { paymentsService } from '@/services/paymentsService';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { SavedCard } from '@/types/payments';
+import httpClient from '@/lib/httpClient';
+import { useAuth } from '@/hooks/useAuth';
 
-// Mock the services and stores
-jest.mock('@/services/paymentsService');
+const queryClient = new QueryClient(); // No defaultOptions needed for basic mocking
+
+import httpClient from '@/lib/httpClient'; // Ensure httpClient is imported for type inference if needed, but not used directly for spying
+
 jest.mock('@/store/globalErrorStore');
 jest.mock('@/store/successMessageStore');
+jest.mock('@/hooks/useAuth');
 
-const mockGetSavedCards = paymentsService.getSavedCards as jest.Mock;
+// Define mock functions BEFORE the jest.mock call
+const mockGet = jest.fn();
+const mockDelete = jest.fn();
+
+jest.mock('@/lib/httpClient', () => ({
+  __esModule: true, // This is important for default exports
+  default: {
+    get: mockGet,
+    delete: mockDelete,
+  },
+}));
+
 const mockUseGlobalErrorStore = useGlobalErrorStore as jest.Mock;
 const mockUseSuccessMessageStore = useSuccessMessageStore as jest.Mock;
 
 const mockSetError = jest.fn();
+const mockShowError = jest.fn();
 const mockShowConfirmation = jest.fn();
 const mockSetSuccessMessage = jest.fn();
 
@@ -42,49 +59,62 @@ const mockCards: SavedCard[] = [
 describe('SavedCardsList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
+  
     mockUseGlobalErrorStore.mockReturnValue({
       setError: mockSetError,
+      showError: mockShowError,
       showConfirmation: mockShowConfirmation,
     });
     mockUseSuccessMessageStore.mockReturnValue({
       setMessage: mockSetSuccessMessage,
     });
+    (useAuth as jest.Mock).mockReturnValue({ token: 'dummy-token' });
+  
+    // Default mock for httpClient.get
+    mockGet.mockResolvedValue({ data: mockCards });
+  });
 
-    mockGetSavedCards.mockResolvedValue({ cards: mockCards });
+  afterEach(() => {
+    // Clear the query client cache after each test to prevent data leakage
+    queryClient.clear();
   });
 
   it('renders loading state initially', () => {
-    const promise = new Promise<any>(() => {}); // Never resolve to keep it in loading
-    mockGetSavedCards.mockReturnValueOnce(promise);
-
-    render(<SavedCardsList />);
+    // Mock httpClient.get to simulate loading state
+    mockGet.mockReturnValue(new Promise(() => {})); // A promise that never resolves
+  
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SavedCardsList />
+      </QueryClientProvider>
+    );
     expect(screen.getByTestId('skeleton-loader')).toBeInTheDocument();
   });
 
   it('renders saved cards after fetching', async () => {
-    render(<SavedCardsList />);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SavedCardsList />
+      </QueryClientProvider>
+    );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
-    });
+    expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Mastercard ending in 5252/i })).toBeInTheDocument();
     expect(screen.getByText('Default')).toBeInTheDocument();
   });
 
   it('handles card deletion confirmation and visual removal', async () => {
-    // Start with a mock that returns both cards
-    mockGetSavedCards.mockResolvedValueOnce({ cards: [...mockCards] });
-    render(<SavedCardsList />);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SavedCardsList />
+      </QueryClientProvider>
+    );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
-    });
+    expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
 
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    fireEvent.click(deleteButtons[0]); // Click delete for the first card (Visa)
+    fireEvent.click(deleteButtons[0]); // Click on the first card's delete button (Visa)
 
-    // Verify confirmation dialog is shown
     expect(mockShowConfirmation).toHaveBeenCalledWith(
       expect.objectContaining({
         title: 'Remove Saved Card',
@@ -94,27 +124,22 @@ describe('SavedCardsList', () => {
       }),
     );
 
-    // Prepare the mock for the delete operation
-    const mockDeleteCard = paymentsService.deleteSavedCard as jest.Mock;
-    mockDeleteCard.mockResolvedValueOnce({ message: 'Card deleted successfully!' });
-
-    // Prepare what getSavedCards should return AFTER the delete and refetch
-    mockGetSavedCards.mockResolvedValueOnce({
-      cards: mockCards.filter((card) => card.id !== 'card_123'),
-    });
-
-    // Simulate confirmation
+    // Mock httpClient.delete for this test specifically
+    mockDelete.mockResolvedValueOnce({}); // Simulate successful deletion
+    
     const confirmCallback = mockShowConfirmation.mock.calls[0][0].onConfirm;
+    
     await act(async () => {
-      await confirmCallback(); // Await the async confirm callback
+      await confirmCallback();
     });
-
-    // Verify the delete service was called
-    expect(mockDeleteCard).toHaveBeenCalledWith('card_123');
-    // Verify success message from the actual service call
+    
+    expect(mockDelete).toHaveBeenCalledWith('/payments/cards/card_123');
     expect(mockSetSuccessMessage).toHaveBeenCalledWith('Card deleted successfully!');
+    
+    // After deletion, mock httpClient.get to return the updated list for the refetch
+    mockGet.mockResolvedValueOnce({ data: mockCards.filter((card) => card.id !== 'card_123') });
 
-    // Verify visual removal of the card from the list (this will now re-fetch with a single card)
+
     await waitFor(() => {
       expect(
         screen.queryByRole('heading', { name: /Visa ending in 4242/i }),
@@ -124,57 +149,54 @@ describe('SavedCardsList', () => {
   });
 
   it('does not remove card if confirmation is cancelled', async () => {
-    render(<SavedCardsList />);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SavedCardsList />
+      </QueryClientProvider>
+    );
 
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
-    });
+    expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
 
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    fireEvent.click(deleteButtons[0]); // Click delete for the first card (Visa)
+    fireEvent.click(deleteButtons[0]);
 
     expect(mockShowConfirmation).toHaveBeenCalledTimes(1);
 
-    // Simulate cancellation
     const cancelCallback = mockShowConfirmation.mock.calls[0][0].onCancel;
     await act(async () => {
       cancelCallback();
     });
 
-    // Verify card is still in the document
     expect(screen.getByRole('heading', { name: /Visa ending in 4242/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Mastercard ending in 5252/i })).toBeInTheDocument();
-
-    // No success message should be displayed for cancellation
     expect(mockSetSuccessMessage).not.toHaveBeenCalled();
   });
 
   it('renders empty state when no cards are available', async () => {
-    mockGetSavedCards.mockResolvedValueOnce({ cards: [] });
-    await act(async () => {
-      render(<SavedCardsList />);
-    });
-
-    // Use findBy which handles waiting internally
+    mockGet.mockResolvedValueOnce({ data: [] });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SavedCardsList />
+      </QueryClientProvider>
+    );
+  
     expect(await screen.findByRole('heading', { name: /No Saved Payment Methods/i })).toBeInTheDocument();
-    const emptyStateParagraph = await screen.findByRole('paragraph');
-    expect(emptyStateParagraph).toHaveTextContent(/You haven't saved any payment methods yet\. They will appear here after your first payment\./i);
+    expect(await screen.findByText(/You haven't saved any payment methods yet\. They will appear here after your first payment\./i, { selector: 'p' })).toBeInTheDocument();
   });
 
   it('displays an error if fetching cards fails', async () => {
     const errorMessage = 'Failed to fetch cards';
-    mockGetSavedCards.mockRejectedValueOnce(new Error(errorMessage));
-    await act(async () => {
-      render(<SavedCardsList />);
-    });
-
-    // Using findBy for the UI elements
-    expect(await screen.findByRole('heading', { name: /No Saved Payment Methods/i })).toBeInTheDocument();
-    const emptyStateParagraph = await screen.findByRole('paragraph');
-    expect(emptyStateParagraph).toHaveTextContent(/You haven't saved any payment methods yet\. They will appear here after your first payment\./i);
-    
-    // Keep the setError expectation separate
-    expect(mockSetError).toHaveBeenCalledWith({
+    mockGet.mockRejectedValueOnce(new Error(errorMessage));
+    render(
+      <QueryClientProvider client={queryClient}>
+        <SavedCardsList />
+      </QueryClientProvider>
+    );
+  
+    expect(screen.getByText('Failed to load saved payment methods.', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText('Please try again later.', { selector: 'p' })).toBeInTheDocument();
+  
+    expect(mockShowError).toHaveBeenCalledWith({
       message: expect.stringContaining(errorMessage),
       type: 'error',
     });

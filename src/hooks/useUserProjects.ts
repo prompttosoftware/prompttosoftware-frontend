@@ -7,7 +7,7 @@ export const useUserProjects = () => {
   return useQuery<ProjectSummary[], Error>({
     queryKey: ['projects'],
     queryFn: async () => {
-      const projects = await api.getUserProjects();
+      const projects = await api.getUserProjects(); // Use the new function through the api abstraction
       return projects;
     },
     onError: (err: any) => {
