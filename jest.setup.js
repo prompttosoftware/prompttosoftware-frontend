@@ -36,11 +36,7 @@ if (typeof global.TextDecoder === 'undefined') {
 // This handles cases where automatic global attachment by the polyfill
 // might not happen or might be overridden in some test environments,
 // ensuring Robustness for MSW's requirements.
-const {
-  ReadableStream,
-  WritableStream,
-  TransformStream
-} = require('web-streams-polyfill'); // Use the main entry point to get the ponyfills directly.
+const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill'); // Use the main entry point to get the ponyfills directly.
 
 if (typeof global.ReadableStream === 'undefined' && ReadableStream) {
   global.ReadableStream = ReadableStream;
@@ -52,12 +48,12 @@ if (typeof global.TransformStream === 'undefined' && TransformStream) {
   global.TransformStream = TransformStream;
 }
 
-
 // Polyfill Fetch API, Request, Response, and Headers using undici.
 // Undici provides a spec-compliant implementation that works well with Web Streams.
 const { fetch, Request, Response, Headers } = require('undici');
 
-if (typeof global.fetch === 'undefined') { // Check if fetch is already defined (e.g., by JSDOM or other polyfills)
+if (typeof global.fetch === 'undefined') {
+  // Check if fetch is already defined (e.g., by JSDOM or other polyfills)
   global.fetch = fetch;
   global.Request = Request;
   global.Response = Response;

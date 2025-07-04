@@ -6,7 +6,6 @@ declare global {
   }
 }
 
-
 import { logger } from '../lib/logger'; // Import the logger utility
 
 // Cache for the loaded model and tokenizer
@@ -60,9 +59,9 @@ export function detectDeviceCapability(): boolean {
  */
 async function loadModelAndPipeline(): Promise<void> {
   if (model && tokenizer && estimationPipelineInstance) {
-    isMLModelActive = true; 
+    isMLModelActive = true;
     mlModelErrorMessage = null;
-    return; 
+    return;
   }
 
   // Add this check to ensure the function only runs in the browser
@@ -75,7 +74,9 @@ async function loadModelAndPipeline(): Promise<void> {
 
   try {
     // Add the dynamic import here
-    const { AutoModelForSequenceClassification, AutoTokenizer, pipeline } = await import('@xenova/transformers');
+    const { AutoModelForSequenceClassification, AutoTokenizer, pipeline } = await import(
+      '@xenova/transformers'
+    );
 
     logger.info('Attempting to load transformers.js model and pipeline...');
     model = await AutoModelForSequenceClassification.from_pretrained(
@@ -241,7 +242,7 @@ function calculateHeuristicDuration(description: string): number {
   const wordCount = words.length;
 
   let baseDuration = wordCount / 10; // 1 hour per 10 words as a base heuristic (increased sensitivity)
-  
+
   // Adjust based on keywords, case-insensitive
   const lowerDescription = description.toLowerCase();
   if (lowerDescription.includes('complex') || lowerDescription.includes('advanced')) {

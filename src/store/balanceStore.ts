@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { logger } from "@/lib/logger";
-import httpClient from "@/lib/httpClient"; // Import httpClient
+import { logger } from '@/lib/logger';
+import { httpClient } from '@/lib/httpClient'; // Use named import for httpClient
 
 /**
  * Defines the structure of the balance state, including methods for
@@ -32,12 +32,14 @@ export const useBalanceStore = create<BalanceState>()(
           // Fetch the user's profile from the backend
           const response = await httpClient.get('/auth/me');
           const user = response.data.user;
-      
+
           if (user && typeof user.balance === 'number') {
             set({ balance: user.balance, lastFetched: Date.now() });
             logger.info(`Balance fetched and set to: ${user.balance}`);
           } else {
-            logger.error("Failed to fetch balance: Balance not found in user profile or invalid type.");
+            logger.error(
+              'Failed to fetch balance: Balance not found in user profile or invalid type.',
+            );
             set({ balance: 0, lastFetched: null }); // Reset or show default on error
           }
         } catch (error: any) {
@@ -57,8 +59,8 @@ export const useBalanceStore = create<BalanceState>()(
     {
       name: 'balance-storage', // The name for the item in storage (e.g., localStorage key)
       storage: createJSONStorage(() => localStorage), // Use localStorage as the storage medium
-    }
-  )
+    },
+  ),
 );
 
 /**

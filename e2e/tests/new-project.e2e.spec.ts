@@ -112,7 +112,7 @@ test.describe('New Project Workflow E2E Tests', () => {
     // Since we're doing manual verification, this is more about giving time to observe.
     // Assert that the loading indicator is no longer visible after navigation
     await expect(page.locator('[data-testid="loading-spinner"]')).toBeHidden();
-    
+
     const newProjectId = `project-${Date.now()}`; // Placeholder, ID comes from intercepted response
     // Wait until URL changes to something like /projects/
     await page.waitForURL(/.*project-/);
@@ -147,7 +147,9 @@ test.describe('New Project Workflow E2E Tests', () => {
     await page.locator('button[type="submit"]', { hasText: 'Create Project' }).click();
 
     // Expect the hotToast error message
-    await expect(page.locator('.go3958317564', { hasText: 'Failed to create project.' })).toBeVisible();
+    await expect(
+      page.locator('.go3958317564', { hasText: 'Failed to create project.' }),
+    ).toBeVisible();
 
     // The API response mock for 400 has 'Project name is too short.' as message,
     // which previously was checked. Currently, the form errors are setup to say:

@@ -11,7 +11,7 @@ interface ProjectStatusDemoProps {
 const ProjectStatusDemo: React.FC<ProjectStatusDemoProps> = ({ projectId }) => {
   const { data, isLoading, error } = usePolling<ProjectStatus>(
     `/api/projects/${projectId}/status`, // Endpoint to poll
-    { refetchInterval: 1000 } // Poll every 1 second
+    { refetchInterval: 1000 }, // Poll every 1 second
   );
 
   if (isLoading) {
@@ -42,10 +42,19 @@ const ProjectStatusDemo: React.FC<ProjectStatusDemoProps> = ({ projectId }) => {
   return (
     <div className="p-4 border border-blue-200 rounded-md shadow-md bg-blue-50">
       <h3 className="text-lg font-semibold text-blue-800 mb-2">Project: {projectId}</h3>
-      <p className="text-blue-700">Status: <span className="font-bold text-lg text-blue-900">{data.status}</span></p>
-      <p className="text-blue-700">Elapsed Time: <span className="font-bold text-lg text-blue-900">{data.elapsedTime}s</span></p>
-      <p className="text-blue-700">Cost: <span className="font-bold text-lg text-blue-900">${data.cost.toFixed(2)}</span></p>
-      <p className="text-blue-700">Progress: <span className="font-bold text-lg text-blue-900">{Math.round(data.progress)}%</span></p>
+      <p className="text-blue-700">
+        Status: <span className="font-bold text-lg text-blue-900">{data.status}</span>
+      </p>
+      <p className="text-blue-700">
+        Elapsed Time: <span className="font-bold text-lg text-blue-900">{data.elapsedTime}s</span>
+      </p>
+      <p className="text-blue-700">
+        Cost: <span className="font-bold text-lg text-blue-900">${data.cost.toFixed(2)}</span>
+      </p>
+      <p className="text-blue-700">
+        Progress:{' '}
+        <span className="font-bold text-lg text-blue-900">{Math.round(data.progress)}%</span>
+      </p>
       <p className="text-xs text-blue-500 mt-2">Last updated: {new Date().toLocaleTimeString()}</p>
     </div>
   );

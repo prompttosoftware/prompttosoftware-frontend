@@ -1,4 +1,4 @@
-import httpClient from '../lib/httpClient'; // Using the pre-configured axios instance
+import { httpClient } from '../lib/httpClient'; // Using the pre-configured axios instance
 import { logger } from '../utils/logger';
 import { setGlobalError } from '../store/globalErrorStore';
 import { AxiosError } from 'axios';
@@ -52,7 +52,9 @@ export class PaymentsService {
       logger.info(`Attempting to delete card with ID: ${cardId}`);
       // The backend expects a 204 No Content for a successful deletion.
       // Axios resolves the promise for 2xx status codes.
-      const response = await httpClient.delete<DeleteSavedCardResponse>(`/payments/cards/${cardId}`);
+      const response = await httpClient.delete<DeleteSavedCardResponse>(
+        `/payments/cards/${cardId}`,
+      );
       logger.info(`Successfully deleted card with ID: ${cardId}`, response.data);
       return {
         message: `Card ${cardId} deleted successfully.`,

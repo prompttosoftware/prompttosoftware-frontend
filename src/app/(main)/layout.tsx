@@ -25,7 +25,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // This class should match the expanded/collapsed width of the SideNavBar
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
-  
+
   return (
     <AuthProvider>
       <div className="flex min-h-screen bg-gray-100">
@@ -35,7 +35,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           isMobileNavOpen={isMobileNavOpen}
           setIsMobileNavOpen={setIsMobileNavOpen}
         />
-  
+
         {/* Main content wrapper */}
         <div
           className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${navMarginClass}`}
@@ -63,16 +63,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <WatchAdButton />
             </div>
           </header>
-  
+
           {/* Banner Display Area */}
           <div className="p-4 flex-shrink-0">
             <BannerDisplay />
           </div>
-  
+
           {/* Main Content Area */}
           <main className="flex-1 p-8">{children}</main>
         </div>
-  
+
         <ErrorModal />
         <StripeWrapper>
           <PaymentModal />

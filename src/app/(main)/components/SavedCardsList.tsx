@@ -41,30 +41,33 @@ export function SavedCardsList() {
     fetchSavedCards();
   }, [fetchSavedCards]);
 
-  const handleDeleteCard = useCallback(async (cardId: string) => {
-    if (!confirm('Are you sure you want to delete this saved card?')) {
-      return;
-    }
+  const handleDeleteCard = useCallback(
+    async (cardId: string) => {
+      if (!confirm('Are you sure you want to delete this saved card?')) {
+        return;
+      }
 
-    setDeletingCardId(cardId);
-    setError(null); // Clear previous errors
-    setSuccessMessage(null); // Clear previous success messages
-    try {
-      const response = await paymentsService.deleteSavedCard(cardId);
-      logger.info(`Card delete response: ${response.message}`);
-      setSuccessMessage(response.message);
-      // Re-fetch the list to ensure UI is synchronized
-      fetchSavedCards(); 
-    } catch (error: any) {
-      logger.error('Failed to delete card:', error);
-      setError({
-        message: error.message || 'Error deleting card.',
-        type: 'error',
-      });
-    } finally {
-      setDeletingCardId(null);
-    }
-  }, [fetchSavedCards, setError, setSuccessMessage]);
+      setDeletingCardId(cardId);
+      setError(null); // Clear previous errors
+      setSuccessMessage(null); // Clear previous success messages
+      try {
+        const response = await paymentsService.deleteSavedCard(cardId);
+        logger.info(`Card delete response: ${response.message}`);
+        setSuccessMessage(response.message);
+        // Re-fetch the list to ensure UI is synchronized
+        fetchSavedCards();
+      } catch (error: any) {
+        logger.error('Failed to delete card:', error);
+        setError({
+          message: error.message || 'Error deleting card.',
+          type: 'error',
+        });
+      } finally {
+        setDeletingCardId(null);
+      }
+    },
+    [fetchSavedCards, setError, setSuccessMessage],
+  );
 
   const getCardIcon = (brand: string) => {
     switch (brand.toLowerCase()) {

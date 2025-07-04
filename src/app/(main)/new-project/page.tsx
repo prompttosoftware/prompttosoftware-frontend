@@ -8,7 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
-import { getEstimatedDurationAndCost, FLAT_RATE_PER_HOUR, HOURLY_AI_API_COST } from '@/services/costEstimationService'; // Import cost estimation service
+import {
+  getEstimatedDurationAndCost,
+  FLAT_RATE_PER_HOUR,
+  HOURLY_AI_API_COST,
+} from '@/services/costEstimationService'; // Import cost estimation service
 import { useRouter } from 'next/navigation'; // Using next/navigation for router functionalities
 import { useGlobalError } from '@/hooks/useGlobalError'; // Importing the global error hook
 import { NewRepositoryFields } from './NewRepositoryFields'; // Import NewRepositoryFields
@@ -34,7 +38,7 @@ const formSchema = z.object({
         id: z.string().optional(),
         type: z.literal('new'),
         name: z.string().min(1, 'Repository name is required'), // Changed from repositoryName to name
-        organizationName: z.string().optional(),
+        organization: z.string().optional(),
         isPrivate: z.boolean(),
       }),
       z.object({
@@ -42,46 +46,75 @@ const formSchema = z.object({
         type: z.literal('existing'),
         url: z.string().url('Invalid URL format').min(1, 'GitHub Repository URL is required'), // Changed from githubUrl to url
       }),
-    ])
+    ]),
   ),
-  advancedOptions: z.object({
-    models: z.object({
-      utility: z.array(z.object({
-        provider: z.string().min(1, 'Provider is required'),
-        modelName: z.string().min(1, 'Model name is required'),
-        apiKey: z.string().optional(),
-      })).optional(),
-      low: z.array(z.object({
-        provider: z.string().min(1, 'Provider is required'),
-        modelName: z.string().min(1, 'Model name is required'),
-        apiKey: z.string().optional(),
-      })).optional(),
-      medium: z.array(z.object({
-        provider: z.string().min(1, 'Provider is required'),
-        modelName: z.string().min(1, 'Model name is required'),
-        apiKey: z.string().optional(),
-      })).optional(),
-      high: z.array(z.object({
-        provider: z.string().min(1, 'Provider is required'),
-        modelName: z.string().min(1, 'Model name is required'),
-        apiKey: z.string().optional(),
-      })).optional(),
-      super: z.array(z.object({
-        provider: z.string().min(1, 'Provider is required'),
-        modelName: z.string().min(1, 'Model name is required'),
-        apiKey: z.string().optional(),
-      })).optional(),
-      backup: z.array(z.object({
-        provider: z.string().min(1, 'Provider is required'),
-        modelName: z.string().min(1, 'Model name is required'),
-        apiKey: z.string().optional(),
-      })).optional(),
-    }).optional(),
-  }).optional(),
+  advancedOptions: z
+    .object({
+      models: z
+        .object({
+          utility: z
+            .array(
+              z.object({
+                provider: z.string().min(1, 'Provider is required'),
+                modelName: z.string().min(1, 'Model name is required'),
+                apiKey: z.string().optional(),
+              }),
+            )
+            .optional(),
+          low: z
+            .array(
+              z.object({
+                provider: z.string().min(1, 'Provider is required'),
+                modelName: z.string().min(1, 'Model name is required'),
+                apiKey: z.string().optional(),
+              }),
+            )
+            .optional(),
+          medium: z
+            .array(
+              z.object({
+                provider: z.string().min(1, 'Provider is required'),
+                modelName: z.string().min(1, 'Model name is required'),
+                apiKey: z.string().optional(),
+              }),
+            )
+            .optional(),
+          high: z
+            .array(
+              z.object({
+                provider: z.string().min(1, 'Provider is required'),
+                modelName: z.string().min(1, 'Model name is required'),
+                apiKey: z.string().optional(),
+              }),
+            )
+            .optional(),
+          super: z
+            .array(
+              z.object({
+                provider: z.string().min(1, 'Provider is required'),
+                modelName: z.string().min(1, 'Model name is required'),
+                apiKey: z.string().optional(),
+              }),
+            )
+            .optional(),
+          backup: z
+            .array(
+              z.object({
+                provider: z.string().min(1, 'Provider is required'),
+                modelName: z.string().min(1, 'Model name is required'),
+                apiKey: z.string().optional(),
+              }),
+            )
+            .optional(),
+        })
+        .optional(),
+      installations: z.array(z.string()).optional(), // ADDED
+      linkJira: z.boolean().optional(), // ADDED
+    })
+    .optional(),
 });
 
 type NewProjectRequest = z.infer<typeof formSchema>;
-
 
 interface CostEstimationResult {
   estimatedTotal: number;
@@ -121,7 +154,6 @@ interface APIError {
 }
 
 export default function NewProjectPage() {
-
   const methods = useForm<NewProjectRequest>(); // Initialize useForm and get all its methods
   // Destructure individual properties from methods if needed, or pass 'methods' directly
   const {
@@ -148,18 +180,19 @@ export default function NewProjectPage() {
         setIsEstimating(true);
         console.log('Debounced description for estimation:', debouncedDescription);
         try {
-          const { estimatedDuration, calculatedCost, modelUsed, modelErrorMessage } = await getEstimatedDurationAndCost(debouncedDescription);
+          const { estimatedDuration, calculatedCost, modelUsed, modelErrorMessage } =
+            await getEstimatedDurationAndCost(debouncedDescription);
 
           setEstimatedCostResult({
             estimatedTotal: calculatedCost, // Total cost
             completionTimeHours: estimatedDuration, // Estimated duration
             flatRateComponent: FLAT_RATE_PER_HOUR * estimatedDuration, // Component for flat rate
-            aiApiCostComponent: (HOURLY_AI_API_COST * estimatedDuration), // Component for AI API cost
+            aiApiCostComponent: HOURLY_AI_API_COST * estimatedDuration, // Component for AI API cost
             modelUsed: modelUsed, // Indicate if ML model was used
             modelErrorMessage: modelUsed ? '' : modelErrorMessage, // Any message related to model usage/fallback
           });
         } catch (error) {
-          console.error("Error calculating estimation:", error);
+          console.error('Error calculating estimation:', error);
           // Handle error, perhaps set an error message in the UI
           setEstimatedCostResult({
             estimatedTotal: 0,
@@ -167,7 +200,7 @@ export default function NewProjectPage() {
             flatRateComponent: 0,
             aiApiCostComponent: 0,
             modelUsed: false,
-            modelErrorMessage: "Could not estimate cost. Please try again later.",
+            modelErrorMessage: 'Could not estimate cost. Please try again later.',
           });
         } finally {
           setIsEstimating(false);
@@ -252,72 +285,61 @@ export default function NewProjectPage() {
   const router = useRouter(); // Initialize router for potential redirection
 
   // Handler for form submission
+  // Moved imports to the top of the file
   const onSubmit = async (data: NewProjectRequest) => {
     setIsSubmitting(true); // Set submission state to true
     setGlobalError(null); // Clear any previous global errors
 
     try {
       console.log('Submitting NewProjectRequest:', data);
-
-      const response = await fetch('/api/projects', {
-        // Endpoint should be correctly handled by MSW
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data), // Data already contains advancedOptions.models
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        // Propagate status and message/errors by throwing a new Error with stringified JSON
-        throw new Error(JSON.stringify({ status: response.status, ...errorData }));
-      }
-
-      const responseData: NewProjectResponse = await response.json();
+      const response = await axiosInstance.post<NewProjectResponse>('/projects', data);
+      const { id: newProjectId } = response.data; // Assuming the Project object returned has an 'id' field, not 'projectId' for consistency with GET /projects/{id}
 
       // Handle successful submission
-      console.log('Project creation successful:', responseData);
-      // alert(responseData.message || 'Project created successfully!'); // Temporary success message
-      // In a real scenario, you might redirect the user:
-      router.push(`/projects/${responseData.projectId}`);
-    } catch (rawError: unknown) {
-      console.error('Failed to create project:', rawError);
+      logger.info('Project creation successful:', {
+        projectId: newProjectId,
+        responseData: response.data,
+      });
+      router.push(`/projects/${newProjectId}`);
+      methods.reset(); // Reset form states after successful submission
+    } catch (error: unknown) {
+      logger.error('Failed to create project:', error);
 
-      let parsedError: APIError;
-      try {
-        // Attempt to parse the error message if it's a stringified JSON
-        const errorMessage = (rawError as Error).message; // Cast rawError to Error to access message
-        parsedError = JSON.parse(errorMessage) as APIError; // Cast parsed JSON to APIError
-      } catch {
-        // If parsing fails, it's a generic error or a real network error
-        parsedError = {
-          status: 500,
-          message: (rawError as Error).message || 'An unexpected error occurred.',
-        };
-      }
+      if (axiosInstance.isAxiosError(error) && error.response) {
+        const { status, data: errorData } = error.response;
+        const apiError = errorData as APIError;
 
-      // Handle API validation errors (e.g., 400 Bad Request)
-      if (parsedError.status === 400 && parsedError.errors) {
-        // Iterate over field-specific errors and set them using react-hook-form's setError
-        for (const field in parsedError.errors) {
-          if (Object.prototype.hasOwnProperty.call(parsedError.errors, field)) {
-            setFormFieldError(field as keyof NewProjectRequest, {
-              type: 'server',
-              message: parsedError.errors[field],
-            });
+        // Handle API validation errors (e.g., 400 Bad Request)
+        if (status === 400 && apiError.errors) {
+          // Iterate over field-specific errors and set them using react-hook-form's setError
+          for (const field in apiError.errors) {
+            if (Object.prototype.hasOwnProperty.call(apiError.errors, field)) {
+              // Ensure the field path matches the form schema (e.g., description, advancedOptions.models.utility.0.provider)
+              // If backend sends 'description' and form uses 'description', it's direct.
+              // If backend sends 'githubRepositories.0.name' and form uses nested paths, map accordingly.
+              setFormFieldError(field as keyof NewProjectRequest, {
+                type: 'server',
+                message: apiError.errors[field],
+              });
+            }
           }
+          // Display a general message for validation failure
+          setGlobalError({
+            message: apiError.message || 'Please check the form for errors.',
+            type: 'warning',
+          });
         }
-        // Optionally, display a general message for validation failure
+        // Handle other API errors (e.g., 401, 403, 404, 500)
+        else {
+          setGlobalError({
+            message: apiError.message || `Failed to create project. Status: ${status}`,
+            type: 'error',
+          });
+        }
+      } else {
+        // Handle non-Axios errors or network errors without a response
         setGlobalError({
-          message: parsedError.message || 'Please check the form for errors.',
-          type: 'warning',
-        });
-      }
-      // Handle generic API errors (e.g., 500 Internal Server Error) or parsing errors
-      else {
-        setGlobalError({
-          message: parsedError.message || 'Failed to create project due to an unexpected error.',
+          message: 'An unexpected error occurred while creating the project.',
           type: 'error',
         });
       }
@@ -338,13 +360,13 @@ export default function NewProjectPage() {
     remove: typeof removeUtilityModel, // Use a generic type for remove
   ) => {
     // Define a type for the dynamic field names to ensure type safety with register
-    type FieldName = `advancedOptions.models.${AIModelLevel}.${number}.provider` | `advancedOptions.models.${AIModelLevel}.${number}.modelName` | `advancedOptions.models.${AIModelLevel}.${number}.apiKey`;
+    type FieldName =
+      | `advancedOptions.models.${AIModelLevel}.${number}.provider`
+      | `advancedOptions.models.${AIModelLevel}.${number}.modelName`
+      | `advancedOptions.models.${AIModelLevel}.${number}.apiKey`;
 
     return (
-      <div
-        key={type}
-        className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm"
-      >
+      <div key={type} className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
         <h3 className="text-md font-semibold text-gray-800 mb-3">{title} AI Models</h3>
         {fields.length === 0 && (
           <p className="text-sm text-gray-500 mb-3">No models configured for {title}.</p>
@@ -365,7 +387,9 @@ export default function NewProjectPage() {
                 </label>
                 <select
                   id={`${type}-provider-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.provider` as FieldName, { required: 'Provider is required' })}
+                  {...register(`advancedOptions.models.${type}.${index}.provider` as FieldName, {
+                    required: 'Provider is required',
+                  })}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
                 >
                   <option value="">Select Company</option>
@@ -393,7 +417,9 @@ export default function NewProjectPage() {
                 <input
                   type="text"
                   id={`${type}-modelName-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.modelName` as FieldName, { required: 'Model name is required' })}
+                  {...register(`advancedOptions.models.${type}.${index}.modelName` as FieldName, {
+                    required: 'Model name is required',
+                  })}
                   placeholder="e.g., gpt-4-turbo"
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
                 />
@@ -481,255 +507,380 @@ export default function NewProjectPage() {
       <div className="bg-white p-6 rounded-lg shadow-md">
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Project Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Project Description
-            </label>
-            <textarea
-              id="description"
-              rows={4}
-              {...register('description', { required: 'Project description is required' })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-              placeholder="Provide a brief description of your project"
-              aria-invalid={errors.description ? 'true' : 'false'}
-            ></textarea>
-            {errors.description && (
-              <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
-            )}
-
-            {isEstimating && (
-  <div className="mt-2 text-sm text-gray-500 flex items-center">
-    <LoadingSpinner className="mr-2" /> Estimating cost...
-  </div>
-)}
-
-            {/* GitHub Repositories Section */}
-            <div className="border border-gray-200 mt-6 pt-6 p-4 rounded-md shadow-sm">
-              <h3 className="text-lg font-medium text-gray-700 mb-4">GitHub Repositories</h3>
-              {githubRepositories.length === 0 && (
-                <p className="text-sm text-gray-500 mb-4">
-                  No repository provided, new one’s will be automatically created on your account.
-                </p>
+            {/* Project Description */}
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                Project Description
+              </label>
+              <textarea
+                id="description"
+                rows={4}
+                {...register('description', { required: 'Project description is required' })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                placeholder="Provide a brief description of your project"
+                aria-invalid={errors.description ? 'true' : 'false'}
+              ></textarea>
+              {errors.description && (
+                <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
               )}
-              
-              {/* Dynamic rendering of GitHub repositories */}
-              {githubRepositories.map((repo, index) => (
-                repo.type === 'new' ? (
-                  <NewRepositoryFields
-                    key={repo.id}
-                    index={index}
-                    onRemove={() => removeGithubRepository(index)}
-                  />
-                ) : repo.type === 'existing' ? (
-                  <ExistingRepositoryFields
-                    key={repo.id}
-                    index={index}
-                    onRemove={() => removeGithubRepository(index)}
-                  />
-                ) : null
-              ))}
-              
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  onClick={() => appendGithubRepository({ type: 'new', isPrivate: false })}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Add New Repository
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => appendGithubRepository({ type: 'existing' })}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Add Existing Repository
-                </Button>
+
+              {isEstimating && (
+                <div className="mt-2 text-sm text-gray-500 flex items-center">
+                  <LoadingSpinner className="mr-2" /> Estimating cost...
+                </div>
+              )}
+
+              {/* GitHub Repositories Section */}
+              <div className="border border-gray-200 mt-6 pt-6 p-4 rounded-md shadow-sm">
+                <h3 className="text-lg font-medium text-gray-700 mb-4">GitHub Repositories</h3>
+                {githubRepositories.length === 0 && (
+                  <p className="text-sm text-gray-500 mb-4">
+                    No repository provided, new one’s will be automatically created on your account.
+                  </p>
+                )}
+
+                {/* Dynamic rendering of GitHub repositories */}
+                {githubRepositories.map((repo, index) =>
+                  repo.type === 'new' ? (
+                    <NewRepositoryFields
+                      key={repo.id}
+                      index={index}
+                      onRemove={() => removeGithubRepository(index)}
+                    />
+                  ) : repo.type === 'existing' ? (
+                    <ExistingRepositoryFields
+                      key={repo.id}
+                      index={index}
+                      onRemove={() => removeGithubRepository(index)}
+                    />
+                  ) : null,
+                )}
+
+                <div className="flex gap-4">
+                  <Button
+                    type="button"
+                    onClick={() => appendGithubRepository({ type: 'new', isPrivate: false })}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Add New Repository
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => appendGithubRepository({ type: 'existing' })}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Add Existing Repository
+                  </Button>
+                </div>
               </div>
+
+              {estimatedCostResult && !isEstimating && (
+                <div className="border border-gray-200 mt-6 pt-6 rounded-md bg-white shadow-sm">
+                  <button
+                    type="button"
+                    className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none px-4"
+                    onClick={() => setShowCostDetails(!showCostDetails)}
+                    aria-expanded={showCostDetails}
+                  >
+                    Cost Estimation Breakdown
+                    <svg
+                      className={`w-5 h-5 transition-transform duration-300 ${showCostDetails ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </button>
+
+                  <div
+                    data-testid="cost-details-content"
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      showCostDetails ? 'max-h-screen opacity-100 p-4' : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    <div className="bg-white shadow-sm">
+                      {estimatedCostResult.modelUsed ? (
+                        <div className="flex items-center text-sm text-gray-600 mb-2">
+                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full mr-2">
+                            ML Model Used
+                          </span>
+                          Estimation powered by a machine learning model.
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-sm text-red-600 mb-2">
+                          <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full mr-2">
+                            Using Heuristic
+                          </span>
+                          ML model not used.{' '}
+                          {estimatedCostResult.modelErrorMessage ||
+                            'Falling back to heuristic estimation.'}
+                        </div>
+                      )}
+
+                      <h3 className="font-semibold text-xl text-gray-800 mb-2">
+                        Estimated Project Cost:
+                      </h3>
+                      <div className="space-y-1 mb-3">
+                        <p className="text-gray-700 text-md">
+                          Flat Rate Component:{' '}
+                          <span className="font-medium">
+                            ${estimatedCostResult.flatRateComponent.toFixed(2)}
+                          </span>
+                        </p>
+                        <p className="text-gray-700 text-md">
+                          AI API Cost Component:{' '}
+                          <span className="font-medium">
+                            ${estimatedCostResult.aiApiCostComponent.toFixed(2)}
+                          </span>
+                        </p>
+                      </div>
+                      <p className="text-lg font-bold text-green-700">
+                        Total Estimated Cost: ${estimatedCostResult.estimatedTotal.toFixed(2)}
+                      </p>
+                      <p className="text-md text-gray-600 mt-2">
+                        Estimated Completion Time:{' '}
+                        <span className="font-semibold">
+                          {estimatedCostResult.completionTimeHours.toFixed(2)}
+                        </span>{' '}
+                        hours
+                      </p>
+                      {estimatedCostResult.completionTimeHours > parseFloat(maxRuntimeHours) &&
+                        parseFloat(maxRuntimeHours) > 0 && (
+                          <p className="text-sm text-yellow-600 mt-2">
+                            Warning: Estimated completion time (
+                            {estimatedCostResult.completionTimeHours.toFixed(2)} hours) exceeds the
+                            maximum runtime ({maxRuntimeHours.toFixed(2)} hours).
+                          </p>
+                        )}
+                      <p className="text-sm text-gray-500 mt-4 px-4 pb-4">
+                        Please note: Providing your own API keys for AI models may impact the final
+                        project cost, potentially leading to charges beyond the estimated amount.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-{estimatedCostResult && !isEstimating && (
-  <div className="border border-gray-200 mt-6 pt-6 rounded-md bg-white shadow-sm">
-    <button
-      type="button"
-      className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none px-4"
-      onClick={() => setShowCostDetails(!showCostDetails)}
-      aria-expanded={showCostDetails}
-    >
-      Cost Estimation Breakdown
-      <svg
-        className={`w-5 h-5 transition-transform duration-300 ${showCostDetails ? 'rotate-180' : ''}`}
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M19 9l-7 7-7-7"
-        ></path>
-      </svg>
-    </button>
-
-    <div
-      data-testid="cost-details-content"
-      className={`overflow-hidden transition-all duration-300 ease-in-out ${
-        showCostDetails ? 'max-h-screen opacity-100 p-4' : 'max-h-0 opacity-0'
-      }`}
-    >
-      <div className="bg-white shadow-sm">
-        {estimatedCostResult.modelUsed ? (
-          <div className="flex items-center text-sm text-gray-600 mb-2">
-            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full mr-2">ML Model Used</span>
-            Estimation powered by a machine learning model.
-          </div>
-        ) : (
-          <div className="flex items-center text-sm text-red-600 mb-2">
-            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full mr-2">Using Heuristic</span>
-            ML model not used. {estimatedCostResult.modelErrorMessage || 'Falling back to heuristic estimation.'}
-          </div>
-        )}
-
-        <h3 className="font-semibold text-xl text-gray-800 mb-2">Estimated Project Cost:</h3>
-        <div className="space-y-1 mb-3">
-          <p className="text-gray-700 text-md">
-            Flat Rate Component: <span className="font-medium">${estimatedCostResult.flatRateComponent.toFixed(2)}</span>
-          </p>
-          <p className="text-gray-700 text-md">
-            AI API Cost Component: <span className="font-medium">${estimatedCostResult.aiApiCostComponent.toFixed(2)}</span>
-          </p>
-        </div>
-        <p className="text-lg font-bold text-green-700">
-          Total Estimated Cost: ${estimatedCostResult.estimatedTotal.toFixed(2)}
-        </p>
-        <p className="text-md text-gray-600 mt-2">
-          Estimated Completion Time: <span className="font-semibold">{estimatedCostResult.completionTimeHours.toFixed(2)}</span> hours
-        </p>
-        {estimatedCostResult.completionTimeHours > parseFloat(maxRuntimeHours) && parseFloat(maxRuntimeHours) > 0 && (
-          <p className="text-sm text-yellow-600 mt-2">
-            Warning: Estimated completion time ({estimatedCostResult.completionTimeHours.toFixed(2)} hours) exceeds the maximum runtime ({maxRuntimeHours.toFixed(2)} hours).
-          </p>
-        )}
-        <p className="text-sm text-gray-500 mt-4 px-4 pb-4">
-          Please note: Providing your own API keys for AI models may impact the final project cost, potentially leading to charges beyond the estimated amount.
-        </p>
-      </div>
-    </div>
-  </div>
-)}
-          </div>
-
-          {/* Max Runtime Hours */}
-          <div>
-            <label
-              htmlFor="maxRuntimeHours"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Max Runtime (Hours)
-            </label>
-            <input
-              type="number"
-              id="maxRuntimeHours"
-              {...register('maxRuntimeHours', {
-                valueAsNumber: true,
-                min: { value: 0.01, message: 'Must be a positive number' },
-              })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-              placeholder="e.g., 24"
-              aria-invalid={errors.maxRuntimeHours ? 'true' : 'false'}
-            />
-            {errors.maxRuntimeHours && (
-              <p className="mt-2 text-sm text-red-600">{errors.maxRuntimeHours.message}</p>
-            )}
-          </div>
-
-          {/* Max Budget */}
-          <div>
-            <label htmlFor="maxBudget" className="block text-sm font-medium text-gray-700 mb-1">
-              Max Budget ($)
-            </label>
-            <input
-              type="number"
-              id="maxBudget"
-              step="0.01"
-              {...register('maxBudget', {
-                valueAsNumber: true,
-                min: { value: 0.01, message: 'Must be a positive number' },
-              })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-              placeholder="e.g., 500.00"
-              aria-invalid={errors.maxBudget ? 'true' : 'false'}
-            />
-            {errors.maxBudget && (
-              <p className="mt-2 text-sm text-red-600">{errors.maxBudget.message}</p>
-            )}
-          </div>
-
-          {/* Advanced Options Collapsible Section */}
-          <div className="border-t border-gray-200 mt-6 pt-6">
-            <button
-              type="button"
-              className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none"
-              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              aria-expanded={showAdvancedOptions}
-            >
-              Advanced Options
-              <svg
-                className={`w-5 h-5 transition-transform duration-300 ${showAdvancedOptions ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            {/* Max Runtime Hours */}
+            <div>
+              <label
+                htmlFor="maxRuntimeHours"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-          
-            {/* Content of Advanced Options */}
-            <div
-              data-testid="advanced-options-content"
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                showAdvancedOptions ? 'max-h-screen opacity-100 mt-4' : 'max-h-0 opacity-0'
-              }`}
-            >
-              {/* AI Model Selection UI */}
-              <div className="space-y-6">
-                {(errors.advancedOptions?.models?.utility as any)?.message && <p className="mt-2 text-sm text-red-600">{(errors.advancedOptions.models.utility as any).message}</p>}
-                {renderAiModelSelection('utility', 'Utility', utilityModels, appendUtilityModel, removeUtilityModel)}
-                {(errors.advancedOptions?.models?.low as any)?.message && <p className="mt-2 text-sm text-red-600">{(errors.advancedOptions.models.low as any).message}</p>}
-                {renderAiModelSelection('low', 'Low Intelligence', lowModels, appendLowModel, removeLowModel)}
-                {(errors.advancedOptions?.models?.medium as any)?.message && <p className="mt-2 text-sm text-red-600">{(errors.advancedOptions.models.medium as any).message}</p>}
-                {renderAiModelSelection('medium', 'Medium Intelligence', mediumModels, appendMediumModel, removeMediumModel)}
-                {(errors.advancedOptions?.models?.high as any)?.message && <p className="mt-2 text-sm text-red-600">{(errors.advancedOptions.models.high as any).message}</p>}
-                {renderAiModelSelection('high', 'High Intelligence', highModels, appendHighModel, removeHighModel)}
-                {(errors.advancedOptions?.models?.super as any)?.message && <p className="mt-2 text-sm text-red-600">{(errors.advancedOptions.models.super as any).message}</p>}
-                {renderAiModelSelection('super', 'Super Intelligence', superModels, appendSuperModel, removeSuperModel)}
-                {(errors.advancedOptions?.models?.backup as any)?.message && <p className="mt-2 text-sm text-red-600">{(errors.advancedOptions.models.backup as any).message}</p>}
-                {renderAiModelSelection('backup', 'Backup', backupModels, appendBackupModel, removeBackupModel)}
+                Max Runtime (Hours)
+              </label>
+              <input
+                type="number"
+                id="maxRuntimeHours"
+                {...register('maxRuntimeHours', {
+                  valueAsNumber: true,
+                  min: { value: 0.01, message: 'Must be a positive number' },
+                })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                placeholder="e.g., 24"
+                aria-invalid={errors.maxRuntimeHours ? 'true' : 'false'}
+              />
+              {errors.maxRuntimeHours && (
+                <p className="mt-2 text-sm text-red-600">{errors.maxRuntimeHours.message}</p>
+              )}
+            </div>
+
+            {/* Max Budget */}
+            <div>
+              <label htmlFor="maxBudget" className="block text-sm font-medium text-gray-700 mb-1">
+                Max Budget ($)
+              </label>
+              <input
+                type="number"
+                id="maxBudget"
+                step="0.01"
+                {...register('maxBudget', {
+                  valueAsNumber: true,
+                  min: { value: 0.01, message: 'Must be a positive number' },
+                })}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                placeholder="e.g., 500.00"
+                aria-invalid={errors.maxBudget ? 'true' : 'false'}
+              />
+              {errors.maxBudget && (
+                <p className="mt-2 text-sm text-red-600">{errors.maxBudget.message}</p>
+              )}
+            </div>
+
+            {/* Advanced Options Collapsible Section */}
+            <div className="border-t border-gray-200 mt-6 pt-6">
+              <button
+                type="button"
+                className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                aria-expanded={showAdvancedOptions}
+              >
+                Advanced Options
+                <svg
+                  className={`w-5 h-5 transition-transform duration-300 ${showAdvancedOptions ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+
+              {/* Content of Advanced Options */}
+              <div
+                data-testid="advanced-options-content"
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  showAdvancedOptions ? 'max-h-screen opacity-100 mt-4' : 'max-h-0 opacity-0'
+                }`}
+              >
+                {/* AI Model Selection UI */}
+                <div className="space-y-6">
+                  {(errors.advancedOptions?.models?.utility as any)?.message && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {(errors.advancedOptions.models.utility as any).message}
+                    </p>
+                  )}
+                  {renderAiModelSelection(
+                    'utility',
+                    'Utility',
+                    utilityModels,
+                    appendUtilityModel,
+                    removeUtilityModel,
+                  )}
+                  {(errors.advancedOptions?.models?.low as any)?.message && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {(errors.advancedOptions.models.low as any).message}
+                    </p>
+                  )}
+                  {renderAiModelSelection(
+                    'low',
+                    'Low Intelligence',
+                    lowModels,
+                    appendLowModel,
+                    removeLowModel,
+                  )}
+                  {(errors.advancedOptions?.models?.medium as any)?.message && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {(errors.advancedOptions.models.medium as any).message}
+                    </p>
+                  )}
+                  {renderAiModelSelection(
+                    'medium',
+                    'Medium Intelligence',
+                    mediumModels,
+                    appendMediumModel,
+                    removeMediumModel,
+                  )}
+                  {(errors.advancedOptions?.models?.high as any)?.message && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {(errors.advancedOptions.models.high as any).message}
+                    </p>
+                  )}
+                  {renderAiModelSelection(
+                    'high',
+                    'High Intelligence',
+                    highModels,
+                    appendHighModel,
+                    removeHighModel,
+                  )}
+                  {(errors.advancedOptions?.models?.super as any)?.message && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {(errors.advancedOptions.models.super as any).message}
+                    </p>
+                  )}
+                  {renderAiModelSelection(
+                    'super',
+                    'Super Intelligence',
+                    superModels,
+                    appendSuperModel,
+                    removeSuperModel,
+                  )}
+                  {(errors.advancedOptions?.models?.backup as any)?.message && (
+                    <p className="mt-2 text-sm text-red-600">
+                      {(errors.advancedOptions.models.backup as any).message}
+                    </p>
+                  )}
+                  {renderAiModelSelection(
+                    'backup',
+                    'Backup',
+                    backupModels,
+                    appendBackupModel,
+                    removeBackupModel,
+                  )}
+                  {/* Installations input */}
+                  <div>
+                    <label
+                      htmlFor="installations"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Installations (comma-separated IDs)
+                    </label>
+                    <input
+                      type="text"
+                      id="installations"
+                      {...register('advancedOptions.installations', {
+                        setValueAs: (value: string) =>
+                          value ? value.split(',').map((s) => s.trim()) : [],
+                      })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                      placeholder="e.g., install_123, install_456"
+                    />
+                    {errors.advancedOptions?.installations && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {(errors.advancedOptions.installations as any).message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Link Jira checkbox */}
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="linkJira"
+                      {...register('advancedOptions.linkJira')}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="linkJira" className="ml-2 block text-sm text-gray-900">
+                      Link Jira
+                    </label>
+                    {errors.advancedOptions?.linkJira && (
+                      <p className="mt-2 text-sm text-red-600">
+                        {(errors.advancedOptions.linkJira as any).message}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          
-          {/* Start Button */}
-          <div className="pt-4">
-            <button
-              type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSubmitting} // Disable button during submission
-            >
-              {isSubmitting ? 'Starting...' : 'Start'}{' '}
-              {/* Change button text based on loading state */}
-            </button>
-          </div>
-        </form>
-        </FormProvider> {/* Closing FormProvider tag */}
+
+            {/* Start Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting} // Disable button during submission
+              >
+                {isSubmitting ? 'Starting...' : 'Start'}{' '}
+                {/* Change button text based on loading state */}
+              </button>
+            </div>
+          </form>
+        </FormProvider>{' '}
+        {/* Closing FormProvider tag */}
       </div>
     </div>
   );
