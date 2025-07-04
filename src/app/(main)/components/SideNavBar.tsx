@@ -11,9 +11,11 @@ import {
   QuestionMarkCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+Cog6ToothIcon, // Import the settings icon
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { AddPaymentButton } from './AddPaymentButton';\nimport { WatchAdButton } from './WatchAdButton';
+import { AddPaymentButton } from './AddPaymentButton';
+import { WatchAdButton } from './WatchAdButton';
 
 const navigationItems = [
   { name: 'Home/Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -21,6 +23,7 @@ const navigationItems = [
   { name: 'Projects', href: '/projects', icon: FolderIcon },
   { name: 'Explore', href: '/explore', icon: RocketLaunchIcon },
   { name: 'Help', href: '/help', icon: QuestionMarkCircleIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 
 interface SideNavBarProps {

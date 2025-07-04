@@ -6,6 +6,7 @@ import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth'; // Import useAuth
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api'; // Import the axios instance
+import { useSuccessMessageStore } from '@/store/successMessageStore'; // Import success message store
 
 // This component contains the core logic and renders the login form.
 // It will be wrapped in Suspense.
@@ -52,6 +53,13 @@ function LoginContent() {
   ); // Dependencies for useCallback. 'api' is stable and removed.
 
   useEffect(() => {
+    const { successMessage, clearSuccessMessage } = useSuccessMessageStore.getState(); // Get success message and clear function
+
+    if (successMessage) {
+      // SuccessToast component will display the message globally
+      clearSuccessMessage(); // Clear the message after displaying it
+    }
+
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     const error_description = searchParams.get('error_description');

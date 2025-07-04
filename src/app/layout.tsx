@@ -1,6 +1,6 @@
-// import './globals.css';
-// import { Inter } from 'next/font/google';
-// const inter = Inter({ subsets: ['latin'] });
+import './globals.css';
+import { Inter } from 'next/font/google';
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'PromptToSoftware',
@@ -10,6 +10,7 @@ export const metadata = {
 import { Providers } from '../components/Providers';
 import { StripeWrapper } from '../components/StripeWrapper';
 import ErrorBoundary from '../components/ErrorBoundary'; // Import ErrorBoundary
+import SuccessToast from './(main)/components/SuccessToast'; // Import SuccessToast
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Providers>{children}</Providers>
           </StripeWrapper>
         </ErrorBoundary>
+        <SuccessToast /> {/* Render SuccessToast */}
       </body>
     </html>
   );
