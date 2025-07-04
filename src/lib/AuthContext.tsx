@@ -3,7 +3,7 @@
 // src/lib/AuthContext.tsx
 import { UserProfile } from '../types/auth';
 
-import React, { createContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useEffect, ReactNode, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, setupInterceptors as setupHttpClientInterceptors } from '../lib/api'; // Import api and setupInterceptors from the new api.ts
 import { logger } from '../utils/logger'; // Import logger
@@ -19,6 +19,8 @@ interface AuthContextType {
   login: (token: string, user: UserProfile) => void; // Modified to accept token and user
   logout: () => void;
   updateProfile: () => void;
+  showTutorial: boolean; // Add showTutorial to the context type
+  setShowTutorial: (show: boolean) => void; // Add setShowTutorial to the context type
 }
 
 // 2. Create the AuthContext with a default unauthenticated state
@@ -44,6 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient(); // Get query client for invalidation
   const { user, isLoading } = useUserProfileQuery(); // Use the new useAuth hook
   const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
+  const [showTutorial, setShowTutorial] = useState<boolean>(false); // State to control tutorial visibility
 
   useEffect(() => {
     // Setup interceptors when the component mounts or router changes
@@ -68,11 +71,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logger.info('AuthProvider: User logged in and token stored. User profile will be refetched.');
 
     // Set show_tutorial flag if it's a new user
+    const TUTORIAL_COMPLETED_KEY = 'prompt2code_tutorial_completed';
     if (userData?.isNewUser) {
-      localStorage.setItem('show_tutorial', 'true');
-      logger.info('AuthProvider: show_tutorial flag set to true.');
+      localStorage.removeItem(TUTORIAL_COMPLETED_KEY); // If it's a new user, remove the tutorial completion flag to force the tutorial to show
+      logger.info('AuthProvider: New user detected, tutorial completion flag removed.');
     } else {
-      localStorage.removeItem('show_tutorial'); // Ensure no stale tutorial flag
+      // For existing users, ensure the tutorial completed flag is set to prevent it from showing
+      localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true');
+      logger.info('AuthProvider: Existing user detected, tutorial completion flag set.');
     }
   };
 
@@ -93,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // (user will be null, isAuthenticated will be false).
     logger.info('AuthProvider: User logged out, token and profile cache cleared, balance reset.');
     router.push('/login'); // Redirect to login page
+    setShowTutorial(false); // Ensure tutorial is hidden on logout
   };
 
   const updateProfile = () => {
@@ -103,6 +110,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logger.info('AuthProvider: Profile update initiated, refetching user data.');
   };
 
+  // Effect to check and set tutorial visibility based on authentication status and localStorage
+  useEffect(() => {
+    const TUTORIAL_COMPLETED_KEY = 'prompt2code_tutorial_completed';
+    // Only check for tutorial completion if authentication status is stable and isAuthenticated is true
+    if (!isLoading && isAuthenticated) {
+      const tutorialCompleted = localStorage.getItem(TUTORIAL_COMPLETED_KEY);
+      if (!tutorialCompleted) {
+        //If no flag is found, it's a first-time user or tutorial needs to be shown
+        setShowTutorial(true);
+        logger.info('AuthProvider: Tutorial will be shown because completion flag is absent.');
+      } else {
+        setShowTutorial(false); // Tutorial has been completed
+        logger.info('AuthProvider: Tutorial will not be shown because completion flag is present.');
+      }
+    } else if (!isLoading && !isAuthenticated) {
+      setShowTutorial(false); // Not authenticated, ensure tutorial is not shown
+      logger.info('AuthProvider: User not authenticated, tutorial will not be shown.');
+    }
+  }, [isAuthenticated, isLoading]); // Depend on authentication and loading states
+
+
   // The value provided to the consumers of the context
   const contextValue: AuthContextType = {
     isAuthenticated,
@@ -111,6 +139,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     updateProfile,
+    showTutorial, // Add showTutorial to the context
+    setShowTutorial, // Add setShowTutorial to the context
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

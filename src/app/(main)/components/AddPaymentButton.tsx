@@ -15,7 +15,7 @@ export default function AddPaymentButton() { // No longer takes props AddPayment
   return (
     <Button
       variant="outline" // Assuming original styling from previous subtask.
-      className="flex items-center space-x-2 px-4 py-2" // Assuming original styling from previous subtask.
+      className="flex items-center space-x-2 px-4 py-2 add-payment-button" // Assuming original styling from previous subtask.
       onClick={() => {
         openModal(); // Call openModal to set isOpen to true
         console.log('Add Payment button clicked');
