@@ -1,35 +1,129 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useBalanceStore } from '@/store/balanceStore';
+import { useGlobalError } from '@/hooks/useGlobalError';
+import { logger } from '@/lib/logger'; // Import the global logger
+import httpClient from '@/lib/httpClient'; // Import the http client
+
+const AD_DURATION_SECONDS = 10; // Ad playback duration in seconds
 
 const WatchAdButton: React.FC = () => {
-  // For now, assume unauthenticated for simplicity as per instructions.
-  // In a real application, this would come from a global auth context or state.
-  const isAuthenticated = false; // Placeholder for authentication status
+  const [isAdPlaying, setIsAdPlaying] = useState(false);
+  const [adCountdown, setAdCountdown] = useState(AD_DURATION_SECONDS);
+  const [showAdModal, setShowAdModal] = useState(false);
 
-  const handleClick = () => {
-    if (!isAuthenticated) {
-      console.warn('Redirect to login for this feature.');
-    } else {
-      console.warn('Watch Ad button clicked. Initiating ad functionality.');
+  // Get authentication status and token from useAuth hook
+  const { isAuthenticated, token } = useAuth();
+  // Get updateBalance function from useBalanceStore
+  const updateBalance = useBalanceStore((state) => state.updateBalance);
+  // Get setGlobalError from useGlobalError hook
+  const { setGlobalError } = useGlobalError();
+
+  // ref for the interval to clear it on unmount or when ad completes
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to handle the ad credit API call
+  const handleAdCredit = async () => {
+    if (!token) {
+      setGlobalError('Authentication token not found. Please log in.');
+      logger.warn('Ad credit attempt failed: Authentication token not found.');
+      return;
+    }
+    logger.info('Attempting to credit ad...');
+    try {
+      const response = await httpClient.post('/ads/credit', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // Assuming the API returns newBalance and creditedAmount
+      const { newBalance, creditedAmount } = response.data;
+      updateBalance(newBalance);
+      // Display confirmation message (e.g., using a toast or alert)
+      alert(`Ad playback complete! You have been credited ${creditedAmount} tokens.`);
+      logger.info(`Ad credited successfully. Credited amount: ${creditedAmount}, New balance: ${newBalance}`);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to credit ad. Please try again.';
+      console.error("Error crediting ad:", error); // Keep console.error for immediate debug visibility
+      setGlobalError(errorMessage);
+      logger.error(`Error crediting ad: ${errorMessage}`, error);
     }
   };
 
+  // Handle ad playback countdown
+  useEffect(() => {
+    if (isAdPlaying && adCountdown > 0) {
+      countdownIntervalRef.current = setInterval(() => {
+        setAdCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (isAdPlaying && adCountdown === 0) {
+      // Ad has finished playing
+      setIsAdPlaying(false);
+      setShowAdModal(false);
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+      handleAdCredit(); // Call API to credit the ad
+    }
+
+    // Cleanup on unmount or if dependencies change
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, [isAdPlaying, adCountdown]);
+
+  const handleClick = () => {
+    if (!isAuthenticated) {
+      setGlobalError('You must be logged in to watch ads.');
+      logger.warn('Ad playback initiation failed: User not authenticated.');
+      return;
+    }
+
+    setIsAdPlaying(true);
+    setShowAdModal(true);
+    setAdCountdown(AD_DURATION_SECONDS);
+    logger.info('Ad playback started.');
+  };
+
   return (
-    <button
-      onClick={handleClick}
-      className="
-        flex items-center justify-center
-        w-10 h-10 md:w-12 md:h-12 rounded-lg
-        bg-blue-500 hover:bg-blue-600 active:bg-blue-700
-        text-white font-bold
-        transition-colors duration-200 ease-in-out
-        shadow-md
-      "
-      aria-label="Watch Ad"
-    >
-      AD
-    </button>
+    <>
+      <button
+        onClick={handleClick}
+        className="
+          flex items-center justify-center
+          w-10 h-10 md:w-12 md:h-12 rounded-lg
+          bg-blue-500 hover:bg-blue-600 active:bg-blue-700
+          text-white font-bold
+          transition-colors duration-200 ease-in-out
+          shadow-md
+        "
+        aria-label="Watch Ad"
+        disabled={isAdPlaying} // Disable button while ad is playing
+      >
+        AD
+      </button>
+
+      {showAdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-white p-6 rounded-lg shadow-xl text-center w-80">
+            <h2 className="text-2xl font-bold mb-4">Ad Playing...</h2>
+            <p className="text-lg">Please wait {adCountdown} seconds.</p>
+            {/* Visual representation of an ad */}
+            <div className="my-4 p-4 bg-gray-200 rounded-md">
+              <p className="text-gray-600">Your Ad Content Here</p>
+              <p className="text-sm text-gray-500">(Imagine a video playing)</p>
+            </div>
+            {/* Spinner or progress bar can be added here */}
+            {/* For now, just a message */}
+            {adCountdown > 0 && <p className="text-sm text-gray-700">Do not close this window.</p>}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
