@@ -20,8 +20,12 @@ function getOrCreateProjectStatus(projectId: string) {
   return projectStatuses[projectId];
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const projectId = params.id; // Access projectId from context.params
+interface RouteParams {
+  id: string;
+}
+
+export async function GET(request: NextRequest, context: any) {
+  const projectId = context.params.id;
   const projectStatus = getOrCreateProjectStatus(projectId);
 
   // Simulate progress

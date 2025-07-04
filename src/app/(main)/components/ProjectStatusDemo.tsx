@@ -9,8 +9,8 @@ interface ProjectStatusDemoProps {
 }
 
 const ProjectStatusDemo: React.FC<ProjectStatusDemoProps> = ({ projectId }) => {
-  const { data, isLoading, error } = usePolling<ProjectStatus>(
-    `/api/projects/${projectId}/status`, // Endpoint to poll
+  const { data, isLoading, error } = usePolling(
+    projectId, // The usePolling hook expects projectId, not the full URL string as its first argument
     { refetchInterval: 1000 }, // Poll every 1 second
   );
 

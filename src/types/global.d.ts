@@ -5,7 +5,7 @@
  */
 interface GlobalError {
   message: string;
-  type?: 'error' | 'warning' | 'info';
+  type?: 'error' | 'warning' | 'info' | 'success';
   details?: unknown;
 }
 
