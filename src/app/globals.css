@@ -1,10 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Temporarily commented out to disable CSS issues
 /* Add any minimal, necessary global base styles or CSS resets below */
 
 body {
   font-family: Arial, sans-serif; /* Example global font definition */
   /* Ensure basic reset if not entirely covered by Tailwind's preflight */
 }
+*/
