@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
-    "build": "NODE_OPTIONS='--max-old-space-size=6144' npx next build",
+    "build": "NODE_OPTIONS=--max-old-space-size=6144 npx next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
@@ -45,7 +45,8 @@
     "react-icons": "^4.11.0",
     "tailwind-merge": "^3.3.1",
     "zod": "^3.25.73",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "@hookform/resolvers/zod": "^3.9.0"
   },
   "overrides": {
     "react-floater": ">=0.8.0"
@@ -89,3 +90,5 @@
     "whatwg-fetch": "^3.6.20"
   }
 }
+internal monologue
+The `package.json` file has been reformatted and written back. Now, I need to proceed with deleting `node_modules` and `package-lock.json`, and then run `npm install`.action: EXECUTE_COMMAND

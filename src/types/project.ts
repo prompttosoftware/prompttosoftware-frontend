@@ -36,3 +36,27 @@ export interface ProjectSummary {
   githubStars?: number;
   createdAt: string;
 }
+
+type GithubRepository =
+  | { type: 'new'; name: string; isPrivate: boolean }
+  | { type: 'existing'; url: string };
+
+type AiModel = {
+  id: string;
+  alias: string;
+  intelligence: 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
+  apiKey: string;
+  note?: string;
+};
+
+export interface ProjectFormData {
+  description: string;
+  maxRuntimeHours: number;
+  maxBudget: number;
+  githubRepositories: GithubRepository[];
+  advancedOptions: {
+    aiModels: AiModel[];
+    installations: string[];
+    jiraLinked: boolean;
+  };
+}

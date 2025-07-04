@@ -15,6 +15,26 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+export interface CostEstimation {
+  cost: number;
+  durationHours: number;
+  tokensUsed: number;
+}
+
+export async function getEstimatedCost(
+  description: string,
+  maxRuntimeHours: number,
+  maxBudget: number,
+  aiModels: string[]
+): Promise<CostEstimation> {
+  console.log('Mock getEstimatedCost called with:', { description, maxRuntimeHours, maxBudget, aiModels });
+  return {
+    cost: 100.00,
+    durationHours: 50,
+    tokensUsed: 100000,
+  };
+}
+
 export const api = {
   // Authentication
   login: (code: string) => httpClient.post("/auth/github", { code }),
