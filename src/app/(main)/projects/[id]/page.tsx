@@ -9,12 +9,22 @@ import EmptyState from '@/app/(main)/components/EmptyState';
 import { usePolling } from '@/hooks/usePolling';
 import { Project } from '@/types/project';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { api } from '@/lib/api';
 import { useGlobalError } from '@/hooks/useGlobalError';
+import ConfirmationDialog from '@/app/(main)/components/ConfirmationDialog';
+import { useMutation, useQueryClient } from '@tanstack/react-query'; // Import useMutation and useQueryClient
+import { useSuccessMessageStore } from '@/store/successMessageStore'; // Import useSuccessMessageStore
 
 const ProjectDetailPage = () => {
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const { id } = useParams() as { id: string };
   const { isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
@@ -33,6 +43,28 @@ const ProjectDetailPage = () => {
     formattedCost,
     isError: isPollingError,
   } = usePolling(id);
+
+  // React Query hooks for deletion
+  const queryClient = useQueryClient();
+  const { showSuccessMessage } = useSuccessMessageStore();
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      if (!isAuthenticated) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+      return api.deleteProject(projectId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] }); // Invalidate general project list
+      showSuccessMessage('Project deleted successfully!');
+      router.push('/dashboard'); // Redirect to dashboard or projects list
+    },
+    onError: (error) => {
+      setGlobalError(`Failed to delete project: ${error.message}`);
+      toast.error('Failed to delete project. Please try again.');
+    },
+  });
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -192,133 +224,190 @@ if (isLoading || isFetchingProject) {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      {/* Project Details Panel */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">{project?.name}</h1>
-        <p className="text-gray-600 mb-4">{project?.description}</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex flex-col">
-            <span className="text-gray-500 text-sm">Repository URL:</span>
-            <a
-              href={project?.repositoryUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              {project?.repositoryUrl}
-            </a>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-gray-500 text-sm">Created At:</span>
-            <span className="text-gray-800">
-              {project?.createdAt ? format(new Date(project.createdAt), 'PPPP') : 'N/A'}
-            </span>
-          </div>
-        </div>
-
-        {/* Live Metrics */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Live Metrics</h2>
-          {pollingError && (
-            <div className="text-red-500 mb-4">
-              Error fetching live metrics: {pollingError.message}
+    <> {/* Start of React.Fragment */}
+      <div className="container mx-auto p-4">
+        {/* Project Details Panel */}
+        <div className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">{project?.name}</h1>
+              <p className="text-gray-600">{project?.description}</p>
             </div>
-          )}
-          {(!liveMetrics && !isPollingLoading) && (
-            <div className="text-gray-500 mb-4">
-              Live metrics not available.
-            </div>
-          )}
-          {liveMetrics && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-sm">Status:</span>
-                <span
-                  className={`text-lg font-medium ${
-                    liveMetrics.status === 'in-progress'
-                      ? 'text-green-600'
-                      : liveMetrics.status === 'failed'
-                        ? 'text-red-600'
-                        : liveMetrics.status === 'completed'
-                          ? 'text-blue-600'
-                          : 'text-gray-600'
-                  }`}
+            {/* More options button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-500 hover:text-gray-700"
                 >
-                  {liveMetrics.status}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-sm">Elapsed Time:</span>
-                <span className="text-gray-800 text-lg">
-                  {formattedElapsedTime}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-sm">Estimated Cost:</span>
-                <span className="text-gray-800 text-lg">{formattedCost}</span>
-              </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"
+                    />
+                  </svg>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem
+                  className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
+                  onClick={() => setShowDeleteConfirmation(true)}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-sm">Repository URL:</span>
+              <a
+                href={project?.repositoryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {project?.repositoryUrl}
+              </a>
             </div>
-          )}
-          {liveMetrics && (
-            <div className="mt-4">
-              <span className="text-gray-500 text-sm">Progress:</span>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-1">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full"
-                  style={{ width: `${liveMetrics.progress}%` }}
-                ></div>
-              </div>
-              <span className="text-gray-800 text-sm mt-1 block">
-                {liveMetrics.progress.toFixed(2)}%
+            <div className="flex flex-col">
+              <span className="text-gray-500 text-sm">Created At:</span>
+              <span className="text-gray-800">
+                {project?.createdAt ? format(new Date(project.createdAt), 'PPPP') : 'N/A'}
               </span>
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Action Buttons - bottom left */}
-        <div className="mt-6 pt-6 border-t border-gray-200 flex justify-start">
-          {(() => {
-            const isPendingAction = liveMetrics?.status === 'starting' || liveMetrics?.status === 'stopping';
+          {/* Live Metrics */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Live Metrics</h2>
+            {pollingError && (
+              <div className="text-red-500 mb-4">
+                Error fetching live metrics: {pollingError.message}
+              </div>
+            )}
+            {(!liveMetrics && !isPollingLoading) && (
+              <div className="text-gray-500 mb-4">
+                Live metrics not available.
+              </div>
+            )}
+            {liveMetrics && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Status:</span>
+                  <span
+                    className={`text-lg font-medium ${
+                      liveMetrics.status === 'in-progress'
+                        ? 'text-green-600'
+                        : liveMetrics.status === 'failed'
+                          ? 'text-red-600'
+                          : liveMetrics.status === 'completed'
+                            ? 'text-blue-600'
+                            : 'text-gray-600'
+                    }`}
+                  >
+                    {liveMetrics.status}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Elapsed Time:</span>
+                  <span className="text-gray-800 text-lg">
+                    {formattedElapsedTime}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-500 text-sm">Estimated Cost:</span>
+                  <span className="text-gray-800 text-lg">{formattedCost}</span>
+                </div>
+              </div>
+            )}
+            {liveMetrics && (
+              <div className="mt-4">
+                <span className="text-gray-500 text-sm">Progress:</span>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-1">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full"
+                    style={{ width: `${liveMetrics.progress}%` }}
+                  ></div>
+                </div>
+                <span className="text-gray-800 text-sm mt-1 block">
+                  {liveMetrics.progress.toFixed(2)}%
+                </span>
+              </div>
+            )}
+          </div>
 
-            if (project && liveMetrics && (liveMetrics.status === 'stopped' || liveMetrics.status === 'failed' || liveMetrics.status === 'completed')) {
-              return (
-                <Button
-                  className="flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => handleProjectAction('start')}
-                  disabled={isPendingAction}
-                >
-                  {liveMetrics.status === 'starting' ? (
-                    <>
-                      <LoadingSpinner size={20} className="mr-2" /> Resuming...
-                    </>
-                  ) : (
-                    'Resume Project'
-                  )}
-                </Button>
-              );
-            } else if (project && liveMetrics && (liveMetrics.status === 'active' || liveMetrics.status === 'in-progress' || liveMetrics.status === 'starting')) {
-              return (
-                <Button
-                  className="flex items-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => handleProjectAction('stop')}
-                  disabled={isPendingAction}
-                >
-                  {liveMetrics.status === 'stopping' ? (
-                    <>
-                      <LoadingSpinner size={20} className="mr-2" /> Stopping...
-                    </>
-                  ) : (
-                    'Stop Project'
-                  )}
-                </Button>
-              );
-            }
-            return null;
-          })()}
+          {/* Action Buttons - bottom left */}
+          <div className="mt-6 pt-6 border-t border-gray-200 flex justify-start">
+            {(() => {
+              const isPendingAction = liveMetrics?.status === 'starting' || liveMetrics?.status === 'stopping';
+
+              if (project && liveMetrics && (liveMetrics.status === 'stopped' || liveMetrics.status === 'failed' || liveMetrics.status === 'completed')) {
+                return (
+                  <Button
+                    className="flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => handleProjectAction('start')}
+                    disabled={isPendingAction}
+                  >
+                    {liveMetrics.status === 'starting' ? (
+                      <>
+                        <LoadingSpinner size={20} className="mr-2" /> Resuming...
+                      </>
+                    ) : (
+                      'Resume Project'
+                    )}
+                  </Button>
+                );
+              } else if (project && liveMetrics && (liveMetrics.status === 'active' || liveMetrics.status === 'in-progress' || liveMetrics.status === 'starting')) {
+                return (
+                  <Button
+                    className="flex items-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => handleProjectAction('stop')}
+                    disabled={isPendingAction}
+                  >
+                    {liveMetrics.status === 'stopping' ? (
+                      <>
+                        <LoadingSpinner size={20} className="mr-2" /> Stopping...
+                      </>
+                    ) : (
+                      'Stop Project'
+                    )}
+                  </Button>
+                );
+              }
+              return null;
+            })()}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Confirmation Dialog for Delete */}
+      {project && (
+        <ConfirmationDialog
+          isOpen={showDeleteConfirmation}
+          title="Delete Project"
+          message={`Are you sure you want to delete the project "${project.name}"? This action cannot be undone.`}
+          confirmPhrase={project.name} // User must type the project name to confirm
+          onConfirm={() => {
+            deleteProjectMutation.mutate(id);
+            setShowDeleteConfirmation(false);
+          }}
+          onCancel={() => setShowDeleteConfirmation(false)}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
+      )}
+    </>
+{/* End of React.Fragment */}
   );
 };
 

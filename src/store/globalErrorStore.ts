@@ -11,9 +11,11 @@ interface ConfirmationDialogState {
   isOpen: boolean;
   title: string;
   message: string;
-  confirmPhrase: string; // The phrase the user must type
+  confirmPhrase?: string; // The phrase the user must type (optional now)
   onConfirm: () => void;
   onCancel?: () => void;
+  cancelText?: string; // Custom text for the cancel button
+  confirmText?: string; // Custom text for the confirm button
 }
 
 interface GlobalErrorState {
@@ -24,9 +26,13 @@ interface GlobalErrorState {
   showConfirmation: (
     title: string,
     message: string,
-    confirmPhrase: string,
     onConfirm: () => void,
-    onCancel?: () => void
+    options?: {
+      confirmPhrase?: string;
+      onCancel?: () => void;
+      cancelText?: string;
+      confirmText?: string;
+    }
   ) => void;
   hideConfirmation: () => void;
 }
@@ -36,15 +42,17 @@ export const useGlobalErrorStore = create<GlobalErrorState>((set) => ({
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
   confirmationDialog: null,
-  showConfirmation: (title, message, confirmPhrase, onConfirm, onCancel) =>
+  showConfirmation: (title, message, onConfirm, options) =>
     set({
       confirmationDialog: {
         isOpen: true,
         title,
         message,
-        confirmPhrase,
         onConfirm,
-        onCancel,
+        confirmPhrase: options?.confirmPhrase,
+        onCancel: options?.onCancel,
+        cancelText: options?.cancelText,
+        confirmText: options?.confirmText,
       },
     }),
   hideConfirmation: () => set({ confirmationDialog: null }),

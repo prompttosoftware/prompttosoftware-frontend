@@ -1,8 +1,7 @@
-// src/types/banner.d.ts
 export interface Banner {
-  id: string; // Unique identifier for dismissal
+  id: string;
   message: string;
-  type: 'info' | 'success' | 'warning';
-  dismissible: boolean;
-  autoDismissDelay?: number; // Optional delay for non-dismissible banners
+  type?: 'info' | 'warning' | 'error' | 'success'; // Optional: for styling
+  dismissible?: boolean; // Optional: if the banner can be dismissed by the user
+  autoDismiss?: number; // Optional: time in ms before auto-dismissing
 }

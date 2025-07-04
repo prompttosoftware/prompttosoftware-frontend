@@ -1,4 +1,3 @@
-// src/app/(main)/components/BannerDisplay.tsx
 'use client';
 
 import React, { useEffect } from 'react';
@@ -8,11 +7,12 @@ import { Banner } from '@/types/banner';
 const BannerDisplay: React.FC = () => {
   const { activeBanner, dismissCurrentBanner } = useBannerStore();
 
+  // Handle auto-dismissal
   useEffect(() => {
-    if (activeBanner && !activeBanner.dismissible && activeBanner.autoDismissDelay) {
+    if (activeBanner && !activeBanner.dismissible && activeBanner.autoDismiss) { // autoDismiss is the property name as per the interface
       const timer = setTimeout(() => {
         dismissCurrentBanner();
-      }, activeBanner.autoDismissDelay);
+      }, activeBanner.autoDismiss);
 
       return () => clearTimeout(timer);
     }
@@ -29,7 +29,7 @@ const BannerDisplay: React.FC = () => {
       case 'success':
         return 'bg-green-500 text-white';
       case 'warning':
-        return 'bg-yellow-500 text-black';
+        return 'bg-yellow-400 text-black'; // Changed to yellow-400 and text-black for better contrast
       default:
         return 'bg-gray-500 text-white';
     }

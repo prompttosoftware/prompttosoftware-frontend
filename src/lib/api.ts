@@ -18,7 +18,7 @@ export interface PaginatedResponse<T> {
 export const api = {
   // Authentication
   login: (code: string) => httpClient.post("/auth/github", { code }),
-  getUserProfile: (): Promise<UserProfile> => httpClient.get<UserProfile>("/auth/me"),
+  getUserProfile: (): Promise<UserProfile> => httpClient.get<UserProfile>("/users/me"),
 
   // Projects
   getUserProjects: (): Promise<ProjectSummary[]> => httpClient.get<ProjectSummary[]>("/projects"),
@@ -27,6 +27,7 @@ export const api = {
     httpClient.post<Project>("/projects", { projectName, githubRepoUrl }),
   startProject: (id: string): Promise<void> => httpClient.post(`/projects/${id}/start`),
   stopProject: (id: string): Promise<void> => httpClient.post(`/projects/${id}/stop`),
+deleteProject: (id: string): Promise<void> => httpClient.delete(`/projects/${id}`),
 };
 
 // Setup interceptors should be called once in the app's entry point
