@@ -96,16 +96,36 @@ export function PaymentModal() {
 
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { value } = e.target;
-      // Allow only numbers and a single decimal point
-      if (/^\d*\.?\d*$/.test(value) || value === '') {
-        setInputAmount(value);
-        // On change, re-validate to clear errors if user fixed input, or show new error
-        if (value) {
-          validateAmount(value);
-        } else {
-          clearError(); // If input is empty, clear any existing amount errors
-        }
+      let value = e.target.value;
+      
+      // Preserve a leading minus sign if present
+      const hasLeadingMinus = value.startsWith('-');
+      // Remove all characters except digits and decimal points
+      value = value.replace(/[^0-9.]/g, '');
+      
+      // Ensure only one decimal point
+      const parts = value.split('.');
+      if (parts.length > 2) {
+        value = `${parts[0]}.${parts[1]}`;
+      }
+      
+      // Re-add the leading minus sign if it was present and the value is not empty
+      if (hasLeadingMinus && value !== '') {
+        value = '-' + value;
+      }
+      // Special case: if only '-' is typed, keep it as '-'
+      if (e.target.value === '-') {
+          value = '-';
+      }
+      
+      setInputAmount(value); // Set the cleaned value
+      
+      // On change, re-validate to clear errors if user fixed input, or show new error
+      // Only validate if it's a number, or a negative sign followed by nothing (e.g. '-')
+      if (value && value !== '-') {
+        validateAmount(value);
+      } else {
+        clearError(); // If input is empty or just '-', clear any existing amount errors
       }
     },
     [validateAmount, clearError],
@@ -113,11 +133,7 @@ export function PaymentModal() {
 
   const handleInitiatePaymentProcess = useCallback(async () => {
     if (!validateAmount(inputAmount)) {
-      setError({
-        message: 'Please correct the amount entered.',
-        type: 'error',
-      });
-      return;
+      return; // validateAmount already sets the error message
     }
     // Only proceed for card payments for sending intent
     if (selectedPaymentMethod === 'card') {

@@ -5,6 +5,7 @@ import SideNavBar from './components/SideNavBar';
 import { Bars3Icon } from '@heroicons/react/24/outline'; // Import the hamburger icon
 import ErrorModal from './components/ErrorModal';
 import ProfileButton from './components/ProfileButton';
+import AddPaymentButton from './components/AddPaymentButton'; // Import AddPaymentButton
 import BalanceDisplay from './components/BalanceDisplay';
 import WatchAdButton from './components/WatchAdButton';
 import BannerDisplay from './components/BannerDisplay'; // Import BannerDisplay
@@ -59,6 +60,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
+              <AddPaymentButton />
               <ProfileButton />
               <BalanceDisplay /> {/* Now fetches balance from store */}
               <WatchAdButton />
