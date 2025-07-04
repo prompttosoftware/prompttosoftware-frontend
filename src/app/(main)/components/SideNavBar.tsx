@@ -14,7 +14,7 @@ import {
   Cog6ToothIcon, // Import the settings icon
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { AddPaymentButton } from './AddPaymentButton';
+import AddPaymentButton from './AddPaymentButton';
 import WatchAdButton from './WatchAdButton';
 
 const navigationItems = [
