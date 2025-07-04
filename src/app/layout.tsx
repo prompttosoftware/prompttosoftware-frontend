@@ -1,5 +1,6 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
+import { Toaster } from 'react-hot-toast'; // Import Toaster
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
@@ -10,20 +11,17 @@ export const metadata = {
 import { Providers } from '../components/Providers';
 import { StripeWrapper } from '../components/StripeWrapper';
 import ErrorBoundary from '../components/ErrorBoundary'; // Import ErrorBoundary
-import SuccessToast from './(main)/components/SuccessToast'; // Import SuccessToast
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr">
-      <body>
+      <body className={inter.className}>
         <ErrorBoundary>
-          {' '}
-          {/* Wrap the entire application with ErrorBoundary */}
           <StripeWrapper>
             <Providers>{children}</Providers>
           </StripeWrapper>
         </ErrorBoundary>
-        <SuccessToast /> {/* Render SuccessToast */}
+        <Toaster /> {/* Render Toaster */}
       </body>
     </html>
   );

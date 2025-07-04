@@ -227,15 +227,18 @@ export function PaymentModal() {
                 <Label htmlFor="amount" className="text-right">
                   Amount
                 </Label>
-                <Input
-                  id="amount"
-                  type="text" // Use text to allow partial input like "1." before final validation
-                  placeholder="e.g., 50.00"
-                  value={inputAmount}
-                  onChange={handleAmountChange}
-                  className="col-span-3"
-                  required
-                />
+                <div className="col-span-3 relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                  <Input
+                    id="amount"
+                    type="text" // Use text to allow partial input like "1." before final validation
+                    placeholder="e.g., 50.00"
+                    value={inputAmount}
+                    onChange={handleAmountChange}
+                    className="pl-8" // Add padding for the dollar sign
+                    required
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4 mt-2">
                 <Label htmlFor="paymentMethod" className="text-right">
