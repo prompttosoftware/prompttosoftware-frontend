@@ -1,20 +1,32 @@
 'use client'; // This directive indicates that this component should be rendered on the client side.
 
 import { useState, useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useFormContext, FormProvider } from 'react-hook-form'; // Add FormProvider
 import useDebounce from '@/hooks/useDebounce'; // Import useDebounce hook
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
 import { getEstimatedDurationAndCost, FLAT_RATE_PER_HOUR, HOURLY_AI_API_COST } from '@/services/costEstimationService'; // Import cost estimation service
 import { useRouter } from 'next/navigation'; // Using next/navigation for router functionalities
 import { useGlobalError } from '@/hooks/useGlobalError'; // Importing the global error hook
+import { NewRepositoryFields } from './NewRepositoryFields'; // Import NewRepositoryFields
+import { ExistingRepositoryFields } from './ExistingRepositoryFields'; // Import ExistingRepositoryFields
 
 // Define the structure for the request payload to the backend
 interface AIModelConfig {
   provider: string;
   modelName: string;
   apiKey?: string; // Optional API key
+}
+
+interface GithubRepository {
+  type: 'new' | 'existing';
+  name?: string; // for 'new'
+  organization?: string; // for 'new'
+  isPrivate?: boolean; // for 'new'
+  url?: string; // for 'existing'
 }
 
 interface CostEstimationResult {
@@ -30,6 +42,7 @@ interface NewProjectRequest {
   description: string;
   maxRuntimeHours?: number;
   maxBudget?: number;
+  githubRepositories?: GithubRepository[]; // Add githubRepositories to the request
   advancedOptions?: {
     models?: {
       utility?: AIModelConfig[];
@@ -57,6 +70,9 @@ interface APIError {
 }
 
 export default function NewProjectPage() {
+
+  const methods = useForm<NewProjectRequest>(); // Initialize useForm and get all its methods
+  // Destructure individual properties from methods if needed, or pass 'methods' directly
   const {
     register,
     handleSubmit,
@@ -64,7 +80,7 @@ export default function NewProjectPage() {
     control, // Added control for useFieldArray
     watch, // Add watch to get form values
     formState: { errors },
-  } = useForm<NewProjectRequest>();
+  } = methods; // Use methods from the initialized useForm
   const { setError: setGlobalError } = useGlobalError(); // Destructure setError from the global error hook
   const [isSubmitting, setIsSubmitting] = useState(false); // State to manage form submission loading state
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // State to manage visibility of advanced options
@@ -166,6 +182,15 @@ export default function NewProjectPage() {
   } = useFieldArray({
     control,
     name: 'advancedOptions.models.backup',
+  });
+
+  const {
+    fields: githubRepositories,
+    append: appendGithubRepository,
+    remove: removeGithubRepository,
+  } = useFieldArray({
+    control,
+    name: 'githubRepositories',
   });
 
   // Available AI model companies (providers)
@@ -403,7 +428,8 @@ export default function NewProjectPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Create New Project</h1>
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Project Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
@@ -426,6 +452,50 @@ export default function NewProjectPage() {
     <LoadingSpinner className="mr-2" /> Estimating cost...
   </div>
 )}
+
+            {/* GitHub Repositories Section */}
+            <div className="border border-gray-200 mt-6 pt-6 p-4 rounded-md shadow-sm">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">GitHub Repositories</h3>
+              {githubRepositories.length === 0 && (
+                <p className="text-sm text-gray-500 mb-4">
+                  No repository provided, new one’s will be automatically created on your account.
+                </p>
+              )}
+              
+              {/* Dynamic rendering of GitHub repositories */}
+              {githubRepositories.map((repo, index) => (
+                repo.type === 'new' ? (
+                  <NewRepositoryFields
+                    key={repo.id}
+                    index={index}
+                    onRemove={() => removeGithubRepository(index)}
+                  />
+                ) : repo.type === 'existing' ? (
+                  <ExistingRepositoryFields
+                    key={repo.id}
+                    index={index}
+                    onRemove={() => removeGithubRepository(index)}
+                  />
+                ) : null
+              ))}
+              
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  onClick={() => appendGithubRepository({ type: 'new', isPrivate: false })}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Add New Repository
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => appendGithubRepository({ type: 'existing' })}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Add Existing Repository
+                </Button>
+              </div>
+            </div>
 
 {estimatedCostResult && !isEstimating && (
   <div className="border border-gray-200 mt-6 pt-6 rounded-md bg-white shadow-sm">
@@ -608,6 +678,7 @@ export default function NewProjectPage() {
             </button>
           </div>
         </form>
+        </FormProvider> {/* Closing FormProvider tag */}
       </div>
     </div>
   );
