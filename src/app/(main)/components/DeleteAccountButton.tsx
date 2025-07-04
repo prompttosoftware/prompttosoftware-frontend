@@ -4,41 +4,46 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore'; // Import success message store
-import { useRouter } from 'next/navigation';
-import client from '@/lib/httpClient'; // Import the axios instance
+import { httpClient } from '@/lib/httpClient'; // Import the axios instance
 import { AuthContext } from '@/lib/AuthContext'; // Import AuthContext
 import { useContext } from 'react'; // Import useContext
+import { logger } from '@/utils/logger'; // Import logger
+import { AxiosError } from 'axios'; // Import AxiosError type
+
 
 const DeleteAccountButton: React.FC = () => {
   const { showConfirmation, setError } = useGlobalErrorStore();
-  const router = useRouter();
   const { logout } = useContext(AuthContext); // Get logout from AuthContext
 
   const handleDeleteAccount = () => {
     showConfirmation(
-      "Delete My Account",
+      'Delete My Account',
       "This action is irreversible and will permanently delete your account and all associated data. To confirm, please type 'DELETE MY ACCOUNT' in the box below.",
-      "DELETE MY ACCOUNT",
+      'DELETE MY ACCOUNT',
       async () => {
         try {
           // Perform the DELETE request to the backend
-          await client.delete('/users/me');
-          console.log('Account deleted successfully.');
+          await httpClient.delete('/users/me');
+          logger.info('Account deleted successfully.');
           await logout(); // Call the logout function from AuthContext to clear state and redirect
           const { setSuccessMessage } = useSuccessMessageStore.getState(); // Get the state function
           setSuccessMessage('Your account has been successfully deleted.'); // Set success message
-        } catch (error: any) {
-          console.error('Failed to delete account:', error);
+        } catch (error: unknown) {
+          logger.error('Failed to delete account:', error); // Use logger.error
           let errorMessage = 'Failed to delete account.';
           let errorDescription = 'An unexpected error occurred.';
-          let statusCode = undefined;
+          let statusCode: number | undefined = undefined;
 
-          if (error.response) {
+          if (error instanceof AxiosError && error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
             statusCode = error.response.status;
-            if (error.response.data && error.response.data.message) {
-              errorDescription = error.response.data.message;
+            if (
+              error.response.data &&
+              typeof error.response.data === 'object' &&
+              'message' in error.response.data
+            ) {
+              errorDescription = (error.response.data as { message: string }).message;
             } else if (error.message) {
               errorDescription = error.message;
             }
@@ -48,11 +53,11 @@ const DeleteAccountButton: React.FC = () => {
             } else if (statusCode >= 500) {
               errorMessage = 'Server error during account deletion.';
             }
-          } else if (error.request) {
+          } else if (error instanceof AxiosError && error.request) {
             // The request was made but no response was received
             errorMessage = 'Network error.';
             errorDescription = 'Please check your internet connection.';
-          } else {
+          } else if (error instanceof Error) {
             // Something happened in setting up the request that triggered an Error
             errorMessage = 'Application error.';
             errorDescription = error.message;
@@ -66,8 +71,8 @@ const DeleteAccountButton: React.FC = () => {
         }
       },
       () => {
-        console.log('Account deletion cancelled by user.');
-      }
+        logger.info('Account deletion cancelled by user.'); // Use logger.info
+      },
     );
   };
 
