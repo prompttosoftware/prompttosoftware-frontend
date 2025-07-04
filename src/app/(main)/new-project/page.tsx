@@ -5,9 +5,9 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import useDebounce from '@/hooks/useDebounce'; // Import useDebounce hook
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import LoadingSpinner from '@/src/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
+import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
 import { getEstimatedDurationAndCost, FLAT_RATE_PER_HOUR, HOURLY_AI_API_COST } from '@/services/costEstimationService'; // Import cost estimation service
-// import { useRouter } from 'next/navigation'; // Using next/navigation for router functionalities
+import { useRouter } from 'next/navigation'; // Using next/navigation for router functionalities
 import { useGlobalError } from '@/hooks/useGlobalError'; // Importing the global error hook
 
 // Define the structure for the request payload to the backend
@@ -173,7 +173,7 @@ export default function NewProjectPage() {
 
   const maxRuntimeHours = watch('maxRuntimeHours'); // Watch maxRuntimeHours for the warning message
 
-  // const router = useRouter(); // Initialize router for potential redirection - Commented out for now to resolve 'unused' lint error. Uncomment later when navigation is implemented.
+  const router = useRouter(); // Initialize router for potential redirection
 
   // Handler for form submission
   const onSubmit = async (data: NewProjectRequest) => {
@@ -202,9 +202,9 @@ export default function NewProjectPage() {
 
       // Handle successful submission
       console.log('Project creation successful:', responseData);
-      alert(responseData.message || 'Project created successfully!'); // Temporary success message
+      // alert(responseData.message || 'Project created successfully!'); // Temporary success message
       // In a real scenario, you might redirect the user:
-      // router.push(`/projects/${responseData.projectId}`);
+      router.push(`/projects/${responseData.projectId}`);
     } catch (rawError: unknown) {
       console.error('Failed to create project:', rawError);
 

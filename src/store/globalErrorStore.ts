@@ -11,3 +11,5 @@ export const useGlobalErrorStore = create<GlobalErrorState>((set) => ({
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
 }));
+
+export const setGlobalError = useGlobalErrorStore.getState().setError;

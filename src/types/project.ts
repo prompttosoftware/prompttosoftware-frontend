@@ -1,3 +1,16 @@
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  repositoryUrl: string;
+  status: 'active' | 'stopped' | 'completed' | 'error' | 'building' | 'queued';
+  elapsedTime: number;
+  cost: number;
+  progress: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProjectStatus {
   id: string;
   projectId: string;
@@ -6,7 +19,7 @@ export interface ProjectStatus {
   message: string;
   updatedAt: string;
   createdAt: string;
-  elapsedTime: number; // Add this field
-  cost: number; // Add this field
+  elapsedTime: number;
+  cost: number;
   pendingSensitiveRequest?: boolean;
 }

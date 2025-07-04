@@ -6,12 +6,12 @@ declare global {
   }
 }
 
-import { AutoModelForSequenceClassification, AutoTokenizer, pipeline } from '@xenova/transformers';
+
 import { logger } from '../lib/logger'; // Import the logger utility
 
 // Cache for the loaded model and tokenizer
-let model: AutoModelForSequenceClassification | null = null;
-let tokenizer: AutoTokenizer | null = null;
+let model: any = null;
+let tokenizer: any = null;
 // Let's cache the pipeline too once it's created
 let estimationPipelineInstance: ((text: string) => Promise<any>) | null = null;
 
@@ -60,37 +60,32 @@ export function detectDeviceCapability(): boolean {
  */
 async function loadModelAndPipeline(): Promise<void> {
   if (model && tokenizer && estimationPipelineInstance) {
-    isMLModelActive = true; // Still active if already loaded
+    isMLModelActive = true; 
     mlModelErrorMessage = null;
-    return; // Model, tokenizer, and pipeline already loaded
+    return; 
+  }
+
+  // Add this check to ensure the function only runs in the browser
+  if (typeof window === 'undefined') {
+    logger.warn('Skipping transformers.js model loading: Not in a browser environment.');
+    isMLModelActive = false;
+    mlModelErrorMessage = 'ML model not available on server-side.';
+    return;
   }
 
   try {
-    // Lazy load only when needed
-    // Notes:
-    // 1. The actual import will trigger the download of model files which might be large.
-    //    Consider user experience for first-time load (e.g., loading spinners).
-    // 2. The chosen 'Xenova/distilbert-base-uncased-finetuned-sst-2-english' model is for sentiment analysis.
-    //    For actual duration estimation, a fine-tuned regression model or a text generation model
-    //    trained for this task would be required. For this task, we will simulate its output
-    //    to match the expected numeric duration.
+    // Add the dynamic import here
+    const { AutoModelForSequenceClassification, AutoTokenizer, pipeline } = await import('@xenova/transformers');
 
     logger.info('Attempting to load transformers.js model and pipeline...');
-    // Log 1: Before model loading
     model = await AutoModelForSequenceClassification.from_pretrained(
       'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
     );
     tokenizer = await AutoTokenizer.from_pretrained('Xenova/bert-base-uncased');
-
     estimationPipelineInstance = await pipeline('text-classification', model, tokenizer);
 
-    // Assign to window for global access, as implied by the task description's use of window.pipeline
-    // We will use window.estimationPipeline to avoid conflict if 'pipeline' is a common global name.
     if (typeof window !== 'undefined') {
       window.estimationPipeline = estimationPipelineInstance;
-      // Removed: window.isDeviceCapable = detectDeviceCapability;
-      // This assignment was overwriting the test mocks for device capability;
-      // instead, tests should explicitly mock window.isDeviceCapable.
     }
 
     logger.info('Transformers.js model, tokenizer, and pipeline loaded successfully.');
@@ -100,7 +95,6 @@ async function loadModelAndPipeline(): Promise<void> {
     logger.error('Failed to load transformers.js model and pipeline:', error);
     isMLModelActive = false;
     mlModelErrorMessage = `Failed to load ML model: ${error instanceof Error ? error.message : String(error)}`;
-    // Do not throw an error here, allow fallback mechanism to work.
   }
 }
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useGlobalErrorStore } from '../store/globalErrorStore';
+import { setGlobalError } from '../store/globalErrorStore';
 import { logger } from './logger'; // Import the logger
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { APIErrorResponse, InternalServerErrorMessage } from '../types/common';
@@ -42,7 +42,9 @@ export const setupInterceptors = (router: AppRouterInstance) => {
     (response) => response,
     async (error) => {
       // Made async for potential await in future (e.g., token refresh)
-      const { setError } = useGlobalErrorStore.getState();
+      // Use the directly imported setter
+// The globalErrorStore.getState().setError is now exported directly as setGlobalError
+// so we can use it without issues related to React hooks.
       let errorMessage = 'An unexpected error occurred.';
       // The errorDetails variable declared here is local to the interceptor,
       // and shadows the global one. This is fine as it's used for the current error.
@@ -92,7 +94,7 @@ export const setupInterceptors = (router: AppRouterInstance) => {
         errorMessage = error.message;
       }
 
-      setError({
+      setGlobalError({
         message: errorMessage,
         type: 'error',
         details: localErrorDetails, // Use localErrorDetails here
