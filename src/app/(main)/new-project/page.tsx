@@ -858,22 +858,12 @@ export default function NewProjectPage() {
               >
                 {/* AI Model Selection UI */}
                 <div className="space-y-6">
-                  {(errors.advancedOptions?.models?.utility as any)?.message && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions?.models?.utility as any)?.message}
-                    </p>
-                  )}
                   {renderAiModelSelection(
                     'utility',
                     'Utility',
                     utilityModels,
                     appendUtilityModel,
                     removeUtilityModel,
-                  )}
-                  {(errors.advancedOptions?.models?.low as any)?.message && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions?.models?.low as any)?.message}
-                    </p>
                   )}
                   {renderAiModelSelection(
                     'low',
@@ -882,22 +872,12 @@ export default function NewProjectPage() {
                     appendLowModel,
                     removeLowModel,
                   )}
-                  {(errors.advancedOptions?.models?.medium as any)?.message && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions?.models?.medium as any)?.message}
-                    </p>
-                  )}
                   {renderAiModelSelection(
                     'medium',
                     'Medium Intelligence',
                     mediumModels,
                     appendMediumModel,
                     removeMediumModel,
-                  )}
-                  {(errors.advancedOptions?.models?.high as any)?.message && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions?.models?.high as any)?.message}
-                    </p>
                   )}
                   {renderAiModelSelection(
                     'high',
@@ -906,22 +886,12 @@ export default function NewProjectPage() {
                     appendHighModel,
                     removeHighModel,
                   )}
-                  {(errors.advancedOptions?.models?.super as any)?.message && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions?.models?.super as any)?.message}
-                    </p>
-                  )}
                   {renderAiModelSelection(
                     'super',
                     'Super Intelligence',
                     superModels,
                     appendSuperModel,
                     removeSuperModel,
-                  )}
-                  {(errors.advancedOptions?.models?.backup as any)?.message && (
-                    <p className="mt-2 text-sm text-red-600">
-                      {(errors.advancedOptions?.models?.backup as any)?.message}
-                    </p>
                   )}
                   {renderAiModelSelection(
                     'backup',
