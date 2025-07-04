@@ -14,7 +14,7 @@ export interface Project {
 export interface ProjectStatus {
   id: string;
   projectId: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'failed';
+  status: 'pending' | 'in-progress' | 'completed' | 'failed' | 'starting' | 'stopping';
   progress: number; // 0-100
   message: string;
   updatedAt: string;

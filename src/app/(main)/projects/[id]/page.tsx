@@ -7,11 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import EmptyState from '@/app/(main)/components/EmptyState';
 import { usePolling } from '@/hooks/usePolling';
-import { Project, ProjectStatus } from '@/types/project';
+import { Project } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
-import { format, intervalToDuration } from 'date-fns';
-import { formatDuration, formatCurrency } from '@/lib/formatters';
+import { format } from 'date-fns';
 import { api } from '@/lib/api';
 import { useGlobalError } from '@/hooks/useGlobalError';
 
@@ -19,45 +18,21 @@ const ProjectDetailPage = () => {
   const { id } = useParams() as { id: string };
   const { isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
-  const { setGlobalError } = useGlobalError(); // Destructure setGlobalError
+  const { setGlobalError } = useGlobalError();
   const [project, setProject] = useState<Project | null>(null);
 
-  const [liveMetrics, setLiveMetrics] = useState<ProjectStatus>({
-    status: 'pending',
-    elapsedTime: 0,
-    cost: 0,
-    progress: 0,
-    projectId: id,
-    id: '',
-    message: '',
-    updatedAt: '',
-    createdAt: '',
-  });
   const [error, setError] = useState<string | null>(null);
   const [isFetchingProject, setIsFetchingProject] = useState<boolean>(true);
   const [hasFetched, setHasFetched] = useState<boolean>(false);
 
   const {
-    data: pollingData,
+    data: liveMetrics,
     isLoading: isPollingLoading,
     error: pollingError,
-  } = usePolling(id, { refetchInterval: 60000 });
-
-  useEffect(() => {
-    if (pollingData) {
-      setLiveMetrics({
-        status: pollingData.status,
-        elapsedTime: pollingData.elapsedTime,
-        cost: pollingData.cost,
-        progress: pollingData.progress,
-        projectId: pollingData.projectId,
-        id: pollingData.id,
-        message: pollingData.message,
-        updatedAt: pollingData.updatedAt,
-        createdAt: pollingData.createdAt,
-      });
-    }
-  }, [pollingData]);
+    formattedElapsedTime,
+    formattedCost,
+    isError: isPollingError,
+  } = usePolling(id);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -112,7 +87,49 @@ const ProjectDetailPage = () => {
     }
   }, [id, isAuthenticated, router, logout, hasFetched]);
 
-  if (isLoading || isFetchingProject) {
+  useEffect(() => {
+  if (liveMetrics?.pendingSensitiveRequest) {
+    toast.custom((t) => (
+      <div
+        className={`${
+          t.visible ? 'animate-enter' : 'animate-leave'
+        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+      >
+        <div className="flex-1 w-0 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              {/* Icon could go here */}
+            </div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                Sensitive Information Request
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                A sensitive information request is pending for this project.
+                Please check your notifications or a dedicated section for details.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex border-l border-gray-200">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity, // Keep toast until dismissed
+      id: 'pendingSensitiveRequestToast', // Unique ID to prevent duplicate toasts
+    });
+  } else {
+    toast.dismiss('pendingSensitiveRequestToast'); // Dismiss if no longer pending
+  }
+}, [liveMetrics?.pendingSensitiveRequest]);
+
+if (isLoading || isFetchingProject) {
     return (
       <div className="flex justify-center items-center h-screen">
         <LoadingSpinner />
@@ -203,54 +220,68 @@ const ProjectDetailPage = () => {
         {/* Live Metrics */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Live Metrics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col">
-              <span className="text-gray-500 text-sm">Status:</span>
-              <span
-                className={`text-lg font-medium ${
-                  liveMetrics.status === 'in-progress'
-                    ? 'text-green-600'
-                    : liveMetrics.status === 'failed'
-                      ? 'text-red-600'
-                      : liveMetrics.status === 'completed'
-                        ? 'text-blue-600'
-                        : 'text-gray-600'
-                }`}
-              >
-                {liveMetrics.status}
+          {pollingError && (
+            <div className="text-red-500 mb-4">
+              Error fetching live metrics: {pollingError.message}
+            </div>
+          )}
+          {(!liveMetrics && !isPollingLoading) && (
+            <div className="text-gray-500 mb-4">
+              Live metrics not available.
+            </div>
+          )}
+          {liveMetrics && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-sm">Status:</span>
+                <span
+                  className={`text-lg font-medium ${
+                    liveMetrics.status === 'in-progress'
+                      ? 'text-green-600'
+                      : liveMetrics.status === 'failed'
+                        ? 'text-red-600'
+                        : liveMetrics.status === 'completed'
+                          ? 'text-blue-600'
+                          : 'text-gray-600'
+                  }`}
+                >
+                  {liveMetrics.status}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-sm">Elapsed Time:</span>
+                <span className="text-gray-800 text-lg">
+                  {formattedElapsedTime}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-sm">Estimated Cost:</span>
+                <span className="text-gray-800 text-lg">{formattedCost}</span>
+              </div>
+            </div>
+          )}
+          {liveMetrics && (
+            <div className="mt-4">
+              <span className="text-gray-500 text-sm">Progress:</span>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-1">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full"
+                  style={{ width: `${liveMetrics.progress}%` }}
+                ></div>
+              </div>
+              <span className="text-gray-800 text-sm mt-1 block">
+                {liveMetrics.progress.toFixed(2)}%
               </span>
             </div>
-            <div className="flex flex-col">
-              <span className="text-gray-500 text-sm">Elapsed Time:</span>
-              <span className="text-gray-800 text-lg">
-                {formatDuration(intervalToDuration({ start: 0, end: liveMetrics.elapsedTime * 1000 }))}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-gray-500 text-sm">Estimated Cost:</span>
-              <span className="text-gray-800 text-lg">{formatCurrency(liveMetrics.cost)}</span>
-            </div>
-          </div>
-          <div className="mt-4">
-            <span className="text-gray-500 text-sm">Progress:</span>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-1">
-              <div
-                className="bg-blue-600 h-2.5 rounded-full"
-                style={{ width: `${liveMetrics.progress}%` }}
-              ></div>
-            </div>
-            <span className="text-gray-800 text-sm mt-1 block">
-              {liveMetrics.progress.toFixed(2)}%
-            </span>
-          </div>
+          )}
         </div>
 
         {/* Action Buttons - bottom left */}
         <div className="mt-6 pt-6 border-t border-gray-200 flex justify-start">
           {(() => {
-            const isPendingAction = liveMetrics.status === 'starting' || liveMetrics.status === 'stopping';
+            const isPendingAction = liveMetrics?.status === 'starting' || liveMetrics?.status === 'stopping';
 
-            if (project && (liveMetrics.status === 'stopped' || liveMetrics.status === 'failed' || liveMetrics.status === 'completed' || liveMetrics.status === 'starting')) {
+            if (project && liveMetrics && (liveMetrics.status === 'stopped' || liveMetrics.status === 'failed' || liveMetrics.status === 'completed')) {
               return (
                 <Button
                   className="flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
@@ -266,7 +297,7 @@ const ProjectDetailPage = () => {
                   )}
                 </Button>
               );
-            } else if (project && (liveMetrics.status === 'active' || liveMetrics.status === 'in-progress')) {
+            } else if (project && liveMetrics && (liveMetrics.status === 'active' || liveMetrics.status === 'in-progress' || liveMetrics.status === 'starting')) {
               return (
                 <Button
                   className="flex items-center bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
@@ -285,18 +316,6 @@ const ProjectDetailPage = () => {
             }
             return null;
           })()}
-```
-It appears the issue was with how I was constructing the `originalPart` in the `EDIT_FILE_PART` action. The previous attempt had incorrect indentation and did not precisely match the file content.
-
-I have regenerated the `originalPart` by copying the exact content from the file including its indentation. The `updatedPart` now correctly applies the changes, which include:
-
-1.  Removing `isSubmitting` state.
-2.  Removing optimistic updates in `handleProjectAction`.
-3.  Defining `isPendingAction` from `liveMetrics.status`.
-4.  Adjusting `disabled` prop on buttons to use `isPendingAction` and `liveMetrics.status`.
-5.  Modifying `LoadingSpinner` conditional rendering with `isPendingAction` and `className="mr-2"`.
-
-This should resolve the issue and complete the task instructions.action: NEXT_SUBTASK
         </div>
       </div>
     </div>
