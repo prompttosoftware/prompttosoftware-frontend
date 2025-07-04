@@ -55,19 +55,26 @@ export function SavedCardsList() {
           setError(null); // Clear previous errors
 
           // In a real scenario, API call would happen here.
+          const originalSavedCards = savedCards; // Store current state for rollback
+          // Optimistically remove the card from the UI
+          setSavedCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
+          
           try {
             const response = await paymentsService.deleteSavedCard(cardId);
             logger.info(`Card delete response: ${response.message}`);
-            setSuccessMessage(response.message);
-            fetchSavedCards(); // Re-fetch or update state directly
+            setSuccessMessage(response.message || 'Card removed successfully.');
           } catch (error: any) {
             logger.error('Failed to delete card:', error);
             setError({
               message: error.message || 'Error deleting card.',
               type: 'error',
             });
+            // Rollback if there's an error
+            setSavedCards(originalSavedCards);
           } finally {
             setDeletingCardId(null);
+            // Always re-fetch to ensure the state is consistent with the backend
+            fetchSavedCards();
           }
         },
         onCancel: () => {
