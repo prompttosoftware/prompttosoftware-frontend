@@ -1,7 +1,9 @@
-export default function ProjectsPage() {
+import React from 'react';
+
+const ProjectsPage = () => {
   return (
-    <div>
-      <h1>Projects Page</h1>
-    </div>
+    <h1>Projects Page Placeholder</h1>
   );
-}
+};
+
+export default ProjectsPage;

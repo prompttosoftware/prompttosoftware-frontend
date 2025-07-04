@@ -1,7 +1,9 @@
-export default function HelpPage() {
+import React from 'react';
+
+const HelpPage = () => {
   return (
-    <div>
-      <h1>Help Page</h1>
-    </div>
+    <h1>Help Page Placeholder</h1>
   );
-}
+};
+
+export default HelpPage;
