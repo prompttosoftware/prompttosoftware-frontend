@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchProjects } from '@/lib/api';
+import { api } from '@/lib/api';
 import { setGlobalError } from '@/store/globalErrorStore';
 import { ProjectSummary } from '@/types/project';
 
@@ -7,10 +7,8 @@ export const useUserProjects = () => {
   return useQuery<ProjectSummary[], Error>({
     queryKey: ['projects'],
     queryFn: async () => {
-      const response = await fetchProjects();
-      // Assuming fetchProjects returns { data: ProjectSummary[] }
-      // Adjust if fetchProjects directly returns ProjectSummary[]
-      return response.data;
+      const projects = await api.getUserProjects();
+      return projects;
     },
     onError: (err: any) => {
       setGlobalError({

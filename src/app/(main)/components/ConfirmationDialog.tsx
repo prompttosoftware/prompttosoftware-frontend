@@ -24,9 +24,7 @@ const ConfirmationDialog: React.FC = () => {
     // Otherwise, enable button by default for simple confirmations
     if (confirmationDialog) {
       setIsConfirmButtonEnabled(
-        confirmationDialog.confirmPhrase
-          ? inputValue === confirmationDialog.confirmPhrase
-          : true, // No phrase means button is always enabled
+        confirmationDialog.confirmPhrase ? inputValue === confirmationDialog.confirmPhrase : true, // No phrase means button is always enabled
       );
     } else {
       // Reset state when dialog is closed
@@ -41,10 +39,7 @@ const ConfirmationDialog: React.FC = () => {
 
   const handleConfirm = () => {
     // If there's a confirmPhrase, check for match, otherwise proceed directly
-    if (
-      !confirmationDialog.confirmPhrase ||
-      inputValue === confirmationDialog.confirmPhrase
-    ) {
+    if (!confirmationDialog.confirmPhrase || inputValue === confirmationDialog.confirmPhrase) {
       confirmationDialog.onConfirm();
       hideConfirmation();
     }
@@ -90,11 +85,7 @@ const ConfirmationDialog: React.FC = () => {
           <Button variant="outline" onClick={handleCancel}>
             {confirmationDialog.cancelText || 'Cancel'}
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={!isConfirmButtonEnabled}
-          >
+          <Button variant="destructive" onClick={handleConfirm} disabled={!isConfirmButtonEnabled}>
             {confirmationDialog.confirmText || 'Confirm'}
           </Button>
         </DialogFooter>

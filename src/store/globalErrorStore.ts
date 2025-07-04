@@ -5,6 +5,7 @@ interface GlobalError {
   message: string;
   description?: string;
   statusCode?: number;
+  type?: 'error' | 'warning' | 'info'; // Add type property
 }
 
 interface ConfirmationDialogState {
@@ -32,7 +33,7 @@ interface GlobalErrorState {
       onCancel?: () => void;
       cancelText?: string;
       confirmText?: string;
-    }
+    },
   ) => void;
   hideConfirmation: () => void;
 }

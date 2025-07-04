@@ -107,13 +107,17 @@ describe('PaymentModal UI Verification', () => {
     });
 
     // Mock localStorage to return a token
-    const localStorageMock = (function() {
-        let store: { [key: string]: string } = {};
-        return {
-            getItem: jest.fn((key: string) => store[key] || null),
-            setItem: jest.fn((key: string, value: string) => { store[key] = value; }),
-            clear: jest.fn(() => { store = {}; })
-        };
+    const localStorageMock = (function () {
+      let store: { [key: string]: string } = {};
+      return {
+        getItem: jest.fn((key: string) => store[key] || null),
+        setItem: jest.fn((key: string, value: string) => {
+          store[key] = value;
+        }),
+        clear: jest.fn(() => {
+          store = {};
+        }),
+      };
     })();
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     localStorage.setItem('jwtToken', 'dummy-jwt-token'); // Set a dummy token
@@ -132,9 +136,11 @@ describe('PaymentModal UI Verification', () => {
     fireEvent.change(amountInput, { target: { value: '0' } });
     fireEvent.click(nextButton);
     await waitFor(() => {
-      expect(setErrorMock).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'Amount must be positive.',
-      }));
+      expect(setErrorMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Amount must be positive.',
+        }),
+      );
     });
 
     // Test negative
@@ -142,9 +148,11 @@ describe('PaymentModal UI Verification', () => {
     fireEvent.change(amountInput, { target: { value: '-10' } });
     fireEvent.click(nextButton);
     await waitFor(() => {
-      expect(setErrorMock).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'Amount must be positive.',
-      }));
+      expect(setErrorMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Amount must be positive.',
+        }),
+      );
     });
   });
 
@@ -164,9 +172,11 @@ describe('PaymentModal UI Verification', () => {
     fireEvent.change(amountInput, { target: { value: '0.49' } });
     fireEvent.click(nextButton);
     await waitFor(() => {
-      expect(setErrorMock).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'Minimum amount is $0.50.',
-      }));
+      expect(setErrorMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Minimum amount is $0.50.',
+        }),
+      );
     });
   });
 

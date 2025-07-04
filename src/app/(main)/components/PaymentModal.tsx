@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'; // Import Input component
 import { Label } from '@/components/ui/label';
 import PaymentFormContent from './PaymentFormContent'; // Import the new PaymentFormContent
 import { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from '@/types/payments'; // Import payment types
-import { api as axiosInstance } from '@/lib/api';
+import { httpClient } from '@/lib/httpClient';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { isAxiosError } from 'axios';
 
@@ -97,29 +97,29 @@ export function PaymentModal() {
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       let value = e.target.value;
-      
+
       // Preserve a leading minus sign if present
       const hasLeadingMinus = value.startsWith('-');
       // Remove all characters except digits and decimal points
       value = value.replace(/[^0-9.]/g, '');
-      
+
       // Ensure only one decimal point
       const parts = value.split('.');
       if (parts.length > 2) {
         value = `${parts[0]}.${parts[1]}`;
       }
-      
+
       // Re-add the leading minus sign if it was present and the value is not empty
       if (hasLeadingMinus && value !== '') {
         value = '-' + value;
       }
       // Special case: if only '-' is typed, keep it as '-'
       if (e.target.value === '-') {
-          value = '-';
+        value = '-';
       }
-      
+
       setInputAmount(value); // Set the cleaned value
-      
+
       // On change, re-validate to clear errors if user fixed input, or show new error
       // Only validate if it's a number, or a negative sign followed by nothing (e.g. '-')
       if (value && value !== '-') {
@@ -161,7 +161,7 @@ export function PaymentModal() {
           description: description,
         };
 
-        const response = await axiosInstance.post<
+        const response = await httpClient.post<
           CreatePaymentIntentRequest,
           CreatePaymentIntentResponse
         >('/payments/create-intent', requestBody, {

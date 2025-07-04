@@ -48,11 +48,12 @@ export function SavedCardsList() {
         message: 'Are you sure you want to remove this card? This action cannot be undone.',
         confirmText: 'Remove Card',
         cancelText: 'Cancel',
-        onConfirm: async () => { // Add async here
+        onConfirm: async () => {
+          // Add async here
           setDeletingCardId(cardId);
           setSuccessMessage(null); // Clear previous success messages
           setError(null); // Clear previous errors
-        
+
           // In a real scenario, API call would happen here.
           try {
             const response = await paymentsService.deleteSavedCard(cardId);

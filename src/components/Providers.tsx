@@ -12,9 +12,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AuthInitializer>
-          {children}
-        </AuthInitializer>
+        <AuthInitializer>{children}</AuthInitializer>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

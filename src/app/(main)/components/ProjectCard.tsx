@@ -3,32 +3,10 @@ import { ProjectSummary } from '@/types/project';
 import { useRouter } from 'next/navigation';
 import { formatCurrency, formatDuration } from '@/lib/formatters';
 import { intervalToDuration } from 'date-fns';
+import axios from 'axios';
 import { useAuth } from '@/hooks/useAuth';
 import { useGlobalError } from '@/hooks/useGlobalError';
 import LoadingSpinner from './LoadingSpinner';
-import { api } from '@/lib/api';
-import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
-
-// shadcn/ui components
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react'; // Import the ellipsis icon
 
 interface ProjectCardProps {
   project: ProjectSummary;
@@ -36,10 +14,8 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const router = useRouter();
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { showError } = useGlobalError(); // Use the global error hook
-  const queryClient = useQueryClient(); // Initialize queryClient for invalidation
-
 
   const isPendingStatus = project.status === 'starting' || project.status === 'stopping';
   const isLoading = isPendingStatus;
@@ -50,48 +26,57 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
   const handleStartProject = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click from firing
-    if (!token) return;
-  
+    const token = localStorage.getItem('jwtToken');
+    if (!token) {
+      showError('Authentication token not found. Please log in again.');
+      return;
+    }
+
     // The disabled state and spinner are handled by `isLoading` derived from
     // `project.status` which is updated via polling. No local `isLoading` state needed.
     try {
-      await api.startProject(project.id);
+      await axios.post(
+        `/api/projects/${project.id}/start`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       // Polling will update project status, causing re-render
     } catch (error) {
       console.error('Failed to start project:', error);
       showError('Failed to start project. Please try again.'); // Show user-friendly error
     }
   };
-  
+
   const handleStopProject = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click from firing
-    if (!token) return;
-  
+    const token = localStorage.getItem('jwtToken');
+    if (!token) {
+      showError('Authentication token not found. Please log in again.');
+      return;
+    }
+
     // The disabled state and spinner are handled by `isLoading` derived from
     // `project.status` which is updated via polling. No local `isLoading` state needed.
     try {
-      await api.stopProject(project.id);
+      await axios.post(
+        `/api/projects/${project.id}/stop`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       // Polling will update project status, causing re-render
     } catch (error) {
       console.error('Failed to stop project:', error);
       showError('Failed to stop project. Please try again.'); // Show user-friendly error
     }
   };
-
-  const handleDeleteProject = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click from firing
-    if (!token) return;
-
-    try {
-      await api.deleteProject(project.id);
-      queryClient.invalidateQueries({ queryKey: ['projects'] }); // Invalidate and refetch projects
-      // Optionally show a success message
-    } catch (error) {
-      console.error('Failed to delete project:', error);
-      showError('Failed to delete project. Please try again.');
-    }
-  };
-
 
   const isHoverable = project.status !== 'failed'; // Not clickable if error status
 
@@ -104,53 +89,31 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       `}
       style={project.status === 'failed' ? { pointerEvents: 'none' } : {}} // Disable clicks for error projects
       onClick={isHoverable ? handleClick : undefined}
+      onKeyDown={(e) => {
+        if (isHoverable && (e.key === 'Enter' || e.key === ' ')) {
+          handleClick();
+        }
+      }}
+      role="button"
+      tabIndex={isHoverable ? 0 : -1} // Only allow tabbing if clickable
     >
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-xl font-semibold text-gray-800">{project.name}</h3>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()} // Prevent dropdown from closing immediately
-                  className="text-red-600 focus:text-red-600"
-                >
-                  Delete
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    project &quot;{project.name}&quot; and remove its data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteProject}>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">{project.name}</h3>
 
       <div className="text-gray-600 text-sm">
         {project.status === 'active' || project.status === 'starting' ? (
           <>
-            <p>Elapsed Time: {formatDuration(intervalToDuration({ start: 0, end: project.totalRuntime * 1000 }))}</p>
+            <p>
+              Elapsed Time:{' '}
+              {formatDuration(intervalToDuration({ start: 0, end: project.totalRuntime * 1000 }))}
+            </p>
             <p>Current Cost: {formatCurrency(project.costToDate)}</p>
           </>
         ) : (
           <>
-            <p>Total Elapsed Time: {formatDuration(intervalToDuration({ start: 0, end: project.totalRuntime * 1000 }))}</p>
+            <p>
+              Total Elapsed Time:{' '}
+              {formatDuration(intervalToDuration({ start: 0, end: project.totalRuntime * 1000 }))}
+            </p>
             <p>Total Cost: {formatCurrency(project.costToDate)}</p>
           </>
         )}

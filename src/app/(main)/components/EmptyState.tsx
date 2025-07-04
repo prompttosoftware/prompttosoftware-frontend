@@ -11,7 +11,13 @@ interface EmptyStateProps {
   buttonLink?: string; // New prop for button link
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ title, description, actionButton, buttonText, buttonLink }) => {
+const EmptyState: React.FC<EmptyStateProps> = ({
+  title,
+  description,
+  actionButton,
+  buttonText,
+  buttonLink,
+}) => {
   return (
     <div className="flex flex-col items-center justify-center h-full w-full p-6 text-center">
       <div className="text-gray-400 mx-auto w-16 h-16">

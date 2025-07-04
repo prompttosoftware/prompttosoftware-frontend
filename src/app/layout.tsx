@@ -17,9 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className}>
         <ErrorBoundary>
           <StripeWrapper>
-            <Providers>
-              {children}
-            </Providers>
+            <Providers>{children}</Providers>
           </StripeWrapper>
         </ErrorBoundary>
         <Toaster /> {/* Render Toaster */}

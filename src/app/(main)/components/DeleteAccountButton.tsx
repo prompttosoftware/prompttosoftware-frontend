@@ -10,23 +10,21 @@ import { useContext } from 'react'; // Import useContext
 import { logger } from '@/utils/logger'; // Import logger
 import { AxiosError } from 'axios'; // Import AxiosError type
 
-
 const DeleteAccountButton: React.FC = () => {
   const { showConfirmation, setError } = useGlobalErrorStore();
   const { logout } = useContext(AuthContext); // Get logout from AuthContext
+  const { setMessage: setSuccessMessage } = useSuccessMessageStore(); // Get setSuccessMessage from store hook
 
   const handleDeleteAccount = () => {
     showConfirmation(
       'Delete My Account',
       "This action is irreversible and will permanently delete your account and all associated data. To confirm, please type 'DELETE MY ACCOUNT' in the box below.",
-      'DELETE MY ACCOUNT',
       async () => {
         try {
           // Perform the DELETE request to the backend
           await httpClient.delete('/users/me');
           logger.info('Account deleted successfully.');
           await logout(); // Call the logout function from AuthContext to clear state and redirect
-          const { setSuccessMessage } = useSuccessMessageStore.getState(); // Get the state function
           setSuccessMessage('Your account has been successfully deleted.'); // Set success message
         } catch (error: unknown) {
           logger.error('Failed to delete account:', error); // Use logger.error
@@ -70,8 +68,12 @@ const DeleteAccountButton: React.FC = () => {
           });
         }
       },
-      () => {
-        logger.info('Account deletion cancelled by user.'); // Use logger.info
+      {
+        // options object
+        confirmPhrase: 'DELETE MY ACCOUNT',
+        onCancel: () => {
+          logger.info('Account deletion cancelled by user.'); // Use logger.info
+        },
       },
     );
   };

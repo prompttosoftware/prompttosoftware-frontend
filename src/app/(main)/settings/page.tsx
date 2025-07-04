@@ -2,7 +2,7 @@
 
 import React from 'react';
 import DeleteAccountButton from '../components/DeleteAccountButton';
-import SavedCardsList from '../components/SavedCardsList';
+import { SavedCardsList } from '../components/SavedCardsList';
 
 export default function SettingsPage() {
   return (

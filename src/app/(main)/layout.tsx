@@ -8,9 +8,9 @@ import ProfileButton from './components/ProfileButton';
 import AddPaymentButton from './components/AddPaymentButton';
 import BalanceDisplay from './components/BalanceDisplay';
 import WatchAdButton from './components/WatchAdButton';
-import BannerDisplay from './components/BannerDisplay';
+// import BannerDisplay from './components/BannerDisplay'; // Temporarily disabled
 import { PaymentModal } from './components/PaymentModal';
-import { useBannerStore } from '@/store/bannerStore';
+// import { useBannerStore } from '@/store/bannerStore'; // Temporarily disabled
 import { StripeWrapper } from '@/components/StripeWrapper';
 import ConfirmationDialog from './components/ConfirmationDialog';
 import { AuthProvider, AuthContext } from '@/lib/AuthContext'; // Import AuthContext as well
@@ -20,11 +20,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  const initializeBanners = useBannerStore((state) => state.initializeBanners);
+  // const initializeBanners = useBannerStore((state) => state.initializeBanners); // Temporarily disabled
 
-  React.useEffect(() => {
-    initializeBanners();
-  }, [initializeBanners]);
+  // React.useEffect(() => { // Temporarily disabled
+  //   initializeBanners(); // Temporarily disabled
+  // }, [initializeBanners]); // Temporarily disabled
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
 
@@ -57,9 +57,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               >
                 <Bars3Icon className="h-6 w-6 text-gray-700" />
               </button>
-              <div className="text-2xl font-semibold text-gray-800">
-                Page Title
-              </div>
+              <div className="text-2xl font-semibold text-gray-800">Page Title</div>
             </div>
             <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
               <AddPaymentButton />
@@ -69,9 +67,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
           </header>
 
-          <div className="p-4 flex-shrink-0">
-            <BannerDisplay />
-          </div>
+          <div className="p-4 flex-shrink-0">{/* <BannerDisplay /> Temporarily disabled */}</div>
 
           <main className="flex-1 p-8">{children}</main>
         </div>

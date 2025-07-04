@@ -14,7 +14,13 @@ import { axiosInstance } from '../lib/httpClient';
 const handlers = [
   http.get('http://localhost:8080/api/auth/me', ({ request }) => {
     if (request.headers.get('Authorization')?.startsWith('Bearer')) {
-      return HttpResponse.json({ id: 'user123', name: 'Authenticated User', email: 'auth@example.com', balance: 100, isNewUser: false });
+      return HttpResponse.json({
+        id: 'user123',
+        name: 'Authenticated User',
+        email: 'auth@example.com',
+        balance: 100,
+        isNewUser: false,
+      });
     }
     return HttpResponse.json({}, { status: 401 });
   }),
@@ -34,7 +40,6 @@ jest.mock('next/navigation', () => ({
   }),
   usePathname: () => '/protected-path', // Default, will be overridden by useProtectedRoute mock for tests
 }));
-
 
 // Mock useProtectedRoute to use react-router-dom's navigation instead of next/navigation
 // This is crucial to make MemoryRouter work correctly in tests.
@@ -69,7 +74,6 @@ jest.mock('../hooks/useProtectedRoute', () => {
   };
 });
 
-
 // Helper to set authorization header
 const setAuthHeader = (token: string) => {
   axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -94,7 +98,7 @@ const renderWithProviders = (ui: React.ReactElement, initialEntries = ['/']) => 
       <MemoryRouter initialEntries={initialEntries}>
         <AuthProvider>{ui}</AuthProvider>
       </MemoryRouter>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 };
 
@@ -116,15 +120,22 @@ describe('ProtectedRoute Integration Tests', () => {
     server.use(
       http.get('http://localhost:8080/api/auth/me', () => {
         return HttpResponse.json({}, { status: 401 });
-      })
+      }),
     );
 
     renderWithProviders(
       <Routes>
         <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/protected-path" element={<ProtectedRoute><p>Protected Content</p></ProtectedRoute>} />
+        <Route
+          path="/protected-path"
+          element={
+            <ProtectedRoute>
+              <p>Protected Content</p>
+            </ProtectedRoute>
+          }
+        />
       </Routes>,
-      ['/protected-path']
+      ['/protected-path'],
     );
 
     // Wait for the redirect to happen, and assert that router.push was called
@@ -141,25 +152,31 @@ describe('ProtectedRoute Integration Tests', () => {
 
   it('allows authenticated users to access protected routes', async () => {
     setAuthHeader('mock-jwt-token');
-  
+
     renderWithProviders(
       <Routes>
         <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/protected-path" element={<ProtectedRoute><p>Protected Content</p></ProtectedRoute>} />
+        <Route
+          path="/protected-path"
+          element={
+            <ProtectedRoute>
+              <p>Protected Content</p>
+            </ProtectedRoute>
+          }
+        />
       </Routes>,
-      ['/protected-path']
+      ['/protected-path'],
     );
 
     await waitFor(() => {
       expect(screen.queryByText('Loading authentication...')).not.toBeInTheDocument();
     });
-    
+
     screen.debug(); // Add this line for debugging
-    
+
     await waitFor(() => {
       expect(screen.getByText('Protected Content')).toBeInTheDocument();
     });
-    EOF
 
     expect(screen.queryByText('Login Page')).not.toBeInTheDocument();
   });
@@ -171,9 +188,16 @@ describe('ProtectedRoute Integration Tests', () => {
     renderWithProviders(
       <Routes>
         <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/protected-path" element={<ProtectedRoute><p>Protected Content</p></ProtectedRoute>} />
+        <Route
+          path="/protected-path"
+          element={
+            <ProtectedRoute>
+              <p>Protected Content</p>
+            </ProtectedRoute>
+          }
+        />
       </Routes>,
-      ['/protected-path']
+      ['/protected-path'],
     );
 
     expect(screen.getByText('Loading authentication...')).toBeInTheDocument();
