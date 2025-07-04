@@ -9,13 +9,14 @@ export const metadata = {
 
 import { Providers } from '../components/Providers';
 import { StripeWrapper } from '../components/StripeWrapper';
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr">
       <body>
         <StripeWrapper>
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+          </Providers>
         </StripeWrapper>
       </body>
     </html>

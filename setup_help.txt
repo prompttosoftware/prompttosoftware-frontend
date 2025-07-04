@@ -1,10 +1,13 @@
 Project Setup Instructions:
 
 1.  **Install dependencies:**
-    Run `npm install` in the project root directory.
+    Run `npm install --legacy-peer-deps` in the project root directory.
 
-2.  **Verify test runner (Jest) functionality:**
+2.  **Install missing testing library dependency:**
+    Run `npm install @testing-library/dom`
+
+3.  **Verify test runner (Jest) functionality:**
     To confirm Jest is set up and can run tests (they do not need to pass), execute the following command:
-    `npm test "src/app/(main)/new-project/page.test.tsx"`
+    `npm test src/components/TestComponent.test.tsx`
     This command specifically targets a single test file to quickly verify the test environment.
-    (Note: Parentheses in the path required double quotes for proper shell interpretation.)
+    (Note: Parentheses and square brackets in the path may require double quotes for proper shell interpretation.)
