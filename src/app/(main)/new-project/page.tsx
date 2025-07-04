@@ -119,7 +119,9 @@ const formSchema = z.object({
             .optional(),
         })
         .optional(),
-      installations: z.array(z.string()).optional(), // ADDED
+      installations: z
+        .array(z.object({ value: z.string().min(1, 'Installation must not be empty') }))
+        .optional(), // ADDED
       linkJira: z.boolean().optional(), // ADDED
     })
     .optional(),
@@ -169,7 +171,7 @@ export default function NewProjectPage() {
           super: [],
           backup: [],
         },
-        installations: [],
+        installations: [], // Still an empty array for default, but will hold { value: '' } objects
         linkJira: false,
       },
     },
@@ -182,6 +184,7 @@ export default function NewProjectPage() {
     control, // Added control for useFieldArray
     watch, // Add watch to get form values
     formState: { errors },
+    setValue, // Add setValue to manually set form values
   } = methods; // Use methods from the initialized useForm
   const { setError: setGlobalError } = useGlobalError(); // Destructure setError from the global error hook
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // State to manage visibility of advanced options
@@ -287,6 +290,15 @@ export default function NewProjectPage() {
   });
 
   const {
+    fields: installationFields,
+    append: appendInstallation,
+    remove: removeInstallation,
+  } = useFieldArray({
+    control,
+    name: 'advancedOptions.installations',
+  });
+
+  const {
     fields: githubRepositories,
     append: appendGithubRepository,
     remove: removeGithubRepository,
@@ -294,6 +306,24 @@ export default function NewProjectPage() {
     control,
     name: 'githubRepositories',
   });
+
+  // State for Jira linking
+  const [jiraLinked, setJiraLinked] = useState(false);
+
+  const handleLinkJira = () => {
+    // Mock Jira OAuth flow:
+    // 1. Set the form value
+    setValue('advancedOptions.linkJira', true);
+    // 2. Update local state to show message and disable button
+    setJiraLinked(true);
+    // Optional: Reset after a few seconds
+    setTimeout(() => {
+      setJiraLinked(false);
+      // We might want to keep the form value as true if the link is persistent
+      // or set it to false if this mock is just for demonstration of the action.
+      // For now, let's keep it true in the form.
+    }, 5000); // Message disappears after 5 seconds
+  };
 
   // Available AI model companies (providers)
   const AI_COMPANIES = ['OpenAI', 'Google', 'Anthropic', 'Cohere', 'Custom'];
@@ -387,7 +417,20 @@ export default function NewProjectPage() {
 
   // Handler for form submission
   const onSubmit = async (data: NewProjectRequest) => {
-    // logger.debug('Submitting new project data:', JSON.stringify(data, null, 2)); // Use logger instead of console.log
+    logger.debug(
+      'Submitting new project data:',
+      JSON.stringify(
+        data,
+        (key, value) => {
+          // Redact sensitive API keys from the log output for security
+          if (key === 'apiKey') {
+            return '***REDACTED***';
+          }
+          return value;
+        },
+        2,
+      ),
+    );
     try {
       // Use mutateAsync to trigger the API call via React Query
       // The handling of loading, success, and error is now managed by useMutation's callbacks
@@ -493,13 +536,21 @@ export default function NewProjectPage() {
                 >
                   API Key (Optional)
                 </label>
-                <input
-                  type="text"
-                  id={`${type}-apiKey-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.apiKey`)}
-                  placeholder="e.g., sk-..."
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
-                />
+                <div className="relative">
+                  <input
+                    type="password"
+                    id={`${type}-apiKey-${index}`}
+                    {...register(`advancedOptions.models.${type}.${index}.apiKey`)}
+                    placeholder="e.g., sk-..."
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 pr-10" // Add pr-10 for potential reveal icon
+                  />
+                  {/* Conditionally display "protected" or a reveal icon */}
+                  {watch(`advancedOptions.models.${type}.${index}.apiKey`) ? (
+                    <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-gray-400">
+                      Protected
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               {/* Remove Button */}
@@ -879,48 +930,105 @@ export default function NewProjectPage() {
                     appendBackupModel,
                     removeBackupModel,
                   )}
-                  {/* Installations input */}
-                  <div>
-                    <label
-                      htmlFor="installations"
-                      className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                      Installations (comma-separated IDs)
-                    </label>
-                    <input
-                      type="text"
-                      id="installations"
-                      {...register('advancedOptions.installations', {
-                        setValueAs: (value: string) =>
-                          value ? value.split(',').map((s) => s.trim()) : [],
-                      })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                      placeholder="e.g., install_123, install_456"
-                    />
-                    {errors.advancedOptions?.installations && (
-                      <p className="mt-2 text-sm text-red-600">
-                        {(errors.advancedOptions.installations as any).message}
-                      </p>
+                  {/* Installations Section */}
+                  <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
+                    <h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
+                    {installationFields.length === 0 && (
+                      <p className="text-sm text-gray-500 mb-3">No installations configured.</p>
                     )}
+                    <div className="space-y-4">
+                      {installationFields.map((field, index) => (
+                        <div
+                          key={field.id}
+                          className="flex flex-col sm:flex-row gap-3 items-center p-3 border border-gray-100 bg-white rounded-md shadow-sm"
+                        >
+                          <div className="flex-1 w-full sm:w-auto">
+                            <label
+                              htmlFor={`installation-${index}`}
+                              className="block text-xs font-medium text-gray-600 mb-1"
+                            >
+                              Installation ID or Type
+                            </label>
+                            <input
+                              type="text"
+                              id={`installation-${index}`}
+                              {...register(`advancedOptions.installations.${index}.value`, {
+                                required: 'Installation is required',
+                              })}
+                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
+                              placeholder="e.g., programming language, GitHub repo, other"
+                            />
+                            {/* Adjusted error access path */}
+                            {errors.advancedOptions?.installations?.[index]?.value && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.advancedOptions.installations[index]?.value?.message}
+                              </p>
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={() => removeInstallation(index)}
+                            variant="destructive"
+                            size="icon"
+                            className="mt-4 sm:mt-auto flex-shrink-0"
+                            aria-label={`Remove installation ${index + 1}`}
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              ></path>
+                            </svg>
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => appendInstallation({ value: '' })}
+                      className="mt-4"
+                    >
+                      <svg
+                        className="-ml-1 mr-2 h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        ></path>
+                      </svg>
+                      Add Installation
+                    </Button>
                   </div>
 
-                  {/* Link Jira checkbox */}
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="linkJira"
-                      {...register('advancedOptions.linkJira')}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="linkJira" className="ml-2 block text-sm text-gray-900">
-                      Link Jira
-                    </label>
-                    {errors.advancedOptions?.linkJira && (
-                      <p className="mt-2 text-sm text-red-600">
-                        {(errors.advancedOptions.linkJira as any).message}
-                      </p>
-                    )}
+                  {/* Link Jira Account Button */}
+                  <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
+                    <h3 className="text-md font-semibold text-gray-800">Link Jira Account</h3>
+                    <Button
+                      type="button"
+                      onClick={handleLinkJira}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={jiraLinked}
+                    >
+                      {jiraLinked ? 'Jira Account Linked!' : 'Link Jira Account'}
+                    </Button>
                   </div>
+                  {jiraLinked && (
+                    <p className="mt-2 text-sm text-green-600">Jira account linked successfully!</p>
+                  )}
                 </div>
               </div>
             </div>
