@@ -104,7 +104,7 @@ describe('costEstimationService', () => {
       AutoTokenizer.from_pretrained.mockImplementation(() => Promise.resolve({}));
       // Set a default mock for pipeline that can be overridden by individual tests
       (pipeline as jest.Mock).mockImplementation(() =>
-        Promise.resolve(jest.fn(async (text: string) => [{ label: 'UNKNOWN', score: 0.5 }]))
+        Promise.resolve(jest.fn(async (text: string) => [{ label: 'UNKNOWN', score: 0.5 }])),
       );
     });
     it('should calculate cost correctly for a given duration', async () => {
@@ -115,7 +115,6 @@ describe('costEstimationService', () => {
         return Promise.resolve([{ label: 'POSITIVE', score: 0.5 }]);
       });
       (pipeline as jest.Mock).mockImplementation(() => Promise.resolve(mockInferenceFunction));
-
 
       // Expected duration based on the mock output (15 - (0.5 * 10)) = 10
       const expectedDuration = 10;
@@ -140,33 +139,33 @@ describe('costEstimationService', () => {
       });
       // Re-mock the pipeline's returned function for this specific test case
       (pipeline as jest.Mock).mockImplementation(() => Promise.resolve(mockInferenceFunction1));
-      let description1 = 'Short project';
+      const description1 = 'Short project';
       let result = await getEstimatedDurationAndCost(description1);
       expect(result.estimatedDuration).toBeCloseTo(6);
       expect(result.calculatedCost).toBeCloseTo((FLAT_RATE_PER_HOUR + HOURLY_AI_API_COST) * 6);
       expect(mockInferenceFunction1).toHaveBeenCalledWith(description1);
-      
+
       resetMLModelStatus(); // Reset service state to force model reload for next test case
-    
+
       // Test 2: Longer duration (simulated)
       const mockInferenceFunction2 = jest.fn(async (text) => {
         return Promise.resolve([{ label: 'NEGATIVE', score: 0.8 }]); // Longer: 20 + 24 = 44 hours
       });
       (pipeline as jest.Mock).mockImplementation(() => Promise.resolve(mockInferenceFunction2));
-      let description2 = 'Very complex and long project description';
+      const description2 = 'Very complex and long project description';
       result = await getEstimatedDurationAndCost(description2);
       expect(result.estimatedDuration).toBeCloseTo(44);
       expect(result.calculatedCost).toBeCloseTo((FLAT_RATE_PER_HOUR + HOURLY_AI_API_COST) * 44);
       expect(mockInferenceFunction2).toHaveBeenCalledWith(description2);
-    
+
       resetMLModelStatus(); // Reset service state to force model reload for next test case
-      
+
       // Test 3: Min duration (ML output below 1, but floored at 1, then at 2 by heuristic)
       const mockInferenceFunction3 = jest.fn(async (text) => {
         return Promise.resolve([{ label: 'POSITIVE', score: 0.99 }]); // Should be very short, like 15 - 9.9 = 5.1 hours
       });
       (pipeline as jest.Mock).mockImplementation(() => Promise.resolve(mockInferenceFunction3));
-      let description3 = 'minimal project';
+      const description3 = 'minimal project';
       result = await getEstimatedDurationAndCost(description3);
       expect(result.estimatedDuration).toBeCloseTo(5.1);
       expect(result.calculatedCost).toBeCloseTo((FLAT_RATE_PER_HOUR + HOURLY_AI_API_COST) * 5.1);
@@ -178,7 +177,7 @@ describe('costEstimationService', () => {
     // No beforeEach here. Each test will set its own specific mock conditions.
     // This ensures that model loading behaves as expected unless explicitly mocked to fail
     // for a specific test case within this suite that needs it to fail.
-  
+
     it('should use heuristic if ML model fails to load', async () => {
       // Intentionally mock the from_pretrained to reject, simulating a load failure
       AutoModelForSequenceClassification.from_pretrained.mockImplementation(() => {
@@ -193,17 +192,17 @@ describe('costEstimationService', () => {
       // if from_pretrained calls resolve, but if from_pretrained calls fail, it won't be called.
       const mockInferenceFunction = jest.fn(() => Promise.resolve([]));
       (pipeline as jest.Mock).mockImplementation(() => Promise.resolve(mockInferenceFunction));
-      
+
       const description = 'A simple project description for testing fallback.';
       const { estimatedDuration, calculatedCost, modelUsed, modelErrorMessage } =
         await getEstimatedDurationAndCost(description);
-  
+
       expect(modelUsed).toBe(false);
       expect(modelErrorMessage).toContain('Failed to load ML model');
       expect(estimatedDuration).toBeGreaterThan(0); // Should be a heuristic value
       const expectedHeuristicCost = (FLAT_RATE_PER_HOUR + HOURLY_AI_API_COST) * estimatedDuration;
       expect(calculatedCost).toBeCloseTo(expectedHeuristicCost);
-  
+
       expect(AutoModelForSequenceClassification.from_pretrained).toHaveBeenCalledTimes(1);
       expect(mockInferenceFunction).not.toHaveBeenCalled(); // Pipeline inference should not be called if model load fails
     });

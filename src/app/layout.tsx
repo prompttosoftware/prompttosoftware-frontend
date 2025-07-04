@@ -15,11 +15,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" dir="ltr">
       <body>
-        <ErrorBoundary> {/* Wrap the entire application with ErrorBoundary */}
+        <ErrorBoundary>
+          {' '}
+          {/* Wrap the entire application with ErrorBoundary */}
           <StripeWrapper>
-            <Providers>
-              {children}
-            </Providers>
+            <Providers>{children}</Providers>
           </StripeWrapper>
         </ErrorBoundary>
       </body>

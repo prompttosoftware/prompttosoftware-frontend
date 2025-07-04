@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input'; // Import Input component
 
-
 import { Label } from '@/components/ui/label';
 import PaymentFormContent from './PaymentFormContent'; // Import the new PaymentFormContent
 import { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from '@/types/payments'; // Import payment types
@@ -24,13 +23,8 @@ import { isAxiosError } from 'axios';
 
 import { logger } from '@/lib/logger';
 
-
-
-
-
 export function PaymentModal() {
-  const { isOpen, closeModal, clientSecret, setClientSecret, clearState } =
-    usePaymentModalStore();
+  const { isOpen, closeModal, clientSecret, setClientSecret, clearState } = usePaymentModalStore();
   const { setError, clearError } = useGlobalErrorStore();
   const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
 
@@ -62,42 +56,44 @@ export function PaymentModal() {
     }
   }, [isOpen, clearState, clearError, setSuccessMessageStore, clientSecret]);
 
-  
-  const validateAmount = useCallback((amountStr: string): boolean => {
-    clearError(); // Clear any previous global errors
-  
-    if (!amountStr) {
-      setError({ message: 'Amount is required.', type: 'error' });
-      return false;
-    }
-  
-    const amount = parseFloat(amountStr);
-  
-    if (isNaN(amount)) {
-      setError({ message: 'Amount must be a number.', type: 'error' });
-      return false;
-    }
-  
-    if (amount <= 0) {
-      setError({ message: 'Amount must be positive.', type: 'error' });
-      return false;
-    }
-    // Stripe minimum amount is 0.50 USD in most cases. Let's enforce a minimum for now.
-    // Assuming currency is USD.
-    if (amount < 0.5) {
-      setError({ message: 'Minimum amount is $0.50.', type: 'error' });
-      return false;
-    }
-  
-    // Optional: Max amount to prevent abuse or huge transactions
-    if (amount > 10000) {
-      setError({ message: 'Maximum amount is $10,000.00.', type: 'error' });
-      return false;
-    }
-  
-    return true;
-  }, [clearError, setError]);
-  
+  const validateAmount = useCallback(
+    (amountStr: string): boolean => {
+      clearError(); // Clear any previous global errors
+
+      if (!amountStr) {
+        setError({ message: 'Amount is required.', type: 'error' });
+        return false;
+      }
+
+      const amount = parseFloat(amountStr);
+
+      if (isNaN(amount)) {
+        setError({ message: 'Amount must be a number.', type: 'error' });
+        return false;
+      }
+
+      if (amount <= 0) {
+        setError({ message: 'Amount must be positive.', type: 'error' });
+        return false;
+      }
+      // Stripe minimum amount is 0.50 USD in most cases. Let's enforce a minimum for now.
+      // Assuming currency is USD.
+      if (amount < 0.5) {
+        setError({ message: 'Minimum amount is $0.50.', type: 'error' });
+        return false;
+      }
+
+      // Optional: Max amount to prevent abuse or huge transactions
+      if (amount > 10000) {
+        setError({ message: 'Maximum amount is $10,000.00.', type: 'error' });
+        return false;
+      }
+
+      return true;
+    },
+    [clearError, setError],
+  );
+
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = e.target;
@@ -114,7 +110,7 @@ export function PaymentModal() {
     },
     [validateAmount, clearError],
   );
-  
+
   const handleInitiatePaymentProcess = useCallback(async () => {
     if (!validateAmount(inputAmount)) {
       setError({
@@ -127,7 +123,7 @@ export function PaymentModal() {
     if (selectedPaymentMethod === 'card') {
       setIsLoadingPaymentIntent(true);
       clearError();
-  
+
       const token = localStorage.getItem('jwtToken');
       if (!token) {
         setError({ message: 'Authentication required. Please log in again.', type: 'error' });
@@ -135,18 +131,20 @@ export function PaymentModal() {
         setIsLoadingPaymentIntent(false);
         return;
       }
-  
+
       const amountInCents = Math.round(parseFloat(inputAmount) * 100);
       const description = 'Funds added to account'; // Default description
-      
-      logger.info(`Attempting to create payment intent for amount: $${parseFloat(inputAmount).toFixed(2)}`);
+
+      logger.info(
+        `Attempting to create payment intent for amount: $${parseFloat(inputAmount).toFixed(2)}`,
+      );
       try {
         const requestBody: CreatePaymentIntentRequest = {
           amount: amountInCents,
           currency: 'usd',
           description: description,
         };
-      
+
         const response = await axiosInstance.post<
           CreatePaymentIntentRequest,
           CreatePaymentIntentResponse
@@ -155,14 +153,14 @@ export function PaymentModal() {
             Authorization: `Bearer ${token}`,
           },
         });
-  
+
         const { clientSecret: newClientSecret } = response;
         setClientSecret(newClientSecret);
         logger.info(`Payment Intent created successfully.`);
         setCurrentModalStep('confirm_card'); // Move to the next step
       } catch (error) {
         logger.error('Failed to create Payment Intent.', error);
-  
+
         if (isAxiosError(error) && error.response) {
           setError({
             message:
@@ -184,8 +182,16 @@ export function PaymentModal() {
       // For now, close modal for PayPal after message
       closeModal();
     }
-  }, [inputAmount, selectedPaymentMethod, validateAmount, setClientSecret, clearError, setError, closeModal]);
-  
+  }, [
+    inputAmount,
+    selectedPaymentMethod,
+    validateAmount,
+    setClientSecret,
+    clearError,
+    setError,
+    closeModal,
+  ]);
+
   return (
     <Dialog open={isOpen} onOpenChange={closeModal}>
       <DialogContent className="sm:max-w-[425px]">
@@ -197,7 +203,7 @@ export function PaymentModal() {
               : 'Confirm your payment details.'}
           </DialogDescription>
         </DialogHeader>
-  
+
         {currentModalStep === 'input_amount' && (
           <>
             <div className="grid gap-4 py-4">
@@ -226,11 +232,14 @@ export function PaymentModal() {
                   className="col-span-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 >
                   <option value="card">Credit Card</option>
-                  <option value="paypal" disabled>PayPal (Coming Soon)</option> {/* PayPal disabled for now */}
+                  <option value="paypal" disabled>
+                    PayPal (Coming Soon)
+                  </option>{' '}
+                  {/* PayPal disabled for now */}
                 </select>
               </div>
             </div>
-  
+
             <DialogFooter>
               <Button variant="outline" onClick={closeModal} disabled={isLoadingPaymentIntent}>
                 Cancel
@@ -244,7 +253,7 @@ export function PaymentModal() {
             </DialogFooter>
           </>
         )}
-  
+
         {currentModalStep === 'confirm_card' && clientSecret && (
           <>
             <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md mb-4 mt-4">
@@ -266,9 +275,9 @@ export function PaymentModal() {
         )}
         {/* If clientSecret is null but step is confirm_card, something went wrong. */}
         {currentModalStep === 'confirm_card' && !clientSecret && (
-            <div className="py-4 text-center text-red-600">
-                Error: Payment details could not be loaded. Please try again.
-            </div>
+          <div className="py-4 text-center text-red-600">
+            Error: Payment details could not be loaded. Please try again.
+          </div>
         )}
       </DialogContent>
     </Dialog>

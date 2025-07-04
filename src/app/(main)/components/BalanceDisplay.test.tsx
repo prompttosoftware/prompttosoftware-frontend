@@ -29,16 +29,22 @@ const handlers = [
     }
 
     if (scenario === 'no-balance') {
-      return HttpResponse.json({ id: '1', username: 'testuser', email: 'test@example.com' }, { status: 200 });
+      return HttpResponse.json(
+        { id: '1', username: 'testuser', email: 'test@example.com' },
+        { status: 200 },
+      );
     }
 
     // Default successful response
-    return HttpResponse.json({
-      id: '1',
-      username: 'testuser',
-      email: 'test@example.com',
-      balance: 123.45,
-    }, { status: 200 });
+    return HttpResponse.json(
+      {
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        balance: 123.45,
+      },
+      { status: 200 },
+    );
   }),
 ];
 
@@ -51,7 +57,7 @@ describe('BalanceDisplay Integration', () => {
     useUserProfileQuery(); // Use the imported hook directly
     return null;
   };
-  
+
   const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <QueryClientProvider client={queryClient}>
@@ -77,7 +83,7 @@ describe('BalanceDisplay Integration', () => {
     });
     useBalanceStore.setState({ balance: 0 });
     server.resetHandlers();
-    logger.error.mockClear(); 
+    logger.error.mockClear();
   });
 
   afterEach(() => {
@@ -92,9 +98,12 @@ describe('BalanceDisplay Integration', () => {
     server.use(
       http.get('/api/auth/me', () => {
         return HttpResponse.json({
-          id: '1', username: 'testuser', email: 'test@example.com', balance: 543.21
+          id: '1',
+          username: 'testuser',
+          email: 'test@example.com',
+          balance: 543.21,
         });
-      })
+      }),
     );
 
     render(<BalanceDisplay />, { wrapper: TestWrapper });
@@ -108,9 +117,11 @@ describe('BalanceDisplay Integration', () => {
     server.use(
       http.get('/api/auth/me', () => {
         return HttpResponse.json({
-          id: '1', username: 'testuser', email: 'test@example.com',
+          id: '1',
+          username: 'testuser',
+          email: 'test@example.com',
         });
-      })
+      }),
     );
 
     render(<BalanceDisplay />, { wrapper: TestWrapper });
@@ -122,7 +133,7 @@ describe('BalanceDisplay Integration', () => {
 
   it('should update the displayed balance automatically when the store changes', async () => {
     act(() => {
-      useBalanceStore.setState({ balance: 100.00 });
+      useBalanceStore.setState({ balance: 100.0 });
     });
 
     render(<BalanceDisplay />, { wrapper: TestWrapper });
@@ -149,7 +160,7 @@ describe('BalanceDisplay Integration', () => {
     server.use(
       http.get('/api/auth/me', () => {
         return HttpResponse.json({ message: 'Internal Server Error' }, { status: 500 });
-      })
+      }),
     );
 
     render(<BalanceDisplay />, { wrapper: TestWrapper });
@@ -163,12 +174,15 @@ describe('BalanceDisplay Integration', () => {
       expect(screen.getByText('$0.00')).toBeInTheDocument();
     });
 
-    await waitFor(() => {
-      expect(logger.error).toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.stringContaining('Error fetching user profile:'),
-        expect.any(Error)
-      );
-    }, { timeout: 7000 }); // Increase timeout to 7 seconds just in case
+    await waitFor(
+      () => {
+        expect(logger.error).toHaveBeenCalled();
+        expect(logger.error).toHaveBeenCalledWith(
+          expect.stringContaining('Error fetching user profile:'),
+          expect.any(Error),
+        );
+      },
+      { timeout: 7000 },
+    ); // Increase timeout to 7 seconds just in case
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -26,7 +26,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // You can also log the error to an error reporting service
-    logger.error("ErrorBoundary caught an error:", error, errorInfo);
+    logger.error('ErrorBoundary caught an error:', error, errorInfo);
     // Optionally, set global error store if display needs to match global system
     // import { setGlobalError } from '@/store/globalErrorStore';
     // setGlobalError({ message: "A critical client-side error occurred.", type: "error", details: error.message });
@@ -41,11 +41,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       return (
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
           <div className="text-center p-8 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">
-              Oops! Something went wrong.
-            </h1>
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Oops! Something went wrong!</h1>
             <p className="text-gray-700 mb-2">
-              We're sorry for the inconvenience. Our team has been notified.
+              We&apos;re sorry for the inconvenience. Our team has been notified.
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div className="mt-4 p-4 bg-gray-100 rounded-md text-left">

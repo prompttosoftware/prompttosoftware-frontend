@@ -9,7 +9,6 @@ configure({
 // This is often needed because JSDOM does not fully implement BroadcastChannel
 // which MSW uses for coordination between mocked requests.
 
-
 class MockBroadcastChannel {
   constructor(name: string) {}
   postMessage(message: any) {}

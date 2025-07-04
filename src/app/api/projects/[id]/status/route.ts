@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // In-memory store for project statuses
 // In a real application, this would come from a database or a persistent store.
-const projectStatuses: { [key: string]: { elapsedTime: number; cost: number; progress: number; status: string } } = {};
+const projectStatuses: {
+  [key: string]: { elapsedTime: number; cost: number; progress: number; status: string };
+} = {};
 
 // Function to simulate dynamic project status updates
 function getOrCreateProjectStatus(projectId: string) {
@@ -18,18 +20,15 @@ function getOrCreateProjectStatus(projectId: string) {
   return projectStatuses[projectId];
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const projectId = params.id;
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const projectId = params.id; // Access projectId from context.params
   const projectStatus = getOrCreateProjectStatus(projectId);
 
   // Simulate progress
   if (projectStatus.progress < 100) {
     projectStatus.elapsedTime += 1; // Increment elapsed time by 1 second
     projectStatus.cost += 0.5; // Increment cost
-    
+
     // Gradually increase progress
     if (projectStatus.progress < 25) {
       projectStatus.progress += Math.random() * 5; // Faster initial progress
@@ -41,7 +40,7 @@ export async function GET(
       projectStatus.progress += Math.random() * 0.5; // Slower progress near completion
       projectStatus.status = 'in_progress';
     }
-    
+
     projectStatus.progress = Math.min(projectStatus.progress, 100); // Cap at 100
   } else {
     projectStatus.status = 'completed';
@@ -57,7 +56,7 @@ export async function GET(
     message: `Project ${projectId} is ${projectStatus.status}.`,
     elapsedTime: projectStatus.elapsedTime,
     cost: projectStatus.cost,
-pendingSensitiveRequest: false,
+    pendingSensitiveRequest: false,
     updatedAt: new Date().toISOString(),
     createdAt: new Date().toISOString(), // In a real app, this would be the actual creation time
   };

@@ -103,5 +103,5 @@ export const setupHttpClientInterceptors = (router: AppRouterInstance) => {
   );
 };
 
-// Export axiosInstance to be used directly by services
-export default axiosInstance;
+// Export axiosInstance to be used directly by services, renaming for clarity in imports
+export { axiosInstance as httpClient };

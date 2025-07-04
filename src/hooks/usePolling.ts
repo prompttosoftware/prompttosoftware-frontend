@@ -21,16 +21,12 @@ export const useGenericPolling = <TData>(url: string, options?: UsePollingOption
     // which handles pausing/resuming polling when the tab/window is not in focus.
     staleTime: Infinity, // Data is always considered stale on refetchInterval
     retry: 3, // Retry failed requests 3 times
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff retry delay
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff retry delay
   });
 };
 
 // Specific hook for polling ProjectStatus
-interface UseProjectStatusPollingOptions extends UsePollingOptions {
-  // Add any specific options for project status polling if needed
-}
-
-export const usePolling = (projectId: string, options?: UseProjectStatusPollingOptions) => {
+export const usePolling = (projectId: string, options?: UsePollingOptions) => {
   const url = `/projects/${projectId}/status`;
   const defaultRefetchInterval = 60 * 1000; // 1 minute in milliseconds
 
@@ -44,7 +40,7 @@ export const usePolling = (projectId: string, options?: UseProjectStatusPollingO
     // Refetch when window regains focus or network reconnects (React Query default)
     staleTime: Infinity, // Data is always considered stale on refetchInterval
     retry: 3, // Retry failed requests 3 times
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff retry delay
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff retry delay
     enabled: !!projectId, // Only run the query if projectId is provided
   });
 };

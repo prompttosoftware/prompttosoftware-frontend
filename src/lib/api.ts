@@ -1,9 +1,9 @@
-import axiosInstance from './httpClient'; // Renamed httpClient to axiosInstance for consistency
+import { httpClient } from './httpClient'; // Use named import for httpClient
 import { setupHttpClientInterceptors } from './httpClient';
 import { paymentsService } from '../services/paymentsService'; // Import the PaymentsService
 
-// Re-export axiosInstance
-export const api = axiosInstance;
+// Re-export httpClient as api
+export const api = httpClient;
 
 // Re-export setupHttpClientInterceptors (though it should generally be called once at app startup)
 export const setupInterceptors = setupHttpClientInterceptors;
@@ -16,6 +16,6 @@ export {
 };
 
 export const fetchUserProfile = async (): Promise<UserProfile> => {
-  const response = await axiosInstance.get('/auth/me');
+  const response = await httpClient.get('/auth/me');
   return response.data;
 };

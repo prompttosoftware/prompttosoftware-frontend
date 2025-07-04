@@ -11,7 +11,11 @@ interface NewRepositoryFieldsProps {
 }
 
 export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index, onRemove }) => {
-  const { register, control, formState: { errors } } = useFormContext(); // Use useFormContext
+  const {
+    register,
+    control,
+    formState: { errors },
+  } = useFormContext(); // Use useFormContext
 
   // For checkbox, use useController as it correctly handles boolean values
   const { field: privateField } = useController({
@@ -36,20 +40,24 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
             type="text"
             {...register(`githubRepositories.${index}.name`)} // Changed to 'name'
             placeholder="e.g., my-awesome-repo"
-            aria-invalid={errors.githubRepositories?.[index]?.type === 'new' && !!(errors.githubRepositories?.[index] as any)?.name}
+            aria-invalid={
+              errors.githubRepositories?.[index]?.type === 'new' &&
+              !!(errors.githubRepositories?.[index] as any)?.name
+            }
           />
-          {errors.githubRepositories?.[index]?.type === 'new' && (errors.githubRepositories[index] as any)?.name && (
-            <p className="text-red-500 text-xs mt-1">
-              {(errors.githubRepositories[index] as any).name.message}
-            </p>
-          )}
+          {errors.githubRepositories?.[index]?.type === 'new' &&
+            (errors.githubRepositories[index] as any)?.name && (
+              <p className="text-red-500 text-xs mt-1">
+                {(errors.githubRepositories[index] as any).name.message}
+              </p>
+            )}
         </div>
         <div>
           <Label htmlFor={`new-repo-org-${index}`}>Organization Name (Optional)</Label>
           <Input
             id={`new-repo-org-${index}`}
             type="text"
-            {...register(`githubRepositories.${index}.organizationName`)}
+            {...register(`githubRepositories.${index}.organization`)}
             placeholder="e.g., my-organization"
           />
         </div>

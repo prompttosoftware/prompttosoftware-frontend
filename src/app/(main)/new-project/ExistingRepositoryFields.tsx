@@ -9,8 +9,14 @@ interface ExistingRepositoryFieldsProps {
   onRemove: () => void;
 }
 
-export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> = ({ index, onRemove }) => {
-  const { register, formState: { errors } } = useFormContext(); // Use useFormContext
+export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> = ({
+  index,
+  onRemove,
+}) => {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext(); // Use useFormContext
 
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
@@ -27,13 +33,17 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
           type="text"
           {...register(`githubRepositories.${index}.url`)}
           placeholder="e.g., https://github.com/username/repo"
-          aria-invalid={errors.githubRepositories?.[index]?.type === 'existing' && !!(errors.githubRepositories?.[index] as any)?.url}
+          aria-invalid={
+            errors.githubRepositories?.[index]?.type === 'existing' &&
+            !!(errors.githubRepositories?.[index] as any)?.url
+          }
         />
-        {errors.githubRepositories?.[index]?.type === 'existing' && (errors.githubRepositories[index] as any)?.url && (
-          <p className="text-red-500 text-xs mt-1">
-            {(errors.githubRepositories[index] as any).url.message}
-          </p>
-        )}
+        {errors.githubRepositories?.[index]?.type === 'existing' &&
+          (errors.githubRepositories[index] as any)?.url && (
+            <p className="text-red-500 text-xs mt-1">
+              {(errors.githubRepositories[index] as any).url.message}
+            </p>
+          )}
       </div>
     </div>
   );
