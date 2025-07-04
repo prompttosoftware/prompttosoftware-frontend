@@ -37,5 +37,9 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
-
+module.exports = {
+  ...nextConfig,
+  env: {
+    NEXT_PUBLIC_API_BASE_URL: 'http://developer:8080/api',
+  },
+};

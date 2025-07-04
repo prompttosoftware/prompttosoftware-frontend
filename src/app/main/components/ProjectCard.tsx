@@ -46,6 +46,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           <span className="ml-2">⭐ {project.githubStars}</span>
         )}
       </div>
+      {project.createdAt && (
+<div className="text-gray-400 text-xs mt-1">
+  Created: {new Date(project.createdAt).toLocaleDateString()}
+</div>
+      )}
     </div>
   );
 };
