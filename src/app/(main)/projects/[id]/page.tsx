@@ -5,10 +5,16 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios'; // Assuming axios is installed and configured
 import { useAuth } from '@/hooks/useAuth'; // Assuming this hook handles authentication state
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Assuming this component exists
-import EmptyState from '@/app/(main)/components/EmptyState'; // Add this import
-import ProjectStatusDemo from '@/app/(main)/components/ProjectStatusDemo'; // Import ProjectStatusDemo
+import EmptyState from '@/app/(main)/components/EmptyState';
+import { AlertCircle } from 'lucide-react'; // Import AlertCircle for error icon
+import { usePolling } from '@/hooks/usePolling'; // Import usePolling hook
+import { ProjectStatus } from '@/types/project'; // Import ProjectStatus type
 
 import { format } from 'date-fns'; // Import format function from date-fns
+import { intervalToDuration } from 'date-fns'; // Import intervalToDuration from date-fns
+import { formatDuration, formatCurrency } from '@/lib/formatters'; // Import formatting utilities
+
+
 
 // Define a type for your project data
 interface Project {
@@ -18,6 +24,14 @@ interface Project {
   repositoryUrl: string;
   createdAt: string; // ISO date string
   // Add other relevant project fields here
+}
+
+// State for live project metrics
+interface LiveProjectMetrics {
+  status: 'pending' | 'in-progress' | 'completed' | 'failed';
+  elapsedTime: number;
+  cost: number;
+  progress: number;
 }
 
 interface ProjectDetailProps {
@@ -34,6 +48,31 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
   const [error, setError] = useState<string | null>(null);
   const [isFetchingProject, setIsFetchingProject] = useState<boolean>(true);
   const [hasFetched, setHasFetched] = useState<boolean>(false); // To prevent re-fetching on re-renders if not needed
+  
+  const [liveMetrics, setLiveMetrics] = useState<LiveProjectMetrics>({
+    status: 'pending',
+    elapsedTime: 0,
+    cost: 0,
+    progress: 0,
+  });
+  
+  const {
+    data: pollingData,
+    isLoading: isPollingLoading,
+    error: pollingError,
+  } = usePolling(id, { refetchInterval: 60000 }); // Poll every 1 minute (60 seconds) as per acceptance criteria for elapsed time
+  
+  // Update live metrics state when polling data changes
+  useEffect(() => {
+    if (pollingData) {
+      setLiveMetrics({
+        status: pollingData.status,
+        elapsedTime: pollingData.elapsedTime,
+        cost: pollingData.cost,
+        progress: pollingData.progress,
+      });
+    }
+  }, [pollingData]);
 
   // Authentication check and redirection
   useEffect(() => {
@@ -159,7 +198,7 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
                 <div>
                   <p className="text-sm font-medium text-gray-500">Created At:</p>
                   <p className="text-base text-gray-700 mt-1">
-                    {format(new Date(project.createdAt), 'MMMM d, yyyy \'at\' hh:mm a')}
+                    {format(new Date(project.createdAt), 'MMMM d, yyyy \\'at\\' hh:mm a')}
                   </p>
                 </div>
               </div>
@@ -168,7 +207,31 @@ const ProjectDetailPage: React.FC<ProjectDetailProps> = ({ params }) => {
             {/* Live Status Metrics */}
             <div className="bg-white shadow-md rounded-lg p-6 mb-6">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Live Status</h2>
-              <ProjectStatusDemo projectId={id} />
+              {isPollingLoading ? (
+  <div className="flex flex-col items-center justify-center p-4">
+    <LoadingSpinner />
+    <p className="mt-4 text-lg text-gray-600">Loading live project updates...</p>
+  </div>
+) : pollingError ? (
+  <EmptyState
+    icon={<AlertCircle className="w-12 h-12 text-red-500" />}
+    title="Could not retrieve live project updates"
+    message={pollingError.message || "There was an issue fetching the latest project status. Please check your connection or try again later."}
+  />
+) : !pollingData ? ( // Handle case where data is null after loading and no explicit error
+  <EmptyState
+    title="No live status available"
+    message="The project status could not be loaded or is not yet available."
+  />
+) : (
+  <div className="p-4 border border-blue-200 rounded-md shadow-md bg-blue-50">
+    <p className="text-blue-700">Status: <span className="font-medium capitalize">{liveMetrics.status}</span></p>
+    <p className="text-blue-700">Elapsed Time: <span className="font-medium">{formatDuration(intervalToDuration({ start: 0, end: liveMetrics.elapsedTime * 1000 }), { format: ['hours', 'minutes', 'seconds'], zero: true, delimiter: ', ' })}</span></p>
+    <p className="text-blue-700">Cost: <span className="font-medium">{formatCurrency(liveMetrics.cost)}</span></p>
+    <p className="text-blue-700">Progress: <span className="font-medium">{liveMetrics.progress}%</span></p>
+    <p className="text-xs text-blue-500 mt-2">Last updated: {pollingData.updatedAt ? format(new Date(pollingData.updatedAt), 'hh:mm:ss a') : 'N/A'}</p>
+  </div>
+)}
             </div>
         
             {/* Placeholders for control buttons */}

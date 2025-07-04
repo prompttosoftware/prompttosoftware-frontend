@@ -29,5 +29,40 @@ export const handlers = [
     return HttpResponse.json(mockStatus, { status: 200 });
   }),
 
-  // Add other handlers as needed
+  // Handler for GET /api/projects/:id
+http.get('/api/projects/:id', ({ params }) => {
+  const { id } = params;
+  const mockProject = {
+    id: id as string,
+    name: `Mock Project ${id}`,
+    description: `Description for mock project ${id}`,
+    repositoryUrl: `https://github.com/mockproject/${id}`,
+    status: 'active',
+    elapsedTime: Math.floor(Math.random() * 1000),
+    cost: parseFloat((Math.random() * 500).toFixed(2)),
+    progress: Math.floor(Math.random() * 100),
+    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    updatedAt: new Date().toISOString(),
+  };
+  return HttpResponse.json(mockProject, { status: 200 });
+}),
+
+// Handler for POST /api/projects (New Project creation)
+let nextProjectId = 1; // Simple counter for unique project IDs
+http.post('/api/projects', async ({ request }) => {
+  const newProjectData = await request.json();
+  console.log('MSW: Received new project request:', newProjectData);
+
+  // Simulate a successful creation
+  const projectId = `project-${nextProjectId++}`;
+  return HttpResponse.json(
+    {
+      projectId: projectId,
+      message: 'Project created successfully!',
+    },
+    { status: 201 }
+  );
+}),
+
+// Add other handlers as needed
 ];

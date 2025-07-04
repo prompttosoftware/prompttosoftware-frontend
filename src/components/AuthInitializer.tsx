@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useBalanceStore } from '@/store/balanceStore';
 import { usePathname } from 'next/navigation';
 
