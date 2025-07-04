@@ -24,7 +24,7 @@ function LoginContent() {
       setAuthError(null);
       try {
         const response = await api.post('/auth/github', { code }); // Use axios instance
-        console.log('Auth successful:', response.data);
+        console.warn('Auth successful:', response.data);
 
         // Instead of directly manipulating localStorage here, use the login function from useAuth
         // This ensures the AuthContext is updated and handles storing the token/user data
@@ -59,7 +59,7 @@ function LoginContent() {
     if (code) {
       if (!loading) {
         // Prevent multiple calls if already loading
-        console.log('GitHub OAuth code received:', code);
+        console.warn('GitHub OAuth code received:', code);
         exchangeCodeForToken(code);
       }
     } else if (error) {

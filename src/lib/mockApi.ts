@@ -31,7 +31,7 @@ export const setupMockApiErrors = () => {
     }
 
     // Default successful response if no error is triggered
-    console.log('MOCK API: Responding with success for /payments/create-intent');
+    console.warn('MOCK API: Responding with success for /payments/create-intent');
     const mockResponse: CreatePaymentIntentResponse = {
       clientSecret: 'pi_mock_success_secret',
       paymentIntentId: 'pi_mock_success_id',

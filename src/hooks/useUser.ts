@@ -30,7 +30,7 @@ export const useAuth = () => {
         logger.warn('401 Unauthorized response detected in useAuth. Clearing JWT.');
         try {
           localStorage.removeItem('jwt'); // Clear the invalid or expired JWT
-          logger.info('JWT token cleared from localStorage.');
+          logger.warn('JWT token cleared from localStorage.');
         } catch (clearErr) {
           logger.error('Failed to clear JWT token from localStorage:', clearErr);
         }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFormContext, useController } from 'react-hook-form';
+import { useFormContext, useController, FieldErrors, FieldError } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -15,14 +15,20 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
     register,
     control,
     formState: { errors },
-  } = useFormContext(); // Use useFormContext
+  } = useFormContext();
 
-  // For checkbox, use useController as it correctly handles boolean values
   const { field: privateField } = useController({
     name: `githubRepositories.${index}.isPrivate`,
     control,
-    defaultValue: false, // Ensure default value is boolean
+    defaultValue: false,
   });
+
+  // Type assertion for githubRepositories errors for easier access
+  type GithubRepoErrors = { name?: FieldError; organization?: FieldError; isPrivate?: FieldError };
+  const githubRepositoriesErrors = errors.githubRepositories as GithubRepoErrors[] | undefined;
+
+  const currentRepoErrors = githubRepositoriesErrors?.[index];
+  const nameError = currentRepoErrors?.name;
 
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
@@ -38,19 +44,11 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
           <Input
             id={`new-repo-name-${index}`}
             type="text"
-            {...register(`githubRepositories.${index}.name`)} // Changed to 'name'
+            {...register(`githubRepositories.${index}.name`)}
             placeholder="e.g., my-awesome-repo"
-            aria-invalid={
-              errors.githubRepositories?.[index]?.type === 'new' &&
-              !!(errors.githubRepositories?.[index] as any)?.name
-            }
+            aria-invalid={!!nameError}
           />
-          {errors.githubRepositories?.[index]?.type === 'new' &&
-            (errors.githubRepositories[index] as any)?.name && (
-              <p className="text-red-500 text-xs mt-1">
-                {(errors.githubRepositories[index] as any).name.message}
-              </p>
-            )}
+          {nameError && <p className="text-red-500 text-xs mt-1">{nameError.message}</p>}
         </div>
         <div>
           <Label htmlFor={`new-repo-org-${index}`}>Organization Name (Optional)</Label>

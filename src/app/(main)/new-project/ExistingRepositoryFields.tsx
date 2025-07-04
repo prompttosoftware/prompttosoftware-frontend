@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, FieldErrors, FieldError } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,18 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
   const {
     register,
     formState: { errors },
+    watch, // Access watch from useFormContext
   } = useFormContext(); // Use useFormContext
+
+  const repoType = watch(`githubRepositories.${index}.type`); // Watch the type of the current repository
+
+  // Explicitly cast the errors for githubRepositories to tell TypeScript its structure
+  const githubRepoErrors = errors.githubRepositories as
+    | FieldErrors<Record<string, { url?: FieldError }>>
+    | undefined;
+  const urlError = githubRepoErrors?.[index]?.url; // Now access is type-safe
+
+  const isInvalid = repoType === 'existing' && !!urlError;
 
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
@@ -33,17 +44,11 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
           type="text"
           {...register(`githubRepositories.${index}.url`)}
           placeholder="e.g., https://github.com/username/repo"
-          aria-invalid={
-            errors.githubRepositories?.[index]?.type === 'existing' &&
-            !!(errors.githubRepositories?.[index] as any)?.url
-          }
+          aria-invalid={isInvalid}
         />
-        {errors.githubRepositories?.[index]?.type === 'existing' &&
-          (errors.githubRepositories[index] as any)?.url && (
-            <p className="text-red-500 text-xs mt-1">
-              {(errors.githubRepositories[index] as any).url.message}
-            </p>
-          )}
+        {isInvalid && urlError?.message && (
+          <p className="text-red-500 text-xs mt-1">{String(urlError.message)}</p>
+        )}
       </div>
     </div>
   );
