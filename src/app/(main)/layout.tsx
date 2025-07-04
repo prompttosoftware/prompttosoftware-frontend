@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react'; // Added useContext
 import SideNavBar from './components/SideNavBar';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import ErrorModal from './components/ErrorModal';
@@ -13,7 +13,7 @@ import { PaymentModal } from './components/PaymentModal';
 import { useBannerStore } from '@/store/bannerStore';
 import { StripeWrapper } from '@/components/StripeWrapper';
 import ConfirmationDialog from './components/ConfirmationDialog';
-import { AuthProvider } from '@/lib/AuthContext';
+import { AuthProvider, AuthContext } from '@/lib/AuthContext'; // Import AuthContext as well
 import TutorialOverlay from '@/components/TutorialOverlay';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -27,6 +27,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }, [initializeBanners]);
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
+
+  // Destructure showTutorial and setShowTutorial from AuthContext
+  // This must be called inside the AuthProvider's children.
+  // Since MainLayout *is* a child of AuthProvider (indirectly via return statement), this is correct.
+  const { showTutorial, setShowTutorial } = useContext(AuthContext);
 
   return (
     <AuthProvider>
@@ -76,7 +81,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <StripeWrapper>
           <PaymentModal />
         </StripeWrapper>
-        <TutorialOverlay />
+        {showTutorial && <TutorialOverlay showTutorial={showTutorial} setShowTutorial={setShowTutorial} />}
       </div>
     </AuthProvider>
   );
