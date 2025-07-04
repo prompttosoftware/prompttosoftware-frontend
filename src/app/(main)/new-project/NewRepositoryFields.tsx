@@ -34,12 +34,13 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
           <Input
             id={`new-repo-name-${index}`}
             type="text"
-            {...register(`githubRepositories.${index}.name`, { required: 'Repository name is required' })}
+            {...register(`githubRepositories.${index}.name`)} // Changed to 'name'
             placeholder="e.g., my-awesome-repo"
+            aria-invalid={errors.githubRepositories?.[index]?.type === 'new' && !!(errors.githubRepositories?.[index] as any)?.name}
           />
-          {errors.githubRepositories?.[index]?.name && (
+          {errors.githubRepositories?.[index]?.type === 'new' && (errors.githubRepositories[index] as any)?.name && (
             <p className="text-red-500 text-xs mt-1">
-              {errors.githubRepositories[index].name.message as string}
+              {(errors.githubRepositories[index] as any).name.message}
             </p>
           )}
         </div>
@@ -48,7 +49,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
           <Input
             id={`new-repo-org-${index}`}
             type="text"
-            {...register(`githubRepositories.${index}.organization`)}
+            {...register(`githubRepositories.${index}.organizationName`)}
             placeholder="e.g., my-organization"
           />
         </div>
