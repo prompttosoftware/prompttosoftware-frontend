@@ -13,7 +13,7 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { AddPaymentButton } from './AddPaymentButton';
+import { AddPaymentButton } from './AddPaymentButton';\nimport { WatchAdButton } from './WatchAdButton';
 
 const navigationItems = [
   { name: 'Home/Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -116,6 +116,14 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
             } text-gray-300`}
           >
             <AddPaymentButton />
+          </div>
+                  {/* Watch Ad Button */}
+          <div
+            className={`flex items-center p-3 rounded-lg text-sm font-medium ${
+              isExpanded ? 'justify-start' : 'justify-center'
+            } text-gray-300`}
+          >
+            <WatchAdButton />
           </div>
         </nav>
 
