@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useContext } from 'react'; // Added useContext
+import React, { useState, useEffect, useContext } from 'react'; // Added useEffect
 import SideNavBar from './components/SideNavBar';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import ErrorModal from './components/ErrorModal';
@@ -8,30 +8,32 @@ import ProfileButton from './components/ProfileButton';
 import AddPaymentButton from './components/AddPaymentButton';
 import BalanceDisplay from './components/BalanceDisplay';
 import WatchAdButton from './components/WatchAdButton';
-// import BannerDisplay from './components/BannerDisplay'; // Temporarily disabled
 import { PaymentModal } from './components/PaymentModal';
-// import { useBannerStore } from '@/store/bannerStore'; // Temporarily disabled
+import { useBannerStore } from '@/store/bannerStore'; // Corrected import
 import { StripeWrapper } from '@/components/StripeWrapper';
 import ConfirmationDialog from './components/ConfirmationDialog';
-import { AuthProvider, AuthContext } from '@/lib/AuthContext'; // Import AuthContext as well
+import { AuthProvider, AuthContext } from '@/lib/AuthContext';
 import TutorialOverlay from '@/components/TutorialOverlay';
+import BannerDisplay from './components/BannerDisplay';
+import { Banner } from '@/types/banner';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  // const initializeBanners = useBannerStore((state) => state.initializeBanners); // Temporarily disabled
+  const initBanners = useBannerStore((state) => state.initBanners);
 
-  // React.useEffect(() => { // Temporarily disabled
-  //   initializeBanners(); // Temporarily disabled
-  // }, [initializeBanners]); // Temporarily disabled
+  useEffect(() => {
+    const initialBanners: Omit<Banner, 'id'>[] = [
+      { message: "This website was created from a single prompt!", type: 'info', dismissible: false },
+      { message: "Welcome to our new feature! Check it out.", type: 'success', dismissible: true },
+      { message: "Heads up! Some services might be temporarily unavailable.", type: 'warning', dismissible: true },
+      { message: "Just an informative message for you.", type: 'info', dismissible: true },
+    ];
+    initBanners(initialBanners);
+  }, [initBanners]);
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
-
-  // Destructure showTutorial and setShowTutorial from AuthContext
-  // This must be called inside the AuthProvider's children.
-  // Since MainLayout *is* a child of AuthProvider (indirectly via return statement), this is correct.
-  const { showTutorial, setShowTutorial } = useContext(AuthContext);
 
   return (
     <AuthProvider>
@@ -67,7 +69,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
           </header>
 
-          <div className="p-4 flex-shrink-0">{/* <BannerDisplay /> Temporarily disabled */}</div>
+          <div className="p-4 flex-shrink-0">
+            <BannerDisplay />
+          </div>
 
           <main className="flex-1 p-8">{children}</main>
         </div>
@@ -77,8 +81,19 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <StripeWrapper>
           <PaymentModal />
         </StripeWrapper>
-        {/* {showTutorial && <TutorialOverlay showTutorial={showTutorial} setShowTutorial={setShowTutorial} />} */}
+        {/* The TutorialOverlay logic will need to correctly use AuthContext within its own scope */}
+        <TutorialOverlayWrapper />
       </div>
     </AuthProvider>
   );
+}
+
+// New component to wrap TutorialOverlay and use AuthContext correctly
+function TutorialOverlayWrapper() {
+  // This should be inside a component that is a child of AuthProvider
+  const { showTutorial, setShowTutorial } = useContext(AuthContext);
+
+  if (!showTutorial) return null;
+
+  return <TutorialOverlay showTutorial={showTutorial} setShowTutorial={setShowTutorial} />;
 }
