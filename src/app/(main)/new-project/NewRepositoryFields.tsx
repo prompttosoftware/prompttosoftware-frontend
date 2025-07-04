@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext, useController, FieldError } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+
 
 interface NewRepositoryFieldsProps {
   index: number;
@@ -15,6 +16,8 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
     register,
     control,
     formState: { errors },
+    setValue, // Make setValue available from useFormContext
+    watch, // Make watch available from useFormContext
   } = useFormContext();
 
   const { field: privateField } = useController({
@@ -23,12 +26,16 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
     defaultValue: false,
   });
 
+  
+
   // Type assertion for githubRepositories errors for easier access
   type GithubRepoErrors = { name?: FieldError; organization?: FieldError; isPrivate?: FieldError };
   const githubRepositoriesErrors = errors.githubRepositories as GithubRepoErrors[] | undefined;
-
+  
   const currentRepoErrors = githubRepositoriesErrors?.[index];
   const nameError = currentRepoErrors?.name;
+
+  
 
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
@@ -68,6 +75,8 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
           <Label htmlFor={`new-repo-private-${index}`}>Private Repository</Label>
         </div>
       </div>
+
+      
     </div>
   );
 };

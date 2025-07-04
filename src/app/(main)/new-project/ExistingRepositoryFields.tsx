@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFormContext, FieldErrors, FieldError } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+
 
 interface ExistingRepositoryFieldsProps {
   index: number;
@@ -17,7 +18,11 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
     register,
     formState: { errors },
     watch, // Access watch from useFormContext
+    setValue, // Add setValue
   } = useFormContext(); // Use useFormContext
+
+  
+
 
   const repoType = watch(`githubRepositories.${index}.type`); // Watch the type of the current repository
 
@@ -28,6 +33,8 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
   const urlError = githubRepoErrors?.[index]?.url; // Now access is type-safe
 
   const isInvalid = repoType === 'existing' && !!urlError;
+
+  
 
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
@@ -50,6 +57,8 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
           <p className="text-red-500 text-xs mt-1">{String(urlError.message)}</p>
         )}
       </div>
+
+      
     </div>
   );
 };
