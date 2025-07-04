@@ -1,295 +1,111 @@
-'use client'; // This directive indicates that this component should be rendered on the client side.
+'use client';
 
-import { useState, useEffect } from 'react';
-import {
-  useForm,
-  useFieldArray,
-  useFormContext,
-  FormProvider,
-  FieldArrayWithId, // Add FieldArrayWithId
-  FieldErrorsImpl, // Add FieldErrorsImpl for type safety with nested errors
-} from 'react-hook-form';
-import useDebounce from '@/hooks/useDebounce'; // Import useDebounce hook
+import React, { useState, useEffect, useCallback } from 'react';
+import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Import shadcn/ui DropdownMenu components
-import LoadingSpinner from '@/app/(main)/components/LoadingSpinner'; // Import LoadingSpinner
-import ApiKeyInput from '@/app/(main)/components/ApiKeyInput'; // Import ApiKeyInput
 import {
-  getEstimatedDurationAndCost,
-  FLAT_RATE_PER_HOUR,
-  HOURLY_AI_API_COST,
-} from '@/services/costEstimationService'; // Import cost estimation service
-import { useRouter } from 'next/navigation'; // Using next/navigation for router functionalities
-import { useGlobalError } from '@/hooks/useGlobalError'; // Importing the global error hook
-import { NewRepositoryFields } from './NewRepositoryFields'; // Import NewRepositoryFields
-import { ExistingRepositoryFields } from './ExistingRepositoryFields'; // Import ExistingRepositoryFields
-import axios from 'axios'; // Import axios
-import { axiosInstance } from '@/lib/httpClient'; // Import axiosInstance
-import { logger } from '@/lib/logger'; // Import logger
-import { useMutation } from '@tanstack/react-query'; // Import useMutation for API calls
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-// Define the structure for the request payload to the backend
-import { z } from 'zod';
+import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
+import { NewRepositoryFields } from '@/app/(main)/new-project/NewRepositoryFields';
+import { ExistingRepositoryFields } from '@/app/(main)/new-project/ExistingRepositoryFields';
+import { getEstimatedCost } from '@/lib/api'; // Assume this API call exists
+import { JiraLinkResponse, LinkJiraAccount } from '@/lib/jira'; // Import Jira API functions
+import { ProjectFormData } from '@/lib/types';
+import { processProject } from '@/services/projectsService'; // Import the service
 
-interface AIModelConfig {
-  provider: string;
-  modelName: string;
-  apiKey?: string; // Optional API key
-}
+const MAX_INSTALLATIONS = 20;
 
-// Define the Zod schema for the form
+type AiModel = {
+  id: string;
+  alias: string;
+  intelligence: 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
+  apiKey: string;
+  note?: string;
+};
+
 const formSchema = z.object({
-  description: z.string().min(1, 'Project description is required'),
-  maxRuntimeHours: z.number().positive('Must be a positive number').optional(),
-  maxBudget: z.number().positive('Must be a positive number').optional(),
+  description: z.string().min(10, { message: 'Project description must be at least 10 characters.' }),
+  maxRuntimeHours: z.number().min(0.01, { message: 'Must be a positive number.' }),
+  maxBudget: z.number().min(0.01, { message: 'Must be a positive number.' }),
   githubRepositories: z.array(
-    z.discriminatedUnion('type', [
+    z.union([
       z.object({
-        id: z.string().optional(),
         type: z.literal('new'),
-        name: z.string().min(1, 'Repository name is required'),
-        organization: z.string().optional(),
-         isPrivate: z.boolean(),
+        name: z.string().min(1, 'Repository name is required.'),
+        isPrivate: z.boolean(),
       }),
       z.object({
-        id: z.string().optional(),
         type: z.literal('existing'),
-        url: z.string().url('Invalid URL format').min(1, 'GitHub Repository URL is required'),
-        
+        url: z.string().url('Invalid URL format.').min(1, 'Repository URL is required.'),
       }),
     ]),
   ),
-  advancedOptions: z
-    .object({
-      models: z
-        .object({
-          utility: z
-            .array(
-              z.object({
-                provider: z.string().min(1, 'Provider is required'),
-                modelName: z.string().min(1, 'Model name is required'),
-                apiKey: z.string().optional(),
-              }),
-            )
-            .optional(),
-          low: z
-            .array(
-              z.object({
-                provider: z.string().min(1, 'Provider is required'),
-                modelName: z.string().min(1, 'Model name is required'),
-                apiKey: z.string().optional(),
-              }),
-            )
-            .optional(),
-          medium: z
-            .array(
-              z.object({
-                provider: z.string().min(1, 'Provider is required'),
-                modelName: z.string().min(1, 'Model name is required'),
-                apiKey: z.string().optional(),
-              }),
-            )
-            .optional(),
-          high: z
-            .array(
-              z.object({
-                provider: z.string().min(1, 'Provider is required'),
-                modelName: z.string().min(1, 'Model name is required'),
-                apiKey: z.string().optional(),
-              }),
-            )
-            .optional(),
-          super: z
-            .array(
-              z.object({
-                provider: z.string().min(1, 'Provider is required'),
-                modelName: z.string().min(1, 'Model name is required'),
-                apiKey: z.string().optional(),
-              }),
-            )
-            .optional(),
-          backup: z
-            .array(
-              z.object({
-                provider: z.string().min(1, 'Provider is required'),
-                modelName: z.string().min(1, 'Model name is required'),
-                apiKey: z.string().optional(),
-              }),
-            )
-            .optional(),
-        })
-        .optional(),
-      installations: z
-        .array(z.string().min(1, 'Installation must not be empty'))
-        .optional(), // ADDED
-      linkJira: z.boolean().optional(), // ADDED
-    })
-    .optional(),
+  advancedOptions: z.object({
+    aiModels: z.array(
+      z.object({
+        id: z.string().uuid(),
+        alias: z.string().min(1, 'Alias is required.'),
+        intelligence: z.enum(['utility', 'low', 'medium', 'high', 'super', 'backup']),
+        apiKey: z.string().min(1, 'API Key is required.'),
+        note: z.string().optional(),
+      }),
+    ),
+    installations: z.array(z.string()).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
+    jiraLinked: z.boolean(),
+  }),
 });
 
-type NewProjectRequest = z.infer<typeof formSchema>;
-
-interface NewProjectResponse {
-  id: string; // Changed from projectId to id to match Project interface
-  message: string;
-  // Other fields returned by the API on project creation
-}
-
-type MutationResponseData = {
-  message?: string;
-  errors?: Record<string, string>;
-};
-
-interface MutationAPIError {
-  response?: {
-    status: number;
-    data?: MutationResponseData;
-  };
-  message: string;
-}
-
-interface CostEstimationResult {
-  estimatedTotal: number;
-  completionTimeHours: number; // Estimated completion time in hours
-  flatRateComponent: number;
-  aiApiCostComponent: number;
-  modelUsed: boolean;
-  modelErrorMessage: string | null;
-}
-
 export default function NewProjectPage() {
-  const methods = useForm<NewProjectRequest>({
+  const methods = useForm<ProjectFormData>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
-      githubRepositories: [],
+      maxRuntimeHours: 24, // Default value
+      maxBudget: 500, // Default value
+      githubRepositories: [], // Default to no repositories
       advancedOptions: {
-        models: {
-          utility: [],
-          low: [],
-          medium: [],
-          high: [],
-          super: [],
-          backup: [],
-        },
-        installations: [], // Now an empty array to hold strings
-        linkJira: false,
+        aiModels: [],
+        installations: [],
+        jiraLinked: false,
       },
     },
-  }); // Initialize useForm and get all its methods
-  // Destructure individual properties from methods if needed, or pass 'methods' directly
+  });
+
   const {
     register,
     handleSubmit,
-    setError: setFormFieldError,
-    control, // Added control for useFieldArray
-    watch, // Add watch to get form values
     formState: { errors },
-    setValue, // Add setValue to manually set form values
-  } = methods; // Use methods from the initialized useForm
-  const { setError: setGlobalError } = useGlobalError(); // Destructure setError from the global error hook
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false); // State to manage visibility of advanced options
-  const [showCostDetails, setShowCostDetails] = useState(false); // State for cost breakdown visibility
-  const [estimatedCostResult, setEstimatedCostResult] = useState<CostEstimationResult | null>(null); // State for estimated cost result
-  const [isEstimating, setIsEstimating] = useState(false); // State to show loading for estimation
+    watch,
+    control,
+    setValue,
+  } = methods;
 
-  const projectDescription = watch('description');
-  const debouncedDescription = useDebounce(projectDescription, 500); // Debounce description input by 500ms
-
-  useEffect(() => {
-    const estimateCost = async () => {
-      if (debouncedDescription) {
-        setIsEstimating(true);
-        // logger.debug('Debounced description for estimation:', debouncedDescription); // Use logger instead of console.log
-        try {
-          const { estimatedDuration, calculatedCost, modelUsed, modelErrorMessage } =
-            await getEstimatedDurationAndCost(debouncedDescription);
-
-          setEstimatedCostResult({
-            estimatedTotal: calculatedCost, // Total cost
-            completionTimeHours: estimatedDuration, // Estimated duration
-            flatRateComponent: FLAT_RATE_PER_HOUR * estimatedDuration, // Component for flat rate
-            aiApiCostComponent: HOURLY_AI_API_COST * estimatedDuration, // Component for AI API cost
-            modelUsed: modelUsed, // Indicate if ML model was used
-            modelErrorMessage: modelUsed ? '' : modelErrorMessage, // Any message related to model usage/fallback
-          });
-        } catch (error) {
-          console.error('Error calculating estimation:', error);
-          // Handle error, perhaps set an error message in the UI
-          setEstimatedCostResult({
-            estimatedTotal: 0,
-            completionTimeHours: 0,
-            flatRateComponent: 0,
-            aiApiCostComponent: 0,
-            modelUsed: false,
-            modelErrorMessage: 'Could not estimate cost. Please try again later.',
-          });
-        } finally {
-          setIsEstimating(false);
-        }
-      } else {
-        setEstimatedCostResult(null); // Clear estimation if description is empty
-      }
-    };
-
-    estimateCost();
-  }, [debouncedDescription]);
-
-  // Use useFieldArray for managing dynamic AI model arrays for each intelligence level
   const {
-    fields: utilityModels,
-    append: appendUtilityModel,
-    remove: removeUtilityModel,
+    fields: githubRepositories,
+    append: appendGithubRepository,
+    remove: removeGithubRepository,
   } = useFieldArray({
     control,
-    name: 'advancedOptions.models.utility',
+    name: 'githubRepositories',
   });
 
   const {
-    fields: lowModels,
-    append: appendLowModel,
-    remove: removeLowModel,
+    fields: aiModelFields,
+    append: appendAiModel,
+    remove: removeAiModel,
   } = useFieldArray({
     control,
-    name: 'advancedOptions.models.low',
-  });
-
-  const {
-    fields: mediumModels,
-    append: appendMediumModel,
-    remove: removeMediumModel,
-  } = useFieldArray({
-    control,
-    name: 'advancedOptions.models.medium',
-  });
-
-  const {
-    fields: highModels,
-    append: appendHighModel,
-    remove: removeHighModel,
-  } = useFieldArray({
-    control,
-    name: 'advancedOptions.models.high',
-  });
-
-  const {
-    fields: superModels,
-    append: appendSuperModel,
-    remove: removeSuperModel,
-  } = useFieldArray({
-    control,
-    name: 'advancedOptions.models.super',
-  });
-
-  const {
-    fields: backupModels,
-    append: appendBackupModel,
-    remove: removeBackupModel,
-  } = useFieldArray({
-    control,
-    name: 'advancedOptions.models.backup',
+    name: 'advancedOptions.aiModels',
   });
 
   const {
@@ -301,311 +117,173 @@ export default function NewProjectPage() {
     name: 'advancedOptions.installations',
   });
 
-  const {
-    fields: githubRepositories,
-    append: appendGithubRepository,
-    remove: removeGithubRepository,
-  } = useFieldArray({
-    control,
-    name: 'githubRepositories',
-  });
-
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [estimatedCostResult, setEstimatedCostResult] = useState<{
+    estimatedTotal: number;
+    completionTimeHours: number;
+    flatRateComponent: number;
+    aiApiCostComponent: number;
+    modelUsed: boolean;
+    modelErrorMessage?: string;
+  } | null>(null);
+  const [showCostDetails, setShowCostDetails] = useState(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [jiraLinked, setJiraLinked] = useState(false);
+  
+  // State for the Installations dropdown
   const [showInstallationDropdown, setShowInstallationDropdown] = useState(false);
   const [selectedInstallationType, setSelectedInstallationType] = useState<string | null>(null);
   const [customInstallationName, setCustomInstallationName] = useState('');
-  
-  // State for Jira linking
-  const [jiraLinked, setJiraLinked] = useState(false);
 
-  const handleLinkJira = () => {
-    // Mock Jira OAuth flow:
-    // 1. Set the form value
-    setValue('advancedOptions.linkJira', true);
-    // 2. Update local state to show message and disable button
-    setJiraLinked(true);
-    // Optional: Reset after a few seconds
-    setTimeout(() => {
-      setJiraLinked(false);
-      // We might want to keep the form value as true if the link is persistent
-      // or set it to false if this mock is just for demonstration of the action.
-      // For now, let's keep it true in the form.
-    }, 5000); // Message disappears after 5 seconds
-  };
 
-  // Available AI model companies (providers)
-  const AI_COMPANIES = ['OpenAI', 'Google', 'Anthropic', 'Cohere', 'Custom'];
+  const description = watch('description');
+  const maxRuntimeHours = watch('maxRuntimeHours');
+  const maxBudget = watch('maxBudget');
+  const aiModels = watch('advancedOptions.aiModels'); // Watch AI models for cost estimation
 
-  const maxRuntimeHours = watch('maxRuntimeHours'); // Watch maxRuntimeHours for the warning message
+  const [isPending, startTransition] = React.useTransition();
 
-  const router = useRouter(); // Initialize router for potential redirection
-
-  const createProject = async (data: NewProjectRequest): Promise<NewProjectResponse> => {
-    const response = await axiosInstance.post<NewProjectResponse>('/projects', data);
-    return response.data;
-  };
-
-  const {
-    mutateAsync,
-    isPending, // Renamed from isLoading for React Query v5
-    error: mutationError,
-    reset: resetMutation, // To clear mutation state if needed
-  } = useMutation<NewProjectResponse, MutationAPIError, NewProjectRequest>({
-    mutationFn: createProject,
-    onSuccess: (data) => {
-      logger.info('Project creation successful:', { projectId: data.id, responseData: data });
-      router.push(`/projects/${data.id}`);
-      methods.reset(); // Reset form states after successful submission
-      resetMutation(); // Clear any mutation errors/state
-    },
-    onError: (error) => {
-      logger.error('Failed to create project:', error);
-      setGlobalError(null); // Clear previous global errors
-
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          // Destructure safely, assuming error.response is already checked
-          const { status, data: errorData } = error.response;
-          // The errorData might be structured as { message: string, errors: {} } or just { message: string }
-          // Ensure errorData is treated as the correct type. Cast to the expected inner data structure.
-          const apiError = errorData as MutationResponseData;
-
-          // Handle API validation errors (e.g., 400 Bad Request)
-          if (status === 400 && apiError && apiError.errors) {
-            for (const field in apiError.errors) {
-              if (Object.prototype.hasOwnProperty.call(apiError.errors, field)) {
-                // Adjust field mapping for nested 'description'
-                const formField =
-                  field === 'description' ? 'description' : (field as keyof NewProjectRequest);
-                setFormFieldError(formField, {
-                  type: 'server',
-                  message: apiError.errors[field],
-                });
-              }
-            }
-            setGlobalError({
-              message: apiError.message || 'Please check the form for errors.',
-              type: 'warning',
-            });
-          }
-          // Handle other API errors
-          else {
-            setGlobalError({
-              message: apiError?.message || `Failed to create project. Status: ${status}`,
-              type: 'error',
-            });
-          }
-        } else if (error.request) {
-          // The request was made but no response was received (e.g., network error, CORS issues)
-          setGlobalError({
-            message:
-              'Network error: No response received from server. Please check your connection or CORS settings.',
-            type: 'error',
+  useEffect(() => {
+    const delayEstimation = setTimeout(async () => {
+      if (description.length >= 10) {
+        setIsEstimating(true);
+        setEstimatedCostResult(null); // Clear previous result
+        try {
+          const estimation = await getEstimatedCost({
+            description,
+            maxRuntimeHours,
+            maxBudget,
+            aiModels: aiModels.map(model => ({ id: model.id, intelligence: model.intelligence })), // Pass only necessary model info
           });
-          logger.error('Axios error without response (request made):', String(error));
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          setGlobalError({
-            message: `Request setup error: ${error.message}. Please try again.`,
-            type: 'error',
-          });
-          logger.error('Axios request setup error:', String(error));
+          setEstimatedCostResult(estimation);
+        } catch (error) {
+          console.error('Failed to get cost estimation:', error);
+          toast.error('Failed to get cost estimation.');
+          setEstimatedCostResult(null);
+        } finally {
+          setIsEstimating(false);
         }
       } else {
-        // Handle non-Axios errors
-        setGlobalError({
-          message:
-            'An unexpected client-side error occurred while trying to create the project. Please try again.',
-          type: 'error',
-        });
-        logger.error('Non-Axios error:', String(error));
+        setEstimatedCostResult(null);
       }
-    },
-  });
+    }, 500); // Debounce time
 
-  // Handler for form submission
-  const onSubmit = async (data: NewProjectRequest) => {
-    logger.debug(
-      'Submitting new project data:',
-      JSON.stringify(
-        data,
-        (key, value) => {
-          // Redact sensitive API keys from the log output for security
-          if (key === 'apiKey') {
-            return '***REDACTED***';
-          }
-          return value;
-        },
-        2,
-      ),
-    );
-    try {
-      // Use mutateAsync to trigger the API call via React Query
-      // The handling of loading, success, and error is now managed by useMutation's callbacks
-      await mutateAsync(data);
-    } catch (error) {
-      console.error('Mutation error caught in onSubmit:', error);
-      // The error is already handled by useMutation's onError, but this catch ensures we see it here too,
-      // and also logs the specific error for debugging.
-      logger.error('Error during mutateAsync call:', error);
-    }
+    return () => clearTimeout(delayEstimation);
+  }, [description, maxRuntimeHours, maxBudget, aiModels]);
+
+  const onSubmit = async (data: ProjectFormData) => {
+    startTransition(async () => {
+      try {
+        await processProject(data);
+        toast.success('Project created successfully!');
+        // Optionally redirect or clear form
+      } catch (error) {
+        console.error('Project submission failed:', error);
+        toast.error('Failed to create project.');
+      }
+    });
   };
 
-  // Define a type for the intelligence levels to ensure type safety
-  type AIModelLevel = 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
-
-  // Render function for AI model selection UI for a specific intelligence level
-  const renderAiModelSelection = <TLevel extends AIModelLevel>( // Make it generic
-    type: TLevel, // Use the generic type here
+  const renderAiModelSelection = (
+    intelligence: AiModel['intelligence'],
     title: string,
-    // Use the generic type in FieldArrayWithId
-    fields: FieldArrayWithId<NewProjectRequest, `advancedOptions.models.${TLevel}`, 'id'>[],
-    append: (value: AIModelConfig) => void,
-    remove: (index?: number | number[]) => void,
-  ) => {
-    // Safely access the errors for the current model type, ensuring it's treated as an array of error objects
-    // The FieldErrorsImpl type from react-hook-form correctly represents errors for array fields.
-    type ModelErrorsArray = FieldErrorsImpl<AIModelConfig>[];
-    const currentModelTypeErrors = errors.advancedOptions?.models?.[type] as
-      | ModelErrorsArray
-      | undefined;
-
-    return (
-      <div key={type} className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
-        <h3 className="text-md font-semibold text-gray-800 mb-3">{title} AI Models</h3>
-        {fields.length === 0 && (
-          <p className="text-sm text-gray-500 mb-3">No models configured for {title}.</p>
-        )}
-        <div className="space-y-4">
-          {fields.map((field, index) => (
+    models: AiModel[],
+    append: (model: AiModel) => void,
+    remove: (index: number) => void,
+  ) => (
+    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
+      <h3 className="text-md font-semibold text-gray-800 mb-3">{title} AI Models</h3>
+      <div className="space-y-3 mb-4">
+        {models.length === 0 ? (
+          <p className="text-sm text-gray-500">No {title.toLowerCase()} models added.</p>
+        ) : (
+          models.map((model, index) => (
             <div
-              key={field.id}
-              className="flex flex-col sm:flex-row gap-3 items-center p-3 border border-gray-100 bg-white rounded-md shadow-sm"
+              key={model.id}
+              className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
             >
-              {/* Provider Dropdown */}
-              <div className="flex-1 w-full sm:w-auto">
-                <label
-                  htmlFor={`${type}-provider-${index}`}
-                  className="block text-xs font-medium text-gray-600 mb-1"
-                >
-                  Provider
-                </label>
-                <select
-                  id={`${type}-provider-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.provider`, {
-                    required: 'Provider is required',
-                  })}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
-                >
-                  <option value="">Select Company</option>
-                  {AI_COMPANIES.map((company) => (
-                    <option key={company} value={company}>
-                      {company}
-                    </option>
-                  ))}
-                </select>
-                {currentModelTypeErrors?.[index]?.provider && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {/* Accessing message directly from the error object */}
-                    {currentModelTypeErrors[index].provider.message}
-                  </p>
-                )}
+              <div className="flex-grow">
+                <p className="text-sm font-medium text-gray-700">{model.alias}</p>
+                <p className="text-xs text-gray-500">{model.apiKey.substring(0, 5)}...{model.apiKey.substring(model.apiKey.length - 5)}</p>
               </div>
-
-              {/* Model Name Textbox */}
-              <div className="flex-1 w-full sm:w-auto">
-                <label
-                  htmlFor={`${type}-modelName-${index}`}
-                  className="block text-xs font-medium text-gray-600 mb-1"
-                >
-                  Model Name
-                </label>
-                <input
-                  type="text"
-                  id={`${type}-modelName-${index}`}
-                  {...register(`advancedOptions.models.${type}.${index}.modelName`, {
-                    required: 'Model name is required',
-                  })}
-                  placeholder="e.g., gpt-4-turbo"
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3"
-                />
-                {currentModelTypeErrors?.[index]?.modelName && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {currentModelTypeErrors[index].modelName.message}
-                  </p>
-                )}
-              </div>
-
-              {/* API Key Textbox (Optional) */}
-              <div className="flex-1 w-full sm:w-auto">
-                <label
-                  htmlFor={`${type}-apiKey-${index}`}
-                  className="block text-xs font-medium text-gray-600 mb-1"
-                >
-                  API Key (Optional)
-                </label>
-                <ApiKeyInput
-                  id={`${type}-apiKey-${index}`}
-                  name={`advancedOptions.models.${type}.${index}.apiKey`} // Ensure name is correctly passed for RHF
-                  value={field.apiKey || ''} // Pass the value from the field
-                  onChange={(e) => setValue(`advancedOptions.models.${type}.${index}.apiKey`, e.target.value)} // Use setValue for RHF
-                  hasApiKeyProvided={!!field.apiKey} // Determine if key is provided
-                  placeholder="e.g., sk-..."
-                  disabled={false} // Adjust based on desired disable logic
-                />
-              </div>
-
-              {/* Remove Button */}
               <Button
                 type="button"
                 onClick={() => remove(index)}
                 variant="destructive"
-                size="icon"
-                className="mt-4 sm:mt-auto flex-shrink-0"
-                aria-label={`Remove ${title} model ${index + 1}`}
+                size="sm"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  ></path>
-                </svg>
+                Remove
               </Button>
             </div>
-          ))}
-        </div>
-
-        {/* Add Another Model Button */}
+          ))
+        )}
+      </div>
+      <div className="flex flex-col space-y-3">
+        <Input
+          id={`new-ai-model-alias-${intelligence}`}
+          placeholder="Model Alias (e.g., OpenAI GPT-4)"
+          className="mb-2"
+        />
+        <Input
+          id={`new-ai-model-key-${intelligence}`}
+          type="password"
+          placeholder="API Key"
+          className="mb-2"
+        />
+        <Input
+          id={`new-ai-model-note-${intelligence}`}
+          placeholder="Note (optional)"
+          className="mb-2"
+        />
         <Button
           type="button"
-          onClick={() => append({ provider: '', modelName: '', apiKey: '' })}
-          className="mt-4"
+          onClick={() => {
+            const aliasInput = document.getElementById(`new-ai-model-alias-${intelligence}`) as HTMLInputElement;
+            const keyInput = document.getElementById(`new-ai-model-key-${intelligence}`) as HTMLInputElement;
+            const noteInput = document.getElementById(`new-ai-model-note-${intelligence}`) as HTMLInputElement;
+
+            const alias = aliasInput.value;
+            const apiKey = keyInput.value;
+            const note = noteInput.value;
+
+            if (alias && apiKey) {
+              append({ id: crypto.randomUUID(), alias, intelligence, apiKey, note: note || undefined });
+             aliasInput.value = '';
+              keyInput.value = '';
+              noteInput.value = '';
+            } else {
+              toast.error('Alias and API Key are required to add an AI model.');
+            }
+          }}
         >
-          <svg
-            className="-ml-1 mr-2 h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            ></path>
-          </svg>
-          Add Another Model
+          Add {title} Model
         </Button>
       </div>
-    );
+    </div>
+  );
+
+  // Filter models by intelligence type for rendering
+  const utilityModels = aiModelFields.filter(model => model.intelligence === 'utility');
+  const lowModels = aiModelFields.filter(model => model.intelligence === 'low');
+  const mediumModels = aiModelFields.filter(model => model.intelligence === 'medium');
+  const highModels = aiModelFields.filter(model => model.intelligence === 'high');
+  const superModels = aiModelFields.filter(model => model.intelligence === 'super');
+  const backupModels = aiModelFields.filter(model => model.intelligence === 'backup');
+
+  const handleLinkJira = async () => {
+    try {
+      const response: JiraLinkResponse = await LinkJiraAccount();
+      if (response.success) {
+        setJiraLinked(true);
+        setValue('advancedOptions.jiraLinked', true);
+        toast.success('Jira account linked successfully!');
+      } else {
+        toast.error(response.error || 'Failed to link Jira account.');
+      }
+    } catch (error) {
+      console.error('Error linking Jira account:', error);
+      toast.error('An unexpected error occurred while linking Jira.');
+    }
   };
 
   return (
@@ -668,7 +346,7 @@ export default function NewProjectPage() {
                       key={repo.id}
                       index={index}
                       onRemove={() => removeGithubRepository(index)}
-                    />
+                      />
                   ) : null,
                 )}
 
@@ -742,330 +420,330 @@ export default function NewProjectPage() {
                         </div>
                       )}
 
-                      <h3 className="font-semibold text-xl text-gray-800 mb-2">
-                        Estimated Project Cost:
-                      </h3>
-                      <div className="space-y-1 mb-3">
-                        <p className="text-gray-700 text-md">
-                          Flat Rate Component:{' '}
-                          <span className="font-medium">
-                            ${estimatedCostResult.flatRateComponent.toFixed(2)}
-                          </span>
+                        <h3 className="font-semibold text-xl text-gray-800 mb-2">
+                          Estimated Project Cost:
+                        </h3>
+                        <div className="space-y-1 mb-3">
+                          <p className="text-gray-700 text-md">
+                            Flat Rate Component:{' '}
+                            <span className="font-medium">
+                              ${estimatedCostResult.flatRateComponent.toFixed(2)}
+                            </span>
+                          </p>
+                          <p className="text-gray-700 text-md">
+                            AI API Cost Component:{' '}
+                            <span className="font-medium">
+                              ${estimatedCostResult.aiApiCostComponent.toFixed(2)}
+                            </span>
+                          </p>
+                        </div>
+                        <p className="text-lg font-bold text-green-700">
+                          Total Estimated Cost: ${estimatedCostResult.estimatedTotal.toFixed(2)}
                         </p>
-                        <p className="text-gray-700 text-md">
-                          AI API Cost Component:{' '}
-                          <span className="font-medium">
-                            ${estimatedCostResult.aiApiCostComponent.toFixed(2)}
-                          </span>
+                        <p className="text-md text-gray-600 mt-2">
+                          Estimated Completion Time:{' '}
+                          <span className="font-semibold">
+                            {estimatedCostResult.completionTimeHours.toFixed(2)}
+                          </span>{' '}
+                          hours
+                        </p>
+                        {maxRuntimeHours !== undefined &&
+                          maxRuntimeHours > 0 &&
+                          estimatedCostResult.completionTimeHours > maxRuntimeHours && (
+                            <div className="mt-2 text-red-700 font-bold bg-red-100 py-2 px-4 rounded-md border border-red-300">
+                              Warning: Estimated runtime (
+                              {estimatedCostResult.completionTimeHours.toFixed(2)} hours) clamped to
+                              Max Runtime ({maxRuntimeHours.toFixed(2)} hours). Project scope may be
+                              too large.
+                            </div>
+                          )}
+                        <p className="text-sm text-gray-500 mt-4 px-4 pb-4">
+                          Note: If you provide your own API keys in Advanced Options, their usage
+                          rates will apply and may alter the final expenditure not reflected in this
+                          estimate.
                         </p>
                       </div>
-                      <p className="text-lg font-bold text-green-700">
-                        Total Estimated Cost: ${estimatedCostResult.estimatedTotal.toFixed(2)}
-                      </p>
-                      <p className="text-md text-gray-600 mt-2">
-                        Estimated Completion Time:{' '}
-                        <span className="font-semibold">
-                          {estimatedCostResult.completionTimeHours.toFixed(2)}
-                        </span>{' '}
-                        hours
-                      </p>
-                      {maxRuntimeHours !== undefined &&
-                        maxRuntimeHours > 0 &&
-                        estimatedCostResult.completionTimeHours > maxRuntimeHours && (
-                          <div className="mt-2 text-red-700 font-bold bg-red-100 py-2 px-4 rounded-md border border-red-300">
-                            Warning: Estimated runtime (
-                            {estimatedCostResult.completionTimeHours.toFixed(2)} hours) clamped to
-                            Max Runtime ({maxRuntimeHours.toFixed(2)} hours). Project scope may be
-                            too large.
-                          </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Max Runtime Hours */}
+              <div>
+                <label
+                  htmlFor="maxRuntimeHours"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Max Runtime (Hours)
+                </label>
+                <input
+                  type="number"
+                  id="maxRuntimeHours"
+                  {...register('maxRuntimeHours', {
+                    valueAsNumber: true,
+                    min: { value: 0.01, message: 'Must be a positive number' },
+                  })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                  placeholder="e.g., 24"
+                  aria-invalid={errors.maxRuntimeHours ? 'true' : 'false'}
+                />
+                {errors.maxRuntimeHours && (
+                  <p className="mt-2 text-sm text-red-600">{errors.maxRuntimeHours.message}</p>
+                )}
+              </div>
+
+              {/* Max Budget */}
+              <div>
+                <label htmlFor="maxBudget" className="block text-sm font-medium text-gray-700 mb-1">
+                  Max Budget ($)
+                </label>
+                <input
+                  type="number"
+                  id="maxBudget"
+                  step="0.01"
+                  {...register('maxBudget', {
+                    valueAsNumber: true,
+                    min: { value: 0.01, message: 'Must be a positive number' },
+                  })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                  placeholder="e.g., 500.00"
+                  aria-invalid={errors.maxBudget ? 'true' : 'false'}
+                />
+                {errors.maxBudget && (
+                  <p className="mt-2 text-sm text-red-600">{errors.maxBudget.message}</p>
+                )}
+              </div>
+
+              {/* Advanced Options Collapsible Section */}
+              <div className="border-t border-gray-200 mt-6 pt-6">
+                <button
+                  type="button"
+                  className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  aria-expanded={showAdvancedOptions}
+                >
+                  Advanced Options
+                  <svg
+                    className={`w-5 h-5 transition-transform duration-300 ${showAdvancedOptions ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </button>
+
+                {/* Content of Advanced Options */}
+                <div
+                  data-testid="advanced-options-content"
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    showAdvancedOptions ? 'max-h-screen opacity-100 mt-4' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  {/* AI Model Selection UI */}
+                  <div className="space-y-6">
+                    {renderAiModelSelection(
+                      'utility',
+                      'Utility',
+                      utilityModels,
+                      appendAiModel,
+                      removeAiModel,
+                    )}
+                    {renderAiModelSelection(
+                      'low',
+                      'Low Intelligence',
+                      lowModels,
+                      appendAiModel,
+                      removeAiModel,
+                    )}
+                    {renderAiModelSelection(
+                      'medium',
+                      'Medium Intelligence',
+                      mediumModels,
+                      appendAiModel,
+                      removeAiModel,
+                    )}
+                    {renderAiModelSelection(
+                      'high',
+                      'High Intelligence',
+                      highModels,
+                      appendAiModel,
+                      removeAiModel,
+                    )}
+                    {renderAiModelSelection(
+                      'super',
+                      'Super Intelligence',
+                      superModels,
+                      appendAiModel,
+                      removeAiModel,
+                    )}
+                    {renderAiModelSelection(
+                      'backup',
+                      'Backup',
+                      backupModels,
+                      appendAiModel,
+                      removeAiModel,
+                    )}
+                    
+
+                    {/* Link Jira Account Button */}
+                    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
+                      <h3 className="text-md font-semibold text-gray-800">Link Jira Account</h3>
+                      <Button
+                        type="button"
+                        onClick={handleLinkJira}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        disabled={jiraLinked}
+                      >
+                        {jiraLinked ? 'Jira Account Linked!' : 'Link Jira Account'}
+                      </Button>
+                    </div>
+                    {jiraLinked && (
+                      <p className="mt-2 text-sm text-green-600">Jira account linked successfully!</p>
+                    )}
+                    {/* Installations Section */}
+                    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
+                      <h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
+                      {/* Display existing installations */}
+                      <div className="space-y-3 mb-4">
+                        {installationFields.length === 0 ? (
+                          <p className="text-sm text-gray-500">No installations added.</p>
+                        ) : (
+                          installationFields.map((installation, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
+                            >
+                              <span className="text-sm text-gray-700">{installation}</span>
+                              <Button
+                                type="button"
+                                onClick={() => removeInstallation(index)}
+                                variant="destructive"
+                                size="sm"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          ))
                         )}
-                      <p className="text-sm text-gray-500 mt-4 px-4 pb-4">
-                        Note: If you provide your own API keys in Advanced Options, their usage
-                        rates will apply and may alter the final expenditure not reflected in this
-                        estimate.
-                      </p>
+                      </div>
+
+                      {/* Add Installation Button */}
+                      <Button
+                        type="button"
+                        onClick={() => setShowInstallationDropdown(true)}
+                        className="mb-4"
+                      >
+                        Add Installation
+                      </Button>
+
+                      {/* Dropdown Menu and Conditional Input */}
+                      {showInstallationDropdown && (
+                        <div className="mt-4 p-3 border border-gray-100 bg-white rounded-md shadow-sm">
+                          <DropdownMenu open={showInstallationDropdown} onOpenChange={setShowInstallationDropdown}>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" className="w-full justify-between">
+                                {selectedInstallationType || 'Select Installation Type'}
+                                <svg
+                                  className="ml-2 -mr-0.5 h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M19 9l-7 7-7-7"
+                                  ></path>
+                                </svg>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
+                              {['Python', 'JavaScript/TypeScript', 'Java', 'Go', 'Rust', 'Ruby', 'PHP', 'C#/.NET', 'Swift/Objective-C', 'Kotlin', 'Dart/Flutter', 'React.js', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Ruby on Rails', 'Spring Boot', 'Laravel', 'ASP.NET Core', 'Express.js', 'Docker', 'Kubernetes', 'AWS CLI', 'Azure CLI', 'Google Cloud SDK', 'Terraform', 'Ansible', 'Git', 'GitHub CLI', 'Jira CLI', 'Slack CLI', 'VS Code', 'IntelliJ IDEA', 'PyCharm', 'VS Studio', 'Xcode', 'Android Studio', 'Postman', 'Insomnia', 'DBeaver', 'MongoDB Compass', 'RedisInsight', 'Grafana', 'Prometheus', 'ELK Stack (Elasticsearch, Logstash, Kibana)', 'Jupyter Notebook', 'RStudio', 'Tableau', 'Power BI', 'Figma', 'Sketch', 'Adobe XD', 'Photoshop', 'Illustrator', 'OpenAPI/Swagger', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Kafka', 'RabbitMQ', 'Nginx', 'Apache HTTP Server', 'Serverless Framework', 'Heroku CLI', 'Vercel CLI', 'Netlify CLI', 'npm', 'yarn', 'Gradle', 'Maven', 'pip', 'Homebrew (macOS)', 'Chocolatey (Windows)', 'GitHub repo', 'Other'].map((option) => (
+                                <DropdownMenuItem
+                                  key={option}
+                                  onSelect={() => {
+                                    setSelectedInstallationType(option);
+                                    if (option !== 'Other') {
+                                      appendInstallation(option);
+                                      setShowInstallationDropdown(false);
+                                      setCustomInstallationName(''); // Clear custom input
+                                    }
+                                  }}
+                                >
+                                  {option}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+
+                          {selectedInstallationType === 'Other' && (
+                            <div className="flex items-center gap-2 mt-3">
+                              <Input
+                                type="text"
+                                placeholder="Enter custom installation name"
+                                value={customInstallationName}
+                                onChange={(e) => setCustomInstallationName(e.target.value)}
+                                onBlur={() => {
+                                  if (customInstallationName.trim()) {
+                                    appendInstallation(customInstallationName.trim());
+                                    setCustomInstallationName('');
+                                    setSelectedInstallationType(null);
+                                    setShowInstallationDropdown(false);
+                                  }
+                                }}
+                                className="flex-grow"
+                              />
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  if (customInstallationName.trim()) {
+                                    appendInstallation(customInstallationName.trim());
+                                    setCustomInstallationName('');
+                                    setSelectedInstallationType(null);
+                                    setShowInstallationDropdown(false);
+                                  }
+                                }}
+                              >
+                                Add Custom
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Max Runtime Hours */}
-            <div>
-              <label
-                htmlFor="maxRuntimeHours"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Max Runtime (Hours)
-              </label>
-              <input
-                type="number"
-                id="maxRuntimeHours"
-                {...register('maxRuntimeHours', {
-                  valueAsNumber: true,
-                  min: { value: 0.01, message: 'Must be a positive number' },
-                })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                placeholder="e.g., 24"
-                aria-invalid={errors.maxRuntimeHours ? 'true' : 'false'}
-              />
-              {errors.maxRuntimeHours && (
-                <p className="mt-2 text-sm text-red-600">{errors.maxRuntimeHours.message}</p>
-              )}
-            </div>
-
-            {/* Max Budget */}
-            <div>
-              <label htmlFor="maxBudget" className="block text-sm font-medium text-gray-700 mb-1">
-                Max Budget ($)
-              </label>
-              <input
-                type="number"
-                id="maxBudget"
-                step="0.01"
-                {...register('maxBudget', {
-                  valueAsNumber: true,
-                  min: { value: 0.01, message: 'Must be a positive number' },
-                })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
-                placeholder="e.g., 500.00"
-                aria-invalid={errors.maxBudget ? 'true' : 'false'}
-              />
-              {errors.maxBudget && (
-                <p className="mt-2 text-sm text-red-600">{errors.maxBudget.message}</p>
-              )}
-            </div>
-
-            {/* Advanced Options Collapsible Section */}
-            <div className="border-t border-gray-200 mt-6 pt-6">
-              <button
-                type="button"
-                className="flex justify-between items-center w-full text-left text-lg font-medium text-gray-700 hover:text-blue-600 focus:outline-none"
-                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                aria-expanded={showAdvancedOptions}
-              >
-                Advanced Options
-                <svg
-                  className={`w-5 h-5 transition-transform duration-300 ${showAdvancedOptions ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-
-              {/* Content of Advanced Options */}
-              <div
-                data-testid="advanced-options-content"
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  showAdvancedOptions ? 'max-h-screen opacity-100 mt-4' : 'max-h-0 opacity-0'
-                }`}
-              >
-                {/* AI Model Selection UI */}
-                <div className="space-y-6">
-                  {renderAiModelSelection(
-                    'utility',
-                    'Utility',
-                    utilityModels,
-                    appendUtilityModel,
-                    removeUtilityModel,
-                  )}
-                  {renderAiModelSelection(
-                    'low',
-                    'Low Intelligence',
-                    lowModels,
-                    appendLowModel,
-                    removeLowModel,
-                  )}
-                  {renderAiModelSelection(
-                    'medium',
-                    'Medium Intelligence',
-                    mediumModels,
-                    appendMediumModel,
-                    removeMediumModel,
-                  )}
-                  {renderAiModelSelection(
-                    'high',
-                    'High Intelligence',
-                    highModels,
-                    appendHighModel,
-                    removeHighModel,
-                  )}
-                  {renderAiModelSelection(
-                    'super',
-                    'Super Intelligence',
-                    superModels,
-                    appendSuperModel,
-                    removeSuperModel,
-                  )}
-                  {renderAiModelSelection(
-                    'backup',
-                    'Backup',
-                    backupModels,
-                    appendBackupModel,
-                    removeBackupModel,
-                  )}
-                  
-
-                  {/* Link Jira Account Button */}
-                  <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
-                    <h3 className="text-md font-semibold text-gray-800">Link Jira Account</h3>
-                    <Button
-                      type="button"
-                      onClick={handleLinkJira}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      disabled={jiraLinked}
-                    >
-                      {jiraLinked ? 'Jira Account Linked!' : 'Link Jira Account'}
-                    </Button>
-                  </div>
-                  {jiraLinked && (
-                    <p className="mt-2 text-sm text-green-600">Jira account linked successfully!</p>
-                  )}
-                  {/* Installations Section */}
-                  <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
-<h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
-{/* Display existing installations */}
-<div className="space-y-3 mb-4">
-  {installationFields.length === 0 ? (
-    <p className="text-sm text-gray-500">No installations added.</p>
-  ) : (
-    installationFields.map((installation, index) => (
-      <div
-        key={index}
-        className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
-      >
-        <span className="text-sm text-gray-700">{installation}</span>
-        <Button
-          type="button"
-          onClick={() => removeInstallation(index)}
-          variant="destructive"
-          size="sm"
-        >
-          Delete
-        </Button>
-      </div>
-    ))
-  )}
-</div>
-
-{/* Add Installation Button */}
-<Button
-  type="button"
-  onClick={() => setShowInstallationDropdown(true)}
-  className="mb-4"
->
-  Add Installation
-</Button>
-
-{/* Dropdown Menu and Conditional Input */}
-{showInstallationDropdown && (
-  <div className="mt-4 p-3 border border-gray-100 bg-white rounded-md shadow-sm">
-    <DropdownMenu open={showInstallationDropdown} onOpenChange={setShowInstallationDropdown}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-between">
-          {selectedInstallationType || 'Select Installation Type'}
-          <svg
-            className="ml-2 -mr-0.5 h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            ></path>
-          </svg>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-        {['Python', 'JavaScript/TypeScript', 'Java', 'Go', 'Rust', 'Ruby', 'PHP', 'C#/.NET', 'Swift/Objective-C', 'Kotlin', 'Dart/Flutter', 'React.js', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Ruby on Rails', 'Spring Boot', 'Laravel', 'ASP.NET Core', 'Express.js', 'Docker', 'Kubernetes', 'AWS CLI', 'Azure CLI', 'Google Cloud SDK', 'Terraform', 'Ansible', 'Git', 'GitHub CLI', 'Jira CLI', 'Slack CLI', 'VS Code', 'IntelliJ IDEA', 'PyCharm', 'VS Studio', 'Xcode', 'Android Studio', 'Postman', 'Insomnia', 'DBeaver', 'MongoDB Compass', 'RedisInsight', 'Grafana', 'Prometheus', 'ELK Stack (Elasticsearch, Logstash, Kibana)', 'Jupyter Notebook', 'RStudio', 'Tableau', 'Power BI', 'Figma', 'Sketch', 'Adobe XD', 'Photoshop', 'Illustrator', 'OpenAPI/Swagger', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Kafka', 'RabbitMQ', 'Nginx', 'Apache HTTP Server', 'Serverless Framework', 'Heroku CLI', 'Vercel CLI', 'Netlify CLI', 'npm', 'yarn', 'Gradle', 'Maven', 'pip', 'Homebrew (macOS)', 'Chocolatey (Windows)', 'GitHub repo', 'Other'].map((option) => (
-          <DropdownMenuItem
-            key={option}
-            onSelect={() => {
-              setSelectedInstallationType(option);
-              if (option !== 'Other') {
-                appendInstallation(option);
-                setShowInstallationDropdown(false);
-                setCustomInstallationName(''); // Clear custom input
-              }
-            }}
-          >
-            {option}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-
-    {selectedInstallationType === 'Other' && (
-      <div className="flex items-center gap-2 mt-3">
-        <Input
-          type="text"
-          placeholder="Enter custom installation name"
-          value={customInstallationName}
-          onChange={(e) => setCustomInstallationName(e.target.value)}
-          onBlur={() => {
-            if (customInstallationName.trim()) {
-              appendInstallation(customInstallationName.trim());
-              setCustomInstallationName('');
-              setSelectedInstallationType(null);
-              setShowInstallationDropdown(false);
-            }
-          }}
-          className="flex-grow"
-        />
-        <Button
-          type="button"
-          onClick={() => {
-            if (customInstallationName.trim()) {
-              appendInstallation(customInstallationName.trim());
-              setCustomInstallationName('');
-              setSelectedInstallationType(null);
-              setShowInstallationDropdown(false);
-            }
-          }}
-        >
-          Add Custom
-        </Button>
-      </div>
-    )}
-  </div>
-)}
-                  </div>
-                </div>
               </div>
-            </div>
 
-            {/* Start Button */}
-            <div className="pt-4">
-              <button
-                type="submit"
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isPending} // Disable button during submission
-              >
-                {isPending ? (
-                  <>
-                    <LoadingSpinner className="mr-2" /> Starting...
-                  </>
-                ) : (
-                  'Start'
-                )}{' '}
-              </button>
-            </div>
-          </form>
-        </FormProvider>{' '}
-        {/* Closing FormProvider tag */}
+              {/* Start Button */}
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isPending} // Disable button during submission
+                >
+                  {isPending ? (
+                    <>
+                      <LoadingSpinner className="mr-2" /> Starting...
+                    </>
+                  ) : (
+                    'Start'
+                  )}{' '}
+                </button>
+              </div>
+            </form>
+          </FormProvider>{' '}
+          {/* Closing FormProvider tag */}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
