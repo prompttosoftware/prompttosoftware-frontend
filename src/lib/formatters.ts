@@ -13,7 +13,7 @@ export const formatDuration = (duration: Duration, options?: { zero?: boolean; d
   if (duration.hours) parts.push(`${duration.hours}h`);
   if (duration.minutes) parts.push(`${duration.minutes}m`);
   // Always show seconds if there are no hours or minutes, or if zero is true
-  if (duration.seconds || (options?.zero && parts.length === 0)) parts.push(`${duration.seconds || 0}s`);
+  if (duration.seconds || (options?.zero && parts.length === 0)) parts.push(`${Math.round(duration.seconds || 0)}s`);
   return parts.join(options?.delimiter || ' ');
 };
 

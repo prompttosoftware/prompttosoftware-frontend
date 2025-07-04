@@ -77,7 +77,6 @@ const WatchAdButton: React.FC = () => {
     } else if (isAdPlaying && adCountdown === 0) {
       // Ad has finished playing
       setIsAdPlaying(false);
-      setShowAdModal(false);
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
       }
