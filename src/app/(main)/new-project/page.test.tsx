@@ -18,10 +18,13 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock the useGlobalError hook
+const mockSetError = jest.fn();
+const mockClearError = jest.fn();
+
 jest.mock('@/hooks/useGlobalError', () => ({
   useGlobalError: () => ({
-    setError: jest.fn(),
-    clearError: jest.fn(),
+    setError: mockSetError,
+    clearError: mockClearError,
   }),
 }));
 
@@ -30,6 +33,7 @@ const handlers = [
   http.post('/api/projects', async ({ request }) => {
     // Change signature to use request directly
     console.log('MSW Handler - Request body:', await request.json()); // Can log request body here
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network delay
     return HttpResponse.json(
       { projectId: 'proj_test_123', message: 'Project created successfully!' },
       { status: 201 },
@@ -47,9 +51,9 @@ describe('NewProjectPage Unit Tests', () => {
   it('renders the form fields correctly', () => {
     render(<NewProjectPage />);
 
-    expect(screen.getByLabelText(/Project Description/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Max Runtime \(Hours\)/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Max Budget \(\$\)/i)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /project description/i })).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: /max runtime \(hours\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: /max budget \(\$\)/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Start/i })).toBeInTheDocument();
   });
 
@@ -60,24 +64,24 @@ describe('NewProjectPage Unit Tests', () => {
 
     // Wait for the validation message to appear
     await waitFor(() => {
-      expect(screen.getByText(/Project description is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/project description is required/i)).toBeInTheDocument();
     });
   });
 
   it('displays positive number validation error for Max Runtime (Hours)', async () => {
     render(<NewProjectPage />);
-
-    const maxRuntimeInput = screen.getByLabelText(/Max Runtime \(Hours\)/i);
+  
+    const maxRuntimeInput = screen.getByRole('spinbutton', { name: /max runtime \(hours\)/i });
     fireEvent.change(maxRuntimeInput, { target: { value: '-10' } });
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
-
+  
     await waitFor(() => {
-      expect(screen.getByText(/Must be a positive number/i)).toBeInTheDocument();
+      expect(screen.getByText(/must be a positive number/i)).toBeInTheDocument();
     });
-
+    
     fireEvent.change(maxRuntimeInput, { target: { value: '0' } });
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
-
+    
     await waitFor(() => {
       expect(screen.getAllByText(/Must be a positive number/i).length).toBeGreaterThanOrEqual(1);
     });
@@ -85,18 +89,18 @@ describe('NewProjectPage Unit Tests', () => {
 
   it('displays positive number validation error for Max Budget', async () => {
     render(<NewProjectPage />);
-
-    const maxBudgetInput = screen.getByLabelText(/Max Budget (\$) /i);
+  
+    const maxBudgetInput = screen.getByRole('spinbutton', { name: /max budget \(\$\)/i });
     fireEvent.change(maxBudgetInput, { target: { value: '-50' } });
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
-
+  
     await waitFor(() => {
-      expect(screen.getByText(/Must be a positive number/i)).toBeInTheDocument();
+      expect(screen.getByText(/must be a positive number/i)).toBeInTheDocument();
     });
-
+  
     fireEvent.change(maxBudgetInput, { target: { value: '0' } });
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
-
+  
     await waitFor(() => {
       expect(screen.getAllByText(/Must be a positive number/i).length).toBeGreaterThanOrEqual(1);
     });
@@ -105,36 +109,78 @@ describe('NewProjectPage Unit Tests', () => {
   it('does not display validation errors when inputs are valid', async () => {
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+    fireEvent.change(screen.getByRole('textbox', { name: /project description/i }), {
       target: { value: 'Valid description' },
     });
-    fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '10' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '100' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max runtime \(hours\)/i }), { target: { value: '10' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max budget \(\$\)/i }), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
     // Wait for any potential validation message to NOT appear, or for the submission process to start
     await waitFor(
       () => {
-        expect(screen.queryByText(/Project description is required/i)).not.toBeInTheDocument();
-        expect(screen.queryAllByText(/Must be a positive number/i)).toHaveLength(0);
+        expect(screen.queryByRole('paragraph', { name: /project description is required/i })).not.toBeInTheDocument();
+        expect(screen.queryAllByRole('paragraph', { name: /must be a positive number/i })).toHaveLength(0);
       },
       { timeout: 1000 },
     ); // Short timeout as we expect things to NOT appear quickly
   });
+
+  it('toggles the Advanced Options section visibility', async () => {
+    render(<NewProjectPage />);
+
+    const advancedOptionsButton = screen.getByRole('button', { name: /Advanced Options/i });
+    // Get the advanced options content div using the data-testid
+    let advancedOptionsContent = screen.getByTestId('advanced-options-content');
+
+    // Initially, the content should be hidden by classes, and its inner text not visible
+    expect(advancedOptionsButton).toHaveAttribute('aria-expanded', 'false');
+    expect(advancedOptionsContent).toHaveClass('max-h-0');
+    expect(advancedOptionsContent).toHaveClass('opacity-0');
+    expect(screen.queryByText(/Utility AI Models/i)).not.toBeVisible();
+
+    // Click to expand
+    fireEvent.click(advancedOptionsButton);
+
+    // After click, content should be visible (aria-expanded true, max-h and opacity classes removed or changed)
+    await waitFor(() => {
+      expect(advancedOptionsButton).toHaveAttribute('aria-expanded', 'true');
+      expect(advancedOptionsContent).not.toHaveClass('max-h-0');
+      expect(advancedOptionsContent).not.toHaveClass('opacity-0');
+      expect(screen.getByText(/Utility AI Models/i)).toBeVisible(); // Now the text should be visible
+    });
+
+    // Click again to collapse
+    fireEvent.click(advancedOptionsButton);
+
+    // After second click, content should be hidden again
+    await waitFor(() => {
+      expect(advancedOptionsButton).toHaveAttribute('aria-expanded', 'false');
+      expect(advancedOptionsContent).toHaveClass('max-h-0');
+      expect(advancedOptionsContent).toHaveClass('opacity-0');
+      expect(screen.queryByText(/Utility AI Models/i)).not.toBeVisible(); // Text should no longer be visible
+    });
+  });
 });
 
 describe('NewProjectPage Integration Tests (MSW)', () => {
-  const { setError: mockSetGlobalError } = useGlobalError(); // Moved to top-level of this describe block
+  // Use the mockSetError defined globally for the mock
+  // This cannot be destructured from useGlobalError() here as it would create a new mock.
+  // We directly use the global mockSetError.
+
+  beforeEach(() => {
+    mockSetError.mockClear(); // Clear mock calls before each test
+  });
 
   it('handles successful project creation (201 Created)', async () => {
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+    fireEvent.change(screen.getByRole('textbox', { name: /project description/i }), {
       target: { value: 'A new project description' },
     });
-    fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '100' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max runtime \(hours\)/i }), { target: { value: '5' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max budget \(\$\)/i }), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
@@ -144,7 +190,9 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Start/i })).toBeInTheDocument(); // Button text reverts after submission
-      expect(mockSetGlobalError).not.toHaveBeenCalled(); // Global error should not be called on success
+      expect(mockSetError).toHaveBeenCalledWith(null); // Should have cleared any global errors
+      expect(mockSetError).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'error' })); // No actual error messages should be set
+      expect(mockSetError).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'warning' })); // No actual warning messages should be set
     });
 
     // The current page.tsx uses an alert for success, which is not ideal for testing.
@@ -171,13 +219,13 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
 
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+    fireEvent.change(screen.getByRole('textbox', { name: /project description/i }), {
       target: { value: 'Invalid Description!' },
     });
-    fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), {
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max runtime \(hours\)/i }), {
       target: { value: '1200' },
     });
-    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '50' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max budget \(\$\)/i }), { target: { value: '50' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
@@ -186,7 +234,7 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
         screen.getByText(/Description cannot contain special characters./i),
       ).toBeInTheDocument();
       expect(screen.getByText(/Max runtime cannot exceed 1000 hours./i)).toBeInTheDocument();
-      expect(mockSetGlobalError).toHaveBeenCalledWith({
+      expect(mockSetError).toHaveBeenCalledWith({
         message: 'Please check the form for errors.',
         type: 'warning',
       });
@@ -206,16 +254,16 @@ describe('NewProjectPage Integration Tests (MSW)', () => {
 
     render(<NewProjectPage />);
 
-    fireEvent.change(screen.getByLabelText(/Project Description/i), {
+    fireEvent.change(screen.getByRole('textbox', { name: /project description/i }), {
       target: { value: 'Valid description for server error test' },
     });
-    fireEvent.change(screen.getByLabelText(/Max Runtime \(Hours\)/i), { target: { value: '10' } });
-    fireEvent.change(screen.getByLabelText(/Max Budget (\$) /i), { target: { value: '100' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max runtime \(hours\)/i }), { target: { value: '10' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: /max budget \(\$\)/i }), { target: { value: '100' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Start/i }));
 
     await waitFor(() => {
-      expect(mockSetGlobalError).toHaveBeenCalledWith({
+      expect(mockSetError).toHaveBeenCalledWith({
         message: 'Internal Server Error',
         type: 'error',
       });
