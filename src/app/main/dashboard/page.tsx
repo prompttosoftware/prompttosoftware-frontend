@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import AddPaymentButton from '@/app/main/components/AddPaymentButton';
 import { ActiveProjectsSummary } from './components';
 import AccountUsageSection from './components/AccountUsageSection'; // Import AccountUsageSection
-import { useUserProfileQuery } from '@/hooks/useUserProfileQuery'; // Import useUserProfileQuery
 
 export default function DashboardPage() {
     const { data: projects, isLoading, error } = useUserProjects();
@@ -24,9 +23,6 @@ export default function DashboardPage() {
         }
     }, [error, setError]);
 
-    const { user: usageDataFromProfile, isLoading: usageLoading, error: usageError } = useUserProfileQuery();
-    const usageData = usageDataFromProfile?.usage || { currentMonthSpending: 0, previousMonthSpending: 0, totalBudget: 0, historicalSpending: [] };
-
     return (
         <div className="flex flex-col items-center justify-center min-h-screen py-2">
             <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
@@ -36,11 +32,7 @@ export default function DashboardPage() {
                     <AddPaymentButton />
                 </div>
                 
-                <AccountUsageSection
-                    usageData={usageData}
-                    usageLoading={usageLoading}
-                    usageError={usageError}
-                />
+                <AccountUsageSection />
 
                 {/* Active Projects Section */}
                 <section className="w-full max-w-5xl mb-12">

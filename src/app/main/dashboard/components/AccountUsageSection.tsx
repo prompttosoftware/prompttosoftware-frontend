@@ -15,18 +15,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/app/main/components/LoadingSpinner';
 import AddPaymentButton from '@/app/main/components/AddPaymentButton';
 
-interface AccountUsageSectionProps {
-  usageData: UserUsage | undefined;
-  usageLoading: boolean;
-  usageError: Error | null;
-}
+import { useAccountUsageData } from '@/hooks/useAccountUsageData';
+import { useGlobalErrorStore } from '@/store/globalErrorStore';
 
-const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({
-  usageData,
-  usageLoading,
-  usageError,
-}) => {
+interface AccountUsageSectionProps {} // No props needed anymore
+
+const AccountUsageSection: React.FC<AccountUsageSectionProps> = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>('current'); // 'current' or specific date string
+  const { data, isLoading, error } = useAccountUsageData();
+  const { setError } = useGlobalErrorStore();
+
+  // Trigger global error modal if there's an error from the hook
+  React.useEffect(() => {
+    if (error) {
+      setError({
+        message: 'Failed to retrieve account usage data.',
+        description: error.message || 'Please try again later.',
+      });
+    }
+  }, [error, setError]);
+
+  const usageData = data?.usage; // Extract usage data from the response
 
   const rawHistoricalData = useMemo(() => {
     if (!usageData?.historicalSpending) return [];
@@ -141,7 +150,7 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({
     setSelectedMonth(value);
   };
 
-  if (usageLoading) {
+  if (isLoading) {
     return (
       <Card className="w-full max-w-5xl mb-6">
         <CardHeader>
@@ -153,15 +162,15 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({
       </Card>
     );
   }
-
-  if (usageError) {
+  
+  if (error) { // The global error modal is already triggered by useEffect, this is for inline message
     return (
       <Card className="w-full max-w-5xl mb-6">
         <CardHeader>
           <CardTitle>Account Usage Statistics</CardTitle>
         </CardHeader>
         <CardContent className="text-red-500">
-          Error loading usage data: {usageError.message}
+          Error loading usage data. Please try again later.
         </CardContent>
       </Card>
     );
