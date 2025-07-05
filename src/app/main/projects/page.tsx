@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { useUserProjects } from '@/hooks/useUserProjects';
-import ProjectCard from '@/app/(main)/components/ProjectCard';
-import EmptyState from '@/app/(main)/components/EmptyState'; // Ensure this is the default export
+import ProjectCard from '@/app/main/components/ProjectCard';
+import EmptyState from '@/app/main/components/EmptyState'; // Ensure this is the default export
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import SkeletonLoader from '@/app/(main)/components/SkeletonLoader'; // Ensure this is the default export
+import SkeletonLoader from '@/app/main/components/SkeletonLoader'; // Ensure this is the default export
 
 const ProjectsPage = () => {
   const { data: projects, isLoading, isError } = useUserProjects(); // Destructure data as 'projects' for clarity

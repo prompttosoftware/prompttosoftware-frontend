@@ -9,6 +9,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import AddPaymentButton from '@/app/main/components/AddPaymentButton'; // Import AddPaymentButton
+import ActiveProjectsSummary from './components/ActiveProjectsSummary'; // Import ActiveProjectsSummary
 
 export default function DashboardPage() {
   const { projects, isLoading, error } = useUserProjects();
@@ -43,6 +44,7 @@ export default function DashboardPage() {
               <Button variant="outline">View all</Button>
             </Link>
           </div>
+          <ActiveProjectsSummary />
         </section>
       </main>
     </div>
