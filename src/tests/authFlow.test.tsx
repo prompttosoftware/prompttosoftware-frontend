@@ -28,9 +28,9 @@ const ProfilePage = () => {
       <h1>Profile</h1>
       {user ? (
         <>
-          <p>Name: {user.name}</p>
-          <p>Email: {user.email}</p>
-          <p>Balance: {user.balance}</p>
+          <p>Name: ${user.name}</p>
+          <p>Email: ${user.email}</p>
+          <p>Balance: ${user.balance}</p>
           <button data-testid="delete-account-button">Delete Account</button>
         </>
       ) : (
@@ -67,14 +67,9 @@ let assignSpy: jest.SpyInstance;
 let replaceSpy: jest.SpyInstance;
 let reloadSpy: jest.SpyInstance;
 let confirmSpy: jest.SpyInstance;
+let originalHrefDescriptor: PropertyDescriptor | undefined;
 
-const mockLocation = {
-  href: '',
-  origin: '',
-  pathname: '',
-  search: '',
-  // No need for assign/replace/reload as they will be spied on window.location directly
-};
+
 
 // Mock next/navigation's useRouter
 const mockPush = jest.fn();
@@ -92,7 +87,7 @@ jest.mock('next/navigation', () => ({
 // This test primarily uses next/navigation's useRouter mock for navigation.
 // The MemoryRouter and Routes from react-router-dom are used to create a test
 // rendering environment, but actual programmatic navigation, especially for
-// `LoginPage` and `AuthContext`, relies on the next/navigation useRouter mock.
+// LoginPage and AuthContext, relies on the next/navigation useRouter mock.
 // Therefore, no specific mock for react-router-dom's useNavigate is needed here,
 // as it would interfere with next/navigation's expected behavior.
 
@@ -114,7 +109,7 @@ const handlers = [
     }
     return HttpResponse.json({}, { status: 400 });
   }),
-  
+
   // Mock the user profile endpoint, typically called after successful login
   http.get('/api/auth/me', ({ request }) => {
     if (request.headers.get('Authorization') === 'Bearer mock-jwt-token') {
@@ -164,52 +159,62 @@ describe('Authentication Flow Integration Tests', () => {
     server.listen({ onUnhandledRequest: 'error' });
     // Mock environment variables
     process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID = 'mock-github-client-id';
-  
+
     // Mock window.confirm
     confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    // Mock window.location methods
-    assignSpy = jest.spyOn(window.location, 'assign').mockImplementation((url) => {
-      mockLocation.href = url; // Update mock state
-      mockPush(new URL(url).pathname); // Simulate internal Next.js push
-    });
-    replaceSpy = jest.spyOn(window.location, 'replace').mockImplementation((url) => {
-      mockLocation.href = url; // Update mock state
-      mockPush(new URL(url).pathname); // Simulate internal Next.js push
-    });
-    reloadSpy = jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+
+    // Spy on window.location methods
+    assignSpy = jest.spyOn(window.location, 'assign').mockImplementation(jest.fn());
+    replaceSpy = jest.spyOn(window.location, 'replace').mockImplementation(jest.fn());
+    reloadSpy = jest.spyOn(window.location, 'reload').mockImplementation(jest.fn());
+
+    // Make .href writable (if it's not already) to allow direct manipulation in tests
+    originalHrefDescriptor = Object.getOwnPropertyDescriptor(window.location, 'href');
+    if (originalHrefDescriptor && !originalHrefDescriptor.writable) {
+        Object.defineProperty(window.location, 'href', {
+            configurable: true,
+            writable: true,
+        });
+    }
   });
 
   beforeEach(() => {
-    // Reset mockLocation properties and clear mock functions before each test
-    mockLocation.href = '';
-    mockLocation.origin = '';
-    mockLocation.pathname = '';
-    mockLocation.search = '';
-    // Clear spy calls for location and confirm
+    // Clear mock calls for confirm and window.location methods
     confirmSpy.mockClear();
     assignSpy.mockClear();
     replaceSpy.mockClear();
     reloadSpy.mockClear();
     mockPush.mockClear(); // Keep mockPush clear for next/navigation
-    mockSearchParams = new URLSearchParams(); // Reset mockSearchParams for test isolation
+
+    // Reset mockSearchParams for test isolation
+    mockSearchParams = new URLSearchParams();
   });
-  
+
   afterEach(() => {
     server.resetHandlers();
     queryClient.clear();
     localStorage.clear();
     sessionStorage.clear(); // Clear sessionStorage as well if used
     jest.clearAllTimers(); // Clear any timers set by React components
-    confirmSpy.mockRestore();
-assignSpy.mockRestore();
-replaceSpy.mockRestore();
-reloadSpy.mockRestore();
+    confirmSpy.mockRestore(); // Restore window.confirm spy
+    // assignSpy, replaceSpy, reloadSpy are direct functions on window.location
+    // so mockClear() is sufficient, no mockRestore() needed here assuming we restore in afterAll
   });
-  
+
   afterAll(() => {
     server.close();
     // Clean up mock environment variables
     delete process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+
+    // Restore original methods/properties on window.location
+    assignSpy.mockRestore();
+    replaceSpy.mockRestore();
+    reloadSpy.mockRestore();
+
+    // Restore href writability
+    if (originalHrefDescriptor) {
+        Object.defineProperty(window.location, 'href', originalHrefDescriptor);
+    }
   });
 
   it('should successfully log in a user via GitHub and redirect to dashboard', async () => {
@@ -229,43 +234,29 @@ reloadSpy.mockRestore();
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /sign in with github/i }));
     });
-    
-    // Assert that the correct URL was "navigated" to via mockLocation.assign
-    expect(mockLocation.assign).toHaveBeenCalledWith(
+
+    // Assert that the correct URL was "navigated" to via assignSpy
+    expect(assignSpy).toHaveBeenCalledWith(
       expect.stringMatching(/^https:\/\/github.com\/login\/oauth\/authorize\?client_id=mock-github-client-id&scope=repo&redirect_uri=http:\/\/localhost\/login$/)
     );
-    
+
     // After assigning to a new URL, simulate the browser navigating to it.
-    // For our tests, this means updating the mockLocation properties.
-    mockLocation.href = 'http://localhost/login?code=valid-github-code';
-    mockLocation.search = '?code=valid-github-code';
-    mockLocation.origin = 'http://localhost';
-    mockLocation.pathname = '/login';
-    
-    // 3. Simulate GitHub redirect with a `code`
-    // No longer redefining properties, just setting the mock state directly.
+    // For our tests, this means setting the properties on the current window.location object.
+    // These properties should be writable due to the beforeEach setup which makes href, pathname, search writable.
+    // Note: In a real browser, this would cause a full page reload/navigation.
+    // In JSDOM, it merely updates the property.
+    // Attempting to set origin directly usually fails as it derive from href. Can usually be ignored for tests.
+    // (window.location as any).origin will remain its default JSDOM value unless completely re-mocked.
 
-    // Re-render the Login Page components with the mocked URL and let AuthProvider handle the callback
-    // This is necessary because the AuthProvider's useEffect typically runs on mount
-    // and would process the URL on initial load if it were a fresh navigation.
-    // Here, we simulate the effect of landing on /login?code=...
-    // Update mockSearchParams before the component that uses it is rendered
+    // 3. Simulate GitHub redirect with a code
+    // Update mockSearchParams. The existing LoginPage instance should react to this change.
     mockSearchParams = new URLSearchParams('?code=valid-github-code');
-    await act(async () => {
-      renderWithProviders(
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<div>Dashboard Page</div>} />
-        </Routes>,
-        ['/login?code=valid-github-code'], // Simulate initial URL with code
-      );
-    });
 
-    // 4. Verify `POST /auth/github` is called with the correct `code`.
+    // 4. Verify POST /auth/github is called with the correct code.
     // MSW handlers will catch this. No direct assertion here as it's an internal network call.
     // We assert on the consequences (localStorage update, redirection).
 
-    // 5. Verify JWT is stored in `localStorage` and `AuthContext` is updated.
+    // 5. Verify JWT is stored in localStorage and AuthContext is updated.
     await waitFor(() => {
       expect(localStorage.getItem('jwtToken')).toBe('mock-jwt-token');
     });
@@ -309,23 +300,16 @@ reloadSpy.mockRestore();
 
     // Simulate a redirect with an invalid code
     // Simulate landing on the URL with an invalid code
-    // Setting mockLocation properties directly
-    mockLocation.href = 'http://localhost/login?code=invalid-github-code';
-    mockLocation.search = '?code=invalid-github-code';
-    mockLocation.origin = 'http://localhost';
-    mockLocation.pathname = '/login';
+    // Setting window.location properties directly to simulate the redirect URL
+    // Object.defineProperty(window.location, 'href', { writable: true, value: 'http://localhost/login?code=invalid-github-code' });
+    // Object.defineProperty(window.location, 'search', { writable: true, value: '?code=invalid-github-code' });
+    // Object.defineProperty(window.location, 'pathname', { writable: true, value: '/login' });
+    // Note: window.location.origin is often read-only in JSDOM, but href, pathname, search can generally be manipulated
+    // if configured writable or by assigning a new Location object (which we are not doing here).
+    // (window.location as any).origin will remain its default JSDOM value unless completely re-mocked.
 
-    // Update mockSearchParams before the component that uses it is rendered
+    // Update mockSearchParams. The existing LoginPage instance should react to this change.
     mockSearchParams = new URLSearchParams('?code=invalid-github-code');
-    await act(async () => {
-      renderWithProviders(
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<div>Dashboard Page</div>}/>
-        </Routes>,
-        ['/login?code=invalid-github-code'],
-      );
-    });
 
     // Expect no JWT in localStorage
     await waitFor(() => {

@@ -17,6 +17,7 @@ import BannerDisplay from './components/BannerDisplay';
 import { Banner } from '@/types/banner';
 import SuccessToast from './components/SuccessToast';
 import TutorialOverlay from './components/TutorialOverlay'; // Import TutorialOverlay
+import usePaymentModalStore from '@/store/paymentModalStore';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
