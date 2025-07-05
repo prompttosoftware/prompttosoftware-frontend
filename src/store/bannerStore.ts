@@ -42,7 +42,7 @@ const useBannerStore = create<BannerStore>((set, get) => ({
             });
 
         } catch (e) {
-            console.error("Failed to load dismissed banner IDs from localStorage", e);
+            console.error("BannerStore: Failed to load dismissed banner IDs from localStorage", e);
             set({ dismissedBannerIds: [] });
         }
     },
@@ -81,7 +81,7 @@ const useBannerStore = create<BannerStore>((set, get) => ({
                 try {
                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedDismissedIds));
                 } catch (e) {
-                    console.error("Failed to save dismissed banner IDs to localStorage", e);
+                    console.error("BannerStore: Failed to save dismissed banner IDs to localStorage", e);
                 }
                 // Find the next banner that hasn't been dismissed
                 const nextBannerQueue = state.bannerQueue.filter(b => !updatedDismissedIds.includes(b.id));
