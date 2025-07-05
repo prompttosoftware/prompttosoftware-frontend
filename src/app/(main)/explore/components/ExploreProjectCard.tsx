@@ -1,4 +1,4 @@
-import { ProjectSummary } from '@/src/types/project';
+import { ProjectSummary } from '@/types/project';
 import { formatDistanceToNow } from 'date-fns';
 import { FaStar } from 'react-icons/fa';
 
