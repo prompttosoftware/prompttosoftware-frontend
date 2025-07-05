@@ -16,12 +16,22 @@ import { AuthProvider } from '@/lib/AuthContext';
 import BannerDisplay from './components/BannerDisplay';
 import { Banner } from '@/types/banner';
 import SuccessToast from './components/SuccessToast';
+import TutorialOverlay from './components/TutorialOverlay'; // Import TutorialOverlay
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false); // State to control tutorial visibility
 
   const initBanners = useBannerStore((state) => state.initBanners);
+
+  useEffect(() => {
+    // Check if tutorial has been completed before
+    const tutorialCompleted = localStorage.getItem('prompt2code_tutorial_completed');
+    if (!tutorialCompleted) {
+      setShowTutorial(true); // Show tutorial if not completed
+    }
+  }, []); // Empty dependency array means this runs once on mount
 
   useEffect(() => {
     const initialBanners: Omit<Banner, 'id'>[] = [
@@ -33,10 +43,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     initBanners(initialBanners);
   }, [initBanners]);
 
+  const handleTutorialComplete = () => {
+    setShowTutorial(false);
+    // Additional logic can go here if needed after tutorial finishes
+  };
+
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
 
   return (
     <AuthProvider>
+      {showTutorial && <TutorialOverlay onTutorialComplete={handleTutorialComplete} />} {/* Render tutorial overlay */}
       <div className="flex min-h-screen bg-gray-100">
         <SideNavBar
           isExpanded={isNavExpanded}

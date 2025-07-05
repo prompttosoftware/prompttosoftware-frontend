@@ -65,11 +65,5 @@ export const tutorialSteps: TutorialStep[] = [
     targetSelector: '[data-testid="new-project-button"]', // Target the New Project link in the SideNavBar
     position: 'right', // Positioning it to the right of the SideNavBar button
   },
-  {
-    id: 'final-tour-end',
-    title: 'Tour Complete!',
-    description: 'That\'s it for the quick tour! You can always restart the tutorial from your profile settings. Now, let\'s build something amazing!',
-    targetSelector: 'body',
-    position: 'center',
-  },
+  
 ];
