@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useExploreProjects } from '@/hooks/useExploreProjects';
-import { ProjectCard } from '@/app/main/components/ProjectCard';
-import { useDebounce } from '@/hooks/useDebounce';
+import ProjectCard from '@/app/main/components/ProjectCard';
+import useDebounce from '@/hooks/useDebounce';
 import { Project } from '@/types/project';
 
 

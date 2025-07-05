@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { SavedCardsList } from '../../../../components/payments/SavedCardsList/SavedCardsList';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EmptyState from '../../components/EmptyState'; // Make sure EmptyState is imported
+import LoadingSpinner from '@/app/main/components/LoadingSpinner';
+import EmptyState from '@/app/main/components/EmptyState'; // Make sure EmptyState is imported
 import { useAuth } from '../../../../hooks/useAuth';
 import { useGlobalError } from '../../../../hooks/useGlobalError';
 import { httpClient } from '../../../../lib/httpClient';
-import { SavedCard } from '../../../types/payments'; // Assuming SavedCard is defined here
+import { SavedCard } from '../../../../types/payments'; // Assuming SavedCard is defined here
 
 export default function PaymentsPage() {
-  const { isAuthenticated, getAccessToken } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { addError } = useGlobalError();
 
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
@@ -28,16 +28,9 @@ export default function PaymentsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const token = await getAccessToken();
-        if (!token) {
-          throw new Error("Authentication token not available.");
-        }
 
-        const response = await httpClient.get<SavedCard[]>('/payments/cards', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+
+        const response = await httpClient.get<SavedCard[]>('/payments/cards', {});
         setSavedCards(response.data);
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch saved cards.';
@@ -50,7 +43,7 @@ export default function PaymentsPage() {
     };
 
     fetchSavedCards();
-  }, [isAuthenticated, getAccessToken, addError]);
+  }, [isAuthenticated, addError]);
 
   if (isLoading) {
     return (
