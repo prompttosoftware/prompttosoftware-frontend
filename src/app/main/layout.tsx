@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useContext } from 'react'; // Added useEffect
+import React, { useEffect, useContext, useState } from 'react';
 import SideNavBar from './components/SideNavBar';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import ErrorModal from './components/ErrorModal';
@@ -18,21 +18,13 @@ import { Banner } from '@/types/banner';
 import SuccessToast from './components/SuccessToast';
 import TutorialOverlay from './components/TutorialOverlay'; // Import TutorialOverlay
 import { usePaymentModalStore } from '@/store/paymentModalStore';
+import { AuthContext } from '@/lib/AuthContext'; // Import AuthContext
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false); // State to control tutorial visibility
-
   const initBanners = useBannerStore((state) => state.initBanners);
-
-  useEffect(() => {
-    // Check if tutorial has been completed before
-    const tutorialCompleted = localStorage.getItem('prompt2code_tutorial_completed');
-    if (!tutorialCompleted) {
-      setShowTutorial(true); // Show tutorial if not completed
-    }
-  }, []); // Empty dependency array means this runs once on mount
+  const { showTutorial, setShowTutorial } = useContext(AuthContext); // Use showTutorial from AuthContext
 
   useEffect(() => {
     const initialBanners: Omit<Banner, 'id'>[] = [
@@ -42,11 +34,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       { message: "Just an informative message for you.", type: 'info', dismissible: true },
     ];
     initBanners(initialBanners);
-  }, [initBanners]);
+  }, []); // Empty dependency array to run only once
 
   const handleTutorialComplete = () => {
     setShowTutorial(false);
-    // Additional logic can go here if needed after tutorial finishes
+    localStorage.setItem('prompt2code_tutorial_completed', 'true');
   };
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';

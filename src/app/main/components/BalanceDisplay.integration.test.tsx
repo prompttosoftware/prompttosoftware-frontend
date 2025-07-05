@@ -20,7 +20,7 @@ jest.mock('@/lib/logger', () => ({
 
 // Define MSW handlers
 const handlers = [
-  http.get('/api/auth/me', ({ request }) => {
+  http.get('/api/auth/me', ({ request }) => { // Reverted from /users/me to /api/auth/me
     const url = new URL(request.url);
     const scenario = url.searchParams.get('scenario');
 
@@ -96,7 +96,7 @@ describe('BalanceDisplay Integration', () => {
 
   it('should display the initial balance fetched from the API', async () => {
     server.use(
-      http.get('/api/auth/me', () => {
+      http.get('/api/auth/me', () => { // Reverted from /users/me to /api/auth/me
         return HttpResponse.json({
           id: '1',
           username: 'testuser',
@@ -115,7 +115,7 @@ describe('BalanceDisplay Integration', () => {
 
   it('should display $0.00 if balance is not returned or is undefined', async () => {
     server.use(
-      http.get('/api/auth/me', () => {
+      http.get('/api/auth/me', () => { // Reverted from /users/me to /api/auth/me
         return HttpResponse.json({
           id: '1',
           username: 'testuser',
@@ -158,7 +158,7 @@ describe('BalanceDisplay Integration', () => {
 
   it('should handle API errors gracefully and log them', async () => {
     server.use(
-      http.get('/api/auth/me', () => {
+      http.get('/api/auth/me', () => { // Reverted from /users/me to /api/auth/me
         return HttpResponse.json({ message: 'Internal Server Error' }, { status: 500 });
       }),
     );

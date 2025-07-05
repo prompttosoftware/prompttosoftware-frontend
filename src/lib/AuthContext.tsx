@@ -53,11 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setupHttpClientInterceptors(router);
   }, [router]);
 
-  useEffect(() => {
-    if (user && user.balance !== undefined) {
-      setBalance(user.balance);
-    }
-  }, [user, setBalance]);
+  
 
   // Login function to set authentication state and store token/user data
   // Define isAuthenticated within AuthProvider based on the user data from useUserProfileQuery

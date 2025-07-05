@@ -15,8 +15,9 @@ import { logger } from '@/lib/logger';
 interface PaymentFormContentProps {
   clientSecret: string | null;
   setClientSecret: (secret: string | null) => void;
-  closeModal: () => void;
+  closeModal: () => void; // Still needed for closing the *entire* modal on success
   clearStoreState: () => void;
+  resetAddFundsStep: () => void; // New prop to reset the step in PaymentModal
   clearGlobalError: () => void;
   setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
   setSuccessMessageStore: (message: string | null) => void;
@@ -29,6 +30,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   setClientSecret,
   closeModal,
   clearStoreState,
+  resetAddFundsStep, // Destructure new prop
   clearGlobalError,
   setGlobalError,
   setSuccessMessageStore,
@@ -112,6 +114,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
           message: error.message || 'Payment failed. Please try again.',
           type: 'error',
         });
+        resetAddFundsStep(); // Reset the add funds step on error
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         logger.info('Funds added successfully in PaymentFormContent!');
         // Assuming the amount is available from `inputAmount` which is a prop in `PaymentModal` or derived from `clientSecret`
@@ -128,8 +131,9 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
           logger.warn('PaymentIntent amount not found. Balance may not be updated correctly.');
         }
 
-        closeModal();
-        clearStoreState();
+        resetAddFundsStep(); // Reset the add funds step if payment succeeded
+        closeModal(); // Still close the modal on successful payment
+        clearStoreState(); // Clear all payment modal related state
       } else {
         logger.warn(
           `Payment not successful in PaymentFormContent: status ${paymentIntent?.status}`,
@@ -138,6 +142,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
           message: `Payment could not be completed. Status: ${paymentIntent?.status}. Please try again.`,
           type: 'error',
         });
+        resetAddFundsStep(); // Reset the add funds step on non-success status
       }
     } catch (error) {
       logger.error(
@@ -148,6 +153,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         message: 'An unexpected error occurred during payment. Please try again.',
         type: 'error',
       });
+      resetAddFundsStep(); // Reset the add funds step on error
     } finally {
       setIsLoading(false);
     }
@@ -157,6 +163,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
     clientSecret,
     closeModal,
     clearStoreState,
+    resetAddFundsStep, // Add to dependency array
     clearGlobalError,
     setGlobalError,
     setSuccessMessageStore,

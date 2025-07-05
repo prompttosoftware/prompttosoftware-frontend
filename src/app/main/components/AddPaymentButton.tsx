@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import { usePaymentModalStore } from '@/store/paymentModalStore';
 
 export default function AddPaymentButton() {
-  const openModal = usePaymentModalStore((state) => state.openModal);
+  const openModal = usePaymentModalStore((state) => state.openPaymentModal);
 
   return (
     <Button
@@ -13,7 +13,7 @@ export default function AddPaymentButton() {
       className="flex items-center space-x-2 px-4 py-2 add-payment-button"
       data-test-id="add-payment-button" // Added for tutorial step targeting
       onClick={() => {
-        openModal(); // Call openModal to set isOpen to true
+        openModal({}); // Call openModal to set isOpen to true
         console.log('Add Payment button clicked');
       }}
     >

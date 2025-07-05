@@ -13,6 +13,8 @@ export const axiosInstance: AxiosInstance = axios.create({
   },
 });
 
+// Temporarily log the baseURL to debug
+console.log('Axios instance initialized with base URL:', axiosInstance.defaults.baseURL, 'NEXT_PUBLIC_API_MOCKING:', process.env.NEXT_PUBLIC_API_MOCKING);
 logger.info('Axios instance initialized with base URL:', axiosInstance.defaults.baseURL);
 
 // Function to set up interceptors

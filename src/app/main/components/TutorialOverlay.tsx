@@ -93,28 +93,27 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onTutorialComplete })
     // Reusing content/components from Help page's GitHub section - Placeholder for now
     return (
       <Dialog open={true} onOpenChange={() => {}}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>GitHub Information</DialogTitle>
-            <DialogDescription>
-              <p className="text-gray-700">
-                Prompt2Code integrates seamlessly with GitHub. Here’s why that’s great:
-              </p>
-              <ul className="list-disc list-inside text-gray-600 mt-2">
-                <li><strong>Version Control:</strong> Keep track of every change to your code.</li>
-                <li><strong>Collaboration:</strong> Work easily with others on projects.</li>
-                <li><strong>Showcase:</strong> Share your generated projects with the world.</li>
-                <li><strong>Deployment:</strong> Deploy your applications directly from GitHub.</li>
-              </ul>
-              <p className="mt-4 text-gray-700">
-                Learn more about GitHub <a href="https://github.com/features" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">here</a>.
-              </p>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={handleGitHubInfoClose}>Continue</Button>
-          </DialogFooter>
-        </DialogContent>
+       <DialogContent>
+         <DialogHeader>
+           <DialogTitle>GitHub Information</DialogTitle>
+         </DialogHeader>
+         {/* Directly include content below DialogHeader, outside DialogDescription if it causes nesting issues */}
+         <div className="text-gray-700">
+           <p className="text-sm text-muted-foreground">Prompt2Code integrates seamlessly with GitHub. Here’s why that’s great:</p>
+           <ul className="list-disc list-inside text-gray-600 mt-2">
+             <li><strong>Version Control:</strong> Keep track of every change to your code.</li>
+             <li><strong>Collaboration:</strong> Work easily with others on projects.</li>
+             <li><strong>Showcase:</strong> Share your generated projects with the world.</li>
+             <li><strong>Deployment:</strong> Deploy your applications directly from GitHub.</li>
+           </ul>
+           <p className="mt-4 text-sm text-muted-foreground">
+             Learn more about GitHub <a href="https://github.com/features" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">here</a>.
+           </p>
+         </div>
+         <DialogFooter>
+           <Button onClick={handleGitHubInfoClose}>Continue</Button>
+         </DialogFooter>
+       </DialogContent>
       </Dialog>
     );
   }
@@ -126,8 +125,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onTutorialComplete })
           <DialogHeader>
             <DialogTitle>Quick Question</DialogTitle>
           </DialogHeader>
-          <DialogDescription>
-            Are you familiar with GitHub?
+          <DialogDescription asChild>
+            <p className="text-sm text-muted-foreground">Are you familiar with GitHub?</p>
           </DialogDescription>
           <DialogFooter>
             <Button onClick={() => handleGitHubFamiliarity(true)}>Yes</Button>
@@ -145,8 +144,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onTutorialComplete })
         <DialogHeader>
           <DialogTitle>{currentStep?.title}</DialogTitle>
         </DialogHeader>
-        <DialogDescription>
-          {currentStep?.description}
+        <DialogDescription asChild>
+          <p className="text-sm text-muted-foreground">{currentStep?.description}</p>
         </DialogDescription>
         <DialogFooter>
           <Button onClick={handleNextStep}>Next</Button>

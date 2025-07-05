@@ -75,11 +75,20 @@ export interface PaymentErrorResponse {
 }
 
 /**
- * Represents a generic error response from the payments API.
+ * Request body for adding ad credit.
  */
-export interface PaymentErrorResponse {
+export interface AddAdCreditRequest {
+  amount: number; // Amount of ad credit to add
+  currency: string; // Currency of the ad credit, e.g., "usd"
+  paymentMethodId?: string; // Optional: ID of an existing payment method
+}
+
+/**
+ * Response body for adding ad credit.
+ */
+export interface AddAdCreditResponse {
   message: string;
-  statusCode: number;
-  code?: string; // Optional: A specific error code (e.g., 'invalid_data', 'card_declined')
-  param?: string; // Optional: The parameter that caused the error
+  newBalance: number; // The user's new ad credit balance
+  currency: string;
+  transactionId: string; // Unique ID for the credit transaction
 }

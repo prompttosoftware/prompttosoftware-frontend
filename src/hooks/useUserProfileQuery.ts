@@ -42,8 +42,11 @@ export const useUserProfileQuery = () => {
 
   useEffect(() => {
     if (isSuccess && data) {
-      if (data && typeof data.balance === 'number') {
-        setBalance(data.balance);
+      if (typeof data.balance === 'number') {
+        const currentBalance = useBalanceStore.getState().balance;
+        if (currentBalance !== data.balance) {
+          setBalance(data.balance);
+        }
       }
     }
   }, [isSuccess, data, setBalance]);
