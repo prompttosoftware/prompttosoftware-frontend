@@ -2,20 +2,22 @@ import { useQuery } from '@tanstack/react-query';
 import { getExploreProjects } from '../services/projectsService';
 import { ProjectSummary } from '../types/project';
 import { useDebounce } from './useDebounce';
+// Removed useMemo as client-side filtering/sorting is removed
 
-export function useExploreProjects() {
-  const { data, isLoading, isError, error } = useQuery<ProjectSummary[], Error>({
-    queryKey: ['exploreProjects'],
-    queryFn: () => getExploreProjects(),
-    // The API is public and does not require JWT authentication.
-    // This query can be refetched by default, but no specific staletime or cachetime
-    // is mentioned, so we'll stick to react-query defaults for now.
+interface UseExploreProjectsOptions {
+  searchQuery?: string;
+  sortOption?: string; // Changed from 'trending' | 'recent' to string
+}
+
+export function useExploreProjects({ searchQuery, sortOption }: UseExploreProjectsOptions) {
+  const debouncedSearchQuery = useDebounce(searchQuery || '', 500);
+
+  const { data: projects, ...queryResult } = useQuery<ProjectSummary[], Error>({
+    queryKey: ['exploreProjects', debouncedSearchQuery, sortOption],
+    queryFn: () => getExploreProjects(debouncedSearchQuery, sortOption),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    keepPreviousData: true,
   });
 
-  return {
-    projects: data || [], // Ensure projects is always an array
-    isLoading,
-    isError,
-    error,
-  };
+  return { data: projects, ...queryResult };
 }
