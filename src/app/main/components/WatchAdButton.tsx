@@ -126,7 +126,7 @@ const WatchAdButton: React.FC = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p className="text-sm">Watch an ad to earn credits for your account balance.</p>
+            <p className="text-sm">Watch an advertisement to earn credit towards your account balance.</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
