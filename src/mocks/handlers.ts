@@ -1,5 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { ProjectStatus } from '@/types/project';
+import { CreatePaymentIntentRequest, CreatePaymentIntentResponse, PaymentErrorResponse } from '@/types/payments';
+import { AddAdCreditRequest, AdCreditResponse } from '@/types/ads';
 
 let nextProjectId = 1; // Simple counter for unique project IDs
 
@@ -305,4 +307,93 @@ http.post('/api/projects', async ({ request }) => {
     { status: 201 },
   );
 }),
-  ];
+
+// Handler for POST /payments/create-intent
+http.post('/payments/create-intent', async ({ request }) => {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || authHeader !== 'Bearer mock-jwt-token') {
+    console.warn('MSW: Unauthorized attempt to create payment intent');
+    return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { amount, currency, paymentMethodId, description } = (await request.json()) as CreatePaymentIntentRequest;
+
+  if (amount === 1313 && currency === 'usd') {
+    // Simulate a failure scenario for specific amount (e.g., insufficient funds)
+    return HttpResponse.json(
+      {
+        message: 'Payment failed: Insufficient funds or invalid details.',
+        statusCode: 400,
+        code: 'payment_failed',
+        param: 'amount',
+      } as PaymentErrorResponse,
+      { status: 400 },
+    );
+  }
+
+  if (amount < 500) { // Example: minimum amount check for failure
+    return HttpResponse.json(
+      {
+        message: 'Payment amount too low. Minimum is 500 cents.',
+        statusCode: 400,
+        code: 'amount_too_low',
+        param: 'amount',
+      } as PaymentErrorResponse,
+      { status: 400 },
+    );
+  }
+
+  // Simulate successful payment intent creation
+  const paymentIntentId = `pi_${Date.now()}`;
+  const clientSecret = `cs_${Date.now()}_secret`; // A mock client secret
+  console.log(`MSW: Created payment intent ${paymentIntentId} for ${amount} ${currency}`);
+  return HttpResponse.json(
+    {
+      clientSecret,
+      paymentIntentId,
+      amount,
+      currency,
+      status: 'requires_action', // Or 'requires_confirmation', 'succeeded' depending on flow
+      requiresAction: {
+        type: 'url',
+        url: 'https://mock-3dsecure-action.com/redirect', // Mock URL for 3D Secure or similar
+      },
+    } as CreatePaymentIntentResponse,
+    { status: 200 },
+  );
+}),
+
+// Handler for POST /ads/credit
+http.post('/ads/credit', async ({ request }) => {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || authHeader !== 'Bearer mock-jwt-token') {
+    console.warn('MSW: Unauthorized attempt to add ad credit');
+    return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { amount, currency, description } = (await request.json()) as AddAdCreditRequest;
+
+  if (amount === 999 && currency === 'usd') {
+    // Simulate a failure scenario for ad credit (e.g., ad not watched fully)
+    return HttpResponse.json(
+      {
+        message: 'Ad credit failed: Ad not fully watched or invalid ad session.',
+        statusCode: 400,
+        code: 'ad_credit_failed',
+      } as PaymentErrorResponse, // Re-using PaymentErrorResponse as a generic error
+      { status: 400 },
+    );
+  }
+
+  // Simulate successful ad credit
+  const newBalance = 50000 + amount; // Example: user had 500 credits, add the amount
+  console.log(`MSW: Added ${amount} ${currency} to ad credit. New balance: ${newBalance}`);
+  return HttpResponse.json(
+    {
+      newBalance,
+      creditedAmount: amount,
+    } as AdCreditResponse,
+    { status: 200 },
+  );
+}),
+];
