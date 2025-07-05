@@ -1,3 +1,9 @@
+export interface ProjectMessage {
+  sender: 'user' | 'agent';
+  message: string;
+  timestamp: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -9,6 +15,7 @@ export interface Project {
   progress: number;
   createdAt: string;
   updatedAt: string;
+  history: ProjectMessage[]; // Add this line
 }
 
 export interface ProjectStatus {
