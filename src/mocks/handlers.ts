@@ -5,6 +5,75 @@ let nextProjectId = 1; // Simple counter for unique project IDs
 
 // Define your MSW handlers here
 export const handlers = [
+  // Auth Handlers
+  // POST /auth/github - Login via GitHub
+  http.post('/auth/github', async ({ request }) => {
+    const { code } = await request.json();
+
+    if (code === 'valid_github_code') {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/100000?v=4',
+        githubId: 'github-123',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+      console.log('MSW: /auth/github success with code:', code);
+      return HttpResponse.json({ jwtToken: 'mock-jwt-token', user: mockUser }, { status: 200 });
+    } else if (code === 'invalid_github_code') {
+      console.log('MSW: /auth/github invalid code:', code);
+      return HttpResponse.json({ message: 'Invalid GitHub authorization code' }, { status: 400 });
+    } else {
+      console.log('MSW: /auth/github unhandled code:', code);
+      return HttpResponse.json({ message: 'Unhandled GitHub authorization code' }, { status: 400 });
+    }
+  }),
+
+  // GET /auth/me - Get current user profile
+  http.get('/auth/me', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+
+    if (authHeader === 'Bearer mock-jwt-token') {
+      const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/100000?v=4',
+        githubId: 'github-123',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+      console.log('MSW: /auth/me success');
+      return HttpResponse.json(mockUser, { status: 200 });
+    } else {
+      console.log('MSW: /auth/me unauthenticated');
+      return HttpResponse.json({ message: 'Unauthorized: No valid token provided' }, { status: 401 });
+    }
+  }),
+
+  // POST /auth/logout - Logout user
+  http.post('/auth/logout', () => {
+    console.log('MSW: /auth/logout success');
+    return HttpResponse.json({ message: 'Logged out successfully' }, { status: 200 });
+  }),
+
+  // DELETE /users/me - Delete current user account
+  http.delete('/users/me', ({ request }) => {
+    const authHeader = request.headers.get('Authorization');
+
+    if (authHeader === 'Bearer mock-jwt-token') {
+      console.log('MSW: /users/me success');
+      return HttpResponse.json({ message: 'Account deleted successfully' }, { status: 200 });
+    } else {
+      console.log('MSW: /users/me unauthorized');
+      return HttpResponse.json({ message: 'Unauthorized: No valid token provided for account deletion' }, { status: 401 });
+    }
+  }),
+
   // Example handler from msw.test.tsx, moved here
   http.get('https://api.example.com/data', () => {
     return HttpResponse.json({ message: 'Hello from MSW!' });
@@ -64,21 +133,143 @@ http.get('/payments/cards', () => {
   return HttpResponse.json({ cards: mockSavedCards }, { status: 200 });
 }),
 
-// Handler for GET /api/projects
-http.get('/api/projects', () => {
-  const mockProjects = Array.from({ length: 5 }).map((_, i) => ({
-    id: `project-${i + 1}`,
-    name: `Mock Project ${i + 1}`,
-    description: `This is a mock description for project ${i + 1}. It details the purpose and goals of the project.`,
-    status: i % 2 === 0 ? 'active' : 'completed', // Alternating status
-    repositoryUrl: `https://github.com/mockuser/project-${i + 1}`,
-    costToDate: parseFloat((Math.random() * 10000).toFixed(2)),
-    totalRuntime: Math.floor(Math.random() * 86400000 * 5), // Up to 5 days in milliseconds
-    progress: parseFloat((Math.random() * 100).toFixed(1)),
-    githubStars: Math.floor(Math.random() * 1000),
-    createdAt: new Date(Date.now() - (i * 86400000)).toISOString(),
-  }));
-  return HttpResponse.json(mockProjects, { status: 200 });
+// Handler for GET /projects/explore
+http.get('/projects/explore', ({ request }) => {
+  const url = new URL(request.url);
+  const searchQuery = url.searchParams.get('search')?.toLowerCase() || '';
+  const sortBy = url.searchParams.get('sortBy') || '';
+  const sortOrder = url.searchParams.get('sortOrder') || 'desc'; // Default to desc
+
+  let mockExploreProjects = [
+    {
+      id: 'explore-project-1',
+      name: 'Quantum Ledger',
+      description: 'A revolutionary blockchain for secure data storage with quantum-resistant encryption.',
+      githubStars: 1500,
+      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+      status: 'active',
+      repositoryUrl: 'https://github.com/explore/quantum-ledger',
+      costToDate: 1234.56, // Add dummy data to match ProjectSummary
+      totalRuntime: 7200000,
+      progress: 85.5,
+    },
+    {
+      id: 'explore-project-2',
+      name: 'AI-Powered Crop Optimizer',
+      description: 'Utilizes machine learning to optimize crop yields and predict agricultural conditions.',
+      githubStars: 800,
+      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+      status: 'completed',
+      repositoryUrl: 'https://github.com/explore/crop-optimizer',
+      costToDate: 567.89,
+      totalRuntime: 3600000,
+      progress: 100,
+    },
+    {
+      id: 'explore-project-3',
+      name: 'NeuroLink Interface',
+      description: 'Direct brain-computer interface for enhanced human-machine interaction and cognitive augmentation.',
+      githubStars: 2100,
+      createdAt: new Date(Date.now() - 86400000 * 10).toISOString(), // 10 days ago
+      status: 'in-progress',
+      repositoryUrl: 'https://github.com/explore/neurolink-interface',
+      costToDate: 9876.54,
+      totalRuntime: 14400000,
+      progress: 40.2,
+    },
+    {
+      id: 'explore-project-4',
+      name: 'Eco-Friendly Waste Sorter',
+      description: 'An automated system for sorting recyclable materials using advanced vision algorithms.',
+      githubStars: 300,
+      createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago (most recent)
+      status: 'active',
+      repositoryUrl: 'https://github.com/explore/waste-sorter',
+      costToDate: 234.56,
+      totalRuntime: 1800000,
+      progress: 90.1,
+    },
+    {
+      id: 'explore-project-5',
+      name: 'Decentralized Identity Network',
+      description: 'Secure and sovereign digital identities built on a privacy-preserving blockchain.',
+      githubStars: 1100,
+      createdAt: new Date(Date.now() - 86400000 * 7).toISOString(), // 7 days ago
+      status: 'pending',
+      repositoryUrl: 'https://github.com/explore/decentralized-id',
+      costToDate: 789.01,
+      totalRuntime: 5400000,
+      progress: 60.0,
+    },
+    {
+      id: 'explore-project-6',
+      name: 'Smart Urban Farming',
+      description: 'Automated vertical farms using IoT sensors and AI to optimize growth conditions in cities.',
+      githubStars: 950,
+      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
+      status: 'active',
+      repositoryUrl: 'https://github.com/explore/urban-farming',
+      costToDate: 456.78,
+      totalRuntime: 2700000,
+      progress: 75.3,
+    },
+    {
+      id: 'explore-project-7',
+      name: 'Open-Source Robotics Kit',
+      description: 'Modular and affordable robotics kits for education and rapid prototyping.',
+      githubStars: 1800,
+      createdAt: new Date(Date.now() - 86400000 * 8).toISOString(), // 8 days ago
+      status: 'completed',
+      repositoryUrl: 'https://github.com/explore/robotics-kit',
+      costToDate: 321.09,
+      totalRuntime: 9000000,
+      progress: 100,
+    },
+    {
+      id: 'explore-project-8',
+      name: 'VR Meditation App',
+      description: 'Immersive virtual reality experience for guided meditation and stress reduction.',
+      githubStars: 600,
+      createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), // 4 days ago
+      status: 'active',
+      repositoryUrl: 'https://github.com/explore/vr-meditation',
+      costToDate: 876.54,
+      totalRuntime: 4500000,
+      progress: 50.8,
+    },
+  ];
+
+  // Apply search filter
+  if (searchQuery) {
+    mockExploreProjects = mockExploreProjects.filter(project =>
+      project.name.toLowerCase().includes(searchQuery) ||
+      project.description.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // Apply sorting
+  if (sortBy === 'githubStars') {
+    mockExploreProjects.sort((a, b) =>
+      sortOrder === 'asc' ? a.githubStars - b.githubStars : b.githubStars - a.githubStars
+    );
+  } else if (sortBy === 'createdAt') {
+    mockExploreProjects.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  } else if (sortBy === 'name') {
+    mockExploreProjects.sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      if (sortOrder === 'desc') {
+        return nameB.localeCompare(nameA);
+      }
+      return nameA.localeCompare(nameB);
+    });
+  }
+
+  return HttpResponse.json(mockExploreProjects, { status: 200 });
 }),
 
 // Handler for GET /api/projects/:id

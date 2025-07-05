@@ -1,101 +1,94 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { useExploreProjects } from '@/hooks/useExploreProjects';
-import ProjectCard from '@/app/main/components/ProjectCard';
-import useDebounce from '@/hooks/useDebounce';
-import { Project } from '@/types/project';
+import ExploreProjectCard from '@/app/main/explore/components/ExploreProjectCard';
+import EmptyState from '@/app/main/components/EmptyState';
+import LoadingSpinner from '@/app/main/components/LoadingSpinner';
 
+export default function ExplorePage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-const ExploreProjectsPage: React.FC = () => {
-    const { data: projects = [], isLoading, isError, error } = useExploreProjects();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [sortOrder, setSortOrder] = useState<'recent' | 'trending'>('recent');
+  const { projects, isLoading, isError, error } = useExploreProjects({
+    searchQuery,
+    sortBy,
+    sortOrder,
+  });
 
-    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
-    const filteredAndSortedProjects = useMemo(() => {
-        let filtered = projects.filter((project) =>
-            project.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-            project.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-        );
+  const handleSortByChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value);
+  };
 
-        if (sortOrder === 'recent') {
-            filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        } else {
-            filtered.sort((a, b) => (b.githubStars || 0) - (a.githubStars || 0));
-        }
-         // Filter out projects with nullish 'id', 'name', 'description'
-        return filtered.filter(project => 
-          project.id != null && project.name != null && project.description != null
-        ) as Project[];
-    }, [projects, debouncedSearchTerm, sortOrder]);
+  const handleSortOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOrder(e.target.value as 'asc' | 'desc');
+  };
 
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Explore Projects</h1>
 
-    if (isLoading) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-center mb-6">Explore Projects</h1>
-                <div className="flex justify-center items-center h-64">
-                    <p>Loading projects...</p>
-                </div>
-            </div>
-        );
-    }
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search projects..."
+          className="flex-grow p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
 
-    if (isError) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-center mb-6">Explore Projects</h1>
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-red-500">Error loading projects: {error?.message || "Unknown error"}</p>
-                </div>
-            </div>
-        );
-    }
+        <select
+          className="p-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={sortBy}
+          onChange={handleSortByChange}
+        >
+          <option value="createdAt">Most Recent</option>
+          <option value="githubStars">Most Stars</option>
+          <option value="name">Name</option>
+        </select>
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-center mb-8">Explore Projects</h1>
+        <select
+          className="p-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={sortOrder}
+          onChange={handleSortOrderChange}
+        >
+          <option value="desc">Descending</option>
+          <option value="asc">Ascending</option>
+        </select>
+      </div>
 
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4" data-tutorialid="explore-controls-container">
-                <input
-                    type="text"
-                    placeholder="Search projects..."
-                    className="w-full sm:w-1/3 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <div className="flex items-center gap-4">
-                    <label htmlFor="sortOrder" className="text-gray-700">Sort by:</label>
-                    <select
-                        id="sortOrder"
-                        className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value as 'recent' | 'trending')}
-                    >
-                        <option value="recent">Recent</option>
-                        <option value="trending">Trending</option>
-                    </select>
-                </div>
-            </div>
-
-            {filteredAndSortedProjects.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredAndSortedProjects.map((project) => (
-                        <ProjectCard
-                          key={project.id}
-                          project={project} // Pass the entire project object
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-10">
-                    <p className="text-gray-500 text-lg">No projects found matching your criteria.</p>
-                </div>
-            )}
+      {isLoading && (
+        <div className="flex justify-center items-center h-64">
+          <LoadingSpinner />
+          <p className="ml-2 text-gray-600">Loading projects...</p>
         </div>
-    );
-};
+      )}
 
-export default ExploreProjectsPage;
+      {isError && (
+        <div className="flex justify-center items-center h-64 text-red-600">
+          <p>Error: {error?.message || 'Failed to load projects.'} Please try again later.</p>
+        </div>
+      )}
+
+      {!isLoading && !isError && projects.length === 0 && (
+        <EmptyState
+          title="No projects found"
+          description="Adjust your search criteria or sorting options and try again."
+        />
+      )}
+
+      {!isLoading && !isError && projects.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((project) => (
+            <ExploreProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

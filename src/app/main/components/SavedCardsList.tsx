@@ -23,23 +23,21 @@ export function SavedCardsList() {
 
   const handleDeleteCard = useCallback(
     (cardId: string) => {
-      showConfirmation({
-        title: 'Remove Saved Card',
-        message: 'Are you sure you want to remove this card? This action cannot be undone.',
-        confirmText: 'Remove Card',
-        cancelText: 'Cancel',
-        onConfirm: async () => {
+      showConfirmation(
+        'Remove Saved Card',
+        'Are you sure you want to remove this card? This action cannot be undone.',
+        async () => {
           setDeletingCardId(cardId);
           setSuccessMessage(null); // Clear previous success messages
           setError(null); // Clear previous errors
-
+      
           // Optimistically update the UI
           const previousSavedCards = queryClient.getQueryData<SavedCard[]>(['savedCards']);
           queryClient.setQueryData<SavedCard[]>(
             ['savedCards'],
             (oldCards) => oldCards?.filter((card) => card.id !== cardId) || []
           );
-
+      
           try {
             const response = await paymentsService.deleteSavedCard(cardId);
             logger.info(`Card delete response: ${response.message}`);
@@ -60,10 +58,14 @@ export function SavedCardsList() {
             setDeletingCardId(null);
           }
         },
-        onCancel: () => {
-          logger.info(`Card deletion for ID ${cardId} cancelled.`);
-        },
-      });
+        {
+          confirmText: 'Remove Card',
+          cancelText: 'Cancel',
+          onCancel: () => {
+            logger.info(`Card deletion for ID ${cardId} cancelled.`);
+          },
+        }
+      );
     },
     [setError, setSuccessMessage, showConfirmation, queryClient],
   );
@@ -87,7 +89,7 @@ export function SavedCardsList() {
     );
   }
   
-  if (isError || !savedCards) { // Check for error first, or if data is unexpectedly null/undefined
+  if (isError) { // Handle error separately
     return (
       <div className="text-center text-red-500 py-8">
         <p>Failed to load saved payment methods.</p>
@@ -96,7 +98,11 @@ export function SavedCardsList() {
     );
   }
   
-  if (savedCards.length === 0) { // Now savedCards is guaranteed to be an array
+  // If not loading and no error, savedCards should be an array (possibly empty).
+  // Use a fallback to an empty array and assert type to ensure 'length' property is always available.
+  const cardsToDisplay = (savedCards || []) as SavedCard[];
+  
+  if (cardsToDisplay.length === 0) {
     return (
       <EmptyState
         title="No Saved Payment Methods"
@@ -104,10 +110,10 @@ export function SavedCardsList() {
       />
     );
   }
-
+  
   return (
     <div className="space-y-4">
-      {savedCards.map((card) => (
+      {cardsToDisplay.map((card) => (
         <Card key={card.id} className="flex items-center justify-between p-4 shadow-sm">
           <div className="flex items-center space-x-4">
             {getCardIcon(card.brand)}
