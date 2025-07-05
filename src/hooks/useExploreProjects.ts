@@ -3,21 +3,10 @@ import { getExploreProjects } from '../services/projectsService';
 import { ProjectSummary } from '../types/project';
 import { useDebounce } from './useDebounce';
 
-type SortByOption = 'createdAt' | 'name' | 'costToDate' | 'totalRuntime' | 'progress' | 'githubStars';
-type SortOrder = 'asc' | 'desc';
-
-interface UseExploreProjectsProps {
-  searchQuery: string;
-  sortBy: SortByOption;
-  sortOrder: SortOrder;
-}
-
-export function useExploreProjects({ searchQuery, sortBy, sortOrder }: UseExploreProjectsProps) {
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-
+export function useExploreProjects() {
   const { data, isLoading, isError, error } = useQuery<ProjectSummary[], Error>({
-    queryKey: ['exploreProjects', debouncedSearchQuery, sortBy, sortOrder],
-    queryFn: () => getExploreProjects(debouncedSearchQuery, sortBy, sortOrder),
+    queryKey: ['exploreProjects'],
+    queryFn: () => getExploreProjects(),
     // The API is public and does not require JWT authentication.
     // This query can be refetched by default, but no specific staletime or cachetime
     // is mentioned, so we'll stick to react-query defaults for now.

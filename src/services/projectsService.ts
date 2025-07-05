@@ -12,15 +12,9 @@ export async function getAuthenticatedUserProjects(): Promise<ProjectSummary[]> 
   }
 }
 
-export async function getExploreProjects(searchQuery: string = '', sortBy: string = '', sortOrder: 'asc' | 'desc' = 'desc'): Promise<ProjectSummary[]> {
+export async function getExploreProjects(): Promise<ProjectSummary[]> {
   try {
-    const response = await httpClient.get<ProjectSummary[]>('/projects/explore', {
-      params: {
-        search: searchQuery,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-      },
-    });
+    const response = await httpClient.get<ProjectSummary[]>('/projects/explore');
     return response.data;
   } catch (error) {
     console.error('Error fetching explore projects:', error);
