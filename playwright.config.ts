@@ -25,7 +25,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json', // Path to the saved authentication state
+      },
     },
     // {
     //   name: 'firefox',
@@ -42,12 +45,14 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
 
-    /* Collect trace when retrying the first time. */
-    trace: 'on-first-retry',
+    /* Collect trace always. */
+    trace: 'on',
     // Add a default ignore strategy for requests often failing in CI
     ignoreHTTPSErrors: true, // Sometimes useful for local dev with self-signed certs
     // headless: process.env.CI || true, // Ensures headless mode on CI
   },
+
+  globalSetup: require.resolve('./e2e/tests/auth.setup.ts'),
 
   // Global setup to start the dev server
   webServer: {
