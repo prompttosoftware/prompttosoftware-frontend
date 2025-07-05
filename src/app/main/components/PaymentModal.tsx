@@ -24,38 +24,62 @@ import { isAxiosError } from 'axios';
 import { logger } from '@/lib/logger';
 
 export function PaymentModal() {
-  const { isOpen, closeModal, clientSecret, setClientSecret, clearState } = usePaymentModalStore();
+  // Destructure state and actions from the payment modal store
+  const {
+    isOpen,
+    closePaymentModal: storeCloseModal, // Renamed to avoid conflict with local closeModal below if needed
+    clientSecret,
+    setClientSecret,
+    amount,
+    setAmount,
+    step,
+    setStep,
+    clearState,
+    onClose, // Callback from store to execute on successful close
+    onSuccess, // Callback from store to execute on successful payment/setup
+    onGoToPaymentProvider, // Callback for redirect-based payments
+    setPaymentModalState, // Generic setter for complex state updates
+  } = usePaymentModalStore();
+
+  // Destructure error handling from global error store
   const { setError, clearError } = useGlobalErrorStore();
+  // Destructure success message setter from success message store
   const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
 
-  // Local states for amount input and step management
-  const [inputAmount, setInputAmount] = useState<string>('');
+  // Local state for payment method selection (not part of main flow logic managed by store)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'paypal'>('card');
-  const [currentModalStep, setCurrentModalStep] = useState<'input_amount' | 'confirm_card'>(
-    'input_amount',
-  );
   const [isLoadingPaymentIntent, setIsLoadingPaymentIntent] = useState(false);
+  
   const globalError = useGlobalErrorStore((state) => state.error); // Get global error state
 
-  // Reset local states when modal closes or opens fresh
+  // Effect to handle modal open/close and general state resetting
   useEffect(() => {
-    if (!isOpen) {
-      setInputAmount('');
+    if (!isOpen) { // When modal is closing
+      // Clear all states (local and store) to ensure a clean slate for next open
       setSelectedPaymentMethod('card');
-      setCurrentModalStep('input_amount');
       setIsLoadingPaymentIntent(false);
-      clearState(); // Clear the store state
+      clearState(); // Clears all Zustand store states
       clearError(); // Clear any global errors
-      setSuccessMessageStore(null); // Clear success message on modal close
-    } else {
-      // If modal just opened and we have a clientSecret from previous attempt, go to confirm_card
-      if (clientSecret) {
-        setCurrentModalStep('confirm_card');
-      } else {
-        setCurrentModalStep('input_amount');
+      setSuccessMessageStore(null); // Clear success message
+      if (onClose) { // Execute the callback passed via store, if any
+        onClose();
+      }
+    } else { // When modal is opening
+      // Determine the initial step based on clientSecret, and update local state accordingly
+      // The store's openPaymentModal action already sets the 'step' property based on clientSecret existence
+      // So, simply ensure that the amount is also correctly set if transitioning directly to confirm_card
+      if (clientSecret && amount === 0) {
+        // This scenario should ideally be handled by openPaymentModal setting both clientSecret and amount
+        // However, this acts as a safeguard. If clientSecret comes from a redirect with a specific amount,
+        // that amount should be set in the store before the modal opens.
+        // For testing setup, we'll ensure 'amount' is passed to openPaymentModal
+        // in tests that set clientSecret.
+        // If we are in confirm_card and amount is 0, it means it was not correctly passed on open.
+        // This is a safety catch, though the ideal fix is to ensure the amount is passed when calling openPaymentModal.
+        logger.warn('Opened to confirm_card with clientSecret but amount is 0. This might lead to unexpected behavior.');
       }
     }
-  }, [isOpen, clearState, clearError, setSuccessMessageStore, clientSecret]);
+  }, [isOpen, clearState, clearError, setSuccessMessageStore, onClose, clientSecret, amount]);
 
 // Log global errors when they change
 useEffect(() => {
@@ -104,44 +128,42 @@ useEffect(() => {
 
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      let value = e.target.value;
-
-      // Preserve a leading minus sign if present
-      const hasLeadingMinus = value.startsWith('-');
-      // Remove all characters except digits and decimal points
-      value = value.replace(/[^0-9.]/g, '');
-
-      // Ensure only one decimal point
-      const parts = value.split('.');
-      if (parts.length > 2) {
-        value = `${parts[0]}.${parts[1]}`;
-      }
-
-      // Re-add the leading minus sign if it was present and the value is not empty
-      if (hasLeadingMinus && value !== '') {
-        value = '-' + value;
-      }
-      // Special case: if only '-' is typed, keep it as '-'
-      if (e.target.value === '-') {
-        value = '-';
-      }
-
-      setInputAmount(value); // Set the cleaned value
-
-      // On change, re-validate to clear errors if user fixed input, or show new error
-      // Only validate if it's a number, or a negative sign followed by nothing (e.g. '-')
-      if (value && value !== '-') {
-        validateAmount(value);
+      const rawValue = e.target.value; // Get the raw value from the input
+      let cleanedValue = rawValue; // Start with raw value, will be cleaned for `setAmount` indirectly
+  
+      // Validate the raw input first to catch non-numeric errors before cleaning for display
+      if (rawValue && rawValue !== '-') {
+        validateAmount(rawValue); // This should set error for 'abc' or '12a'
       } else {
         clearError(); // If input is empty or just '-', clear any existing amount errors
       }
+  
+      // Now, proceed with cleaning the value for display to the user
+      const hasLeadingMinus = cleanedValue.startsWith('-');
+      cleanedValue = cleanedValue.replace(/[^0-9.]/g, '');
+  
+      const parts = cleanedValue.split('.');
+      if (parts.length > 2) {
+        cleanedValue = `${parts[0]}.${parts[1]}`;
+      }
+  
+      if (hasLeadingMinus && cleanedValue !== '') {
+        cleanedValue = '-' + cleanedValue;
+      }
+      if (e.target.value === '-') { // retain single minus if it's the only char
+        cleanedValue = '-';
+      }
+      
+      // Update the amount in the store. Convert to number, or 0 if empty/invalid.
+      setAmount(parseFloat(cleanedValue) || 0);
     },
-    [validateAmount, clearError],
+    [validateAmount, clearError, setAmount], // Add setAmount to dependencies
   );
 
   const handleInitiatePaymentProcess = useCallback(async () => {
-    logger.debug(`handleInitiatePaymentProcess called. inputAmount: ${inputAmount}, isLoadingPaymentIntent: ${isLoadingPaymentIntent}`);
-    if (!validateAmount(inputAmount)) {
+    logger.debug(`handleInitiatePaymentProcess called. amount: ${amount}, isLoadingPaymentIntent: ${isLoadingPaymentIntent}`);
+    // Validate the amount from the store
+    if (!validateAmount(amount.toString())) {
       logger.debug('Amount validation failed.');
       return; // validateAmount already sets the error message
     }
@@ -158,11 +180,11 @@ useEffect(() => {
         return;
       }
   
-      const amountInCents = Math.round(parseFloat(inputAmount) * 100);
+      const amountInCents = Math.round(amount * 100);
       const description = 'Funds added to account'; // Default description
   
       logger.info(
-        `Attempting to create payment intent for amount: $${parseFloat(inputAmount).toFixed(2)}`,
+        `Attempting to create payment intent for amount: $${amount.toFixed(2)}`,
       );
       try {
         const requestBody: CreatePaymentIntentRequest = {
@@ -183,15 +205,16 @@ useEffect(() => {
   
         const { clientSecret: newClientSecret } = response;
         setClientSecret(newClientSecret);
+        setStep('confirm_card'); // Move to the next step using store's setStep
         logger.info(`Payment Intent created successfully. Received clientSecret.`);
-        setCurrentModalStep('confirm_card'); // Move to the next step
       } catch (error) {
         logger.error('Failed to create Payment Intent.', error);
   
+        // Error handling remains similar
         if (isAxiosError(error) && error.response) {
           setError({
             message:
-              error.response.data.message || 'Error creating payment intent. Please try again.',
+              error.response.data?.message || 'Failed to create intent due to server error',
             type: 'error',
           });
         } else {
@@ -207,33 +230,33 @@ useEffect(() => {
     } else if (selectedPaymentMethod === 'paypal') {
       logger.info('Proceeding with PayPal payment (simulated) - PayPal not integrated yet.');
       setError({ message: 'PayPal integration is not yet implemented.', type: 'info' });
-      // For now, close modal for PayPal after message
-      closeModal();
+      storeCloseModal(); // Use store's closeModal
     }
   }, [
-    inputAmount,
+    amount, // Use amount from store
     selectedPaymentMethod,
     validateAmount,
     setClientSecret,
+    setStep, // Add setStep to dependencies
     clearError,
     setError,
-    closeModal,
-    isLoadingPaymentIntent, // Added to dependency array for logger.debug
+    storeCloseModal, // Use storeCloseModal in dependencies
+    isLoadingPaymentIntent,
   ]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={closeModal}>
+    <Dialog open={isOpen} onOpenChange={storeCloseModal}> {/* Use storeCloseModal */}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Funds</DialogTitle>
           <DialogDescription>
-            {currentModalStep === 'input_amount'
+            {step === 'add_amount' // Use step from store
               ? 'Enter the amount you wish to add to your account.'
               : 'Confirm your payment details.'}
           </DialogDescription>
         </DialogHeader>
-
-        {currentModalStep === 'input_amount' && (
+  
+        {step === 'add_amount' && ( // Use step from store
           <>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -244,11 +267,11 @@ useEffect(() => {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
                   <Input
                     id="amount"
-                    type="text" // Use text to allow partial input like "1." before final validation
+                    type="text"
                     placeholder="e.g., 50.00"
-                    value={inputAmount}
+                    value={amount === 0 ? '' : amount.toString()} // Use amount from store, convert 0 to empty string for input
                     onChange={handleAmountChange}
-                    className="pl-8" // Add padding for the dollar sign
+                    className="pl-8"
                     required
                   />
                 </div>
@@ -267,46 +290,48 @@ useEffect(() => {
                   <option value="paypal" disabled>
                     PayPal (Coming Soon)
                   </option>{' '}
-                  {/* PayPal disabled for now */}
                 </select>
               </div>
             </div>
-
+  
             <DialogFooter>
-              <Button variant="outline" onClick={closeModal} disabled={isLoadingPaymentIntent}>
+              <Button variant="outline" onClick={storeCloseModal} disabled={isLoadingPaymentIntent}> {/* Use storeCloseModal */}
                 Cancel
               </Button>
               <Button
                 onClick={handleInitiatePaymentProcess}
-                disabled={!inputAmount || isLoadingPaymentIntent}
+                disabled={amount === 0 || isLoadingPaymentIntent} // Use amount from store
               >
                 {isLoadingPaymentIntent ? 'Processing...' : 'Next'}
               </Button>
             </DialogFooter>
           </>
         )}
-
-        {currentModalStep === 'confirm_card' && clientSecret && (
+  
+        {step === 'confirm_card' && clientSecret && ( // Use step from store
           <>
             <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md mb-4 mt-4">
               <span className="font-semibold text-lg">Amount to add:</span>
+              {/* Display amount from store. Handle potential division by 100 if it's in cents. */}
               <span className="font-bold text-xl text-blue-600">
-                ${parseFloat(inputAmount).toFixed(2)}
+                {/* Assuming amount is already in dollars/euros, not cents. If in cents, need amount / 100 */}
+                ${amount.toFixed(2)} 
               </span>
             </div>
             <PaymentFormContent
               clientSecret={clientSecret}
               setClientSecret={setClientSecret}
-              closeModal={closeModal}
+              closeModal={storeCloseModal} // Use storeCloseModal
               clearStoreState={clearState}
               clearGlobalError={clearError}
               setGlobalError={setError}
               setSuccessMessageStore={setSuccessMessageStore}
+resetAddFundsStep={() => setStep('add_amount')}
             />
           </>
         )}
         {/* If clientSecret is null but step is confirm_card, something went wrong. */}
-        {currentModalStep === 'confirm_card' && !clientSecret && (
+        {step === 'confirm_card' && !clientSecret && ( // Use step from store
           <div className="py-4 text-center text-red-600">
             Error: Payment details could not be loaded. Please try again.
           </div>

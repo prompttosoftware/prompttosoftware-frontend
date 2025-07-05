@@ -103,40 +103,90 @@ export const handlers = [
   }),
 
   
-// Handler for GET /payments/cards
-http.get('/payments/cards', () => {
-  const mockSavedCards = [
-    {
-      id: 'card_123abc',
-      brand: 'visa',
-      last4: '4242',
-      expiryMonth: 12,
-      expiryYear: 2025,
-      isDefault: true,
-    },
-    {
-      id: 'card_456def',
-      brand: 'mastercard',
-      last4: '5555',
-      expiryMonth: 10,
-      expiryYear: 2024,
-      isDefault: false,
-    },
-    {
-      id: 'card_789ghi',
-      brand: 'amex',
-      last4: '0000',
-      expiryMonth: 1,
-      expiryYear: 2028,
-      isDefault: false,
-    },
-  ];
-  console.log('MSW: Returning mock saved cards');
-  return HttpResponse.json({ cards: mockSavedCards }, { status: 200 });
+// Handler for GET /api/payments/cards
+http.get('/api/payments/cards', ({ request }) => {
+  const url = new URL(request.url);
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || authHeader !== 'Bearer mock-jwt-token') {
+    console.warn('MSW: Unauthorized attempt to get saved cards');
+    return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const mockType = url.searchParams.get('mockType'); // Allows simulating different scenarios
+
+  if (mockType === 'empty') {
+    console.log('MSW: Returning empty mock saved cards list');
+    return HttpResponse.json({ cards: [] }, { status: 200 });
+  } else if (mockType === 'error') {
+    console.warn('MSW: Returning error for saved cards request');
+    return HttpResponse.json(
+      { message: 'Failed to retrieve cards due to a server error.' },
+      { status: 500 }
+    );
+  } else {
+    const mockSavedCards = [
+      {
+        id: 'card_123abc',
+        brand: 'visa',
+        last4: '4242',
+        expiryMonth: 12,
+        expiryYear: 2025,
+        isDefault: true,
+      },
+      {
+        id: 'card_456def',
+        brand: 'mastercard',
+        last4: '5555',
+        expiryMonth: 10,
+        expiryYear: 2024,
+        isDefault: false,
+      },
+      {
+        id: 'card_789ghi',
+        brand: 'amex',
+        last4: '0000',
+        expiryMonth: 1,
+        expiryYear: 2028,
+        isDefault: false,
+      },
+    ];
+    console.log('MSW: Returning populated mock saved cards');
+    return HttpResponse.json(
+  { cards: mockSavedCards },
+  { status: 200, headers: { 'Content-Type': 'application/json' } }
+);
+  }
+}),
+
+// Handler for DELETE /payments/cards/:id
+http.delete('/api/payments/cards/:id', ({ params, request }) => {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || authHeader !== 'Bearer mock-jwt-token') {
+    console.warn('MSW: Unauthorized attempt to delete card');
+    return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { id } = params;
+  if (id === 'card_error_delete') {
+    console.warn(`MSW: Simulating error deleting card ${id}`);
+    return HttpResponse.json(
+      { message: `Failed to delete card ${id} due to a server issue.` },
+      { status: 500 }
+    );
+  } else if (id === 'card_not_found') {
+    console.warn(`MSW: Simulating card ${id} not found`);
+    return HttpResponse.json(
+      { message: `Card ${id} not found.` },
+      { status: 404 }
+    );
+  } else {
+    console.log(`MSW: Successfully deleted card ${id}`);
+    return new HttpResponse(null, { status: 204 }); // 204 No Content for successful deletion
+  }
 }),
 
 // Handler for GET /projects/explore
-http.get('/projects/explore', ({ request }) => {
+http.get('/api/projects/explore', ({ request }) => {
   const url = new URL(request.url);
   const searchQuery = url.searchParams.get('search')?.toLowerCase() || '';
   const sortBy = url.searchParams.get('sortBy') || '';
@@ -309,7 +359,7 @@ http.post('/api/projects', async ({ request }) => {
 }),
 
 // Handler for POST /payments/create-intent
-http.post('/payments/create-intent', async ({ request }) => {
+http.post('/api/payments/create-intent', async ({ request }) => {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || authHeader !== 'Bearer mock-jwt-token') {
     console.warn('MSW: Unauthorized attempt to create payment intent');
@@ -318,28 +368,39 @@ http.post('/payments/create-intent', async ({ request }) => {
 
   const { amount, currency, paymentMethodId, description } = (await request.json()) as CreatePaymentIntentRequest;
 
-  if (amount === 1313 && currency === 'usd') {
-    // Simulate a failure scenario for specific amount (e.g., insufficient funds)
+  if (amount === 1313) {
+    // Simulate a generic payment failure for a specific amount
     return HttpResponse.json(
       {
-        message: 'Payment failed: Insufficient funds or invalid details.',
+        message: 'Payment intent creation failed: Invalid amount or details.',
         statusCode: 400,
-        code: 'payment_failed',
+        code: 'payment_creation_failed',
         param: 'amount',
       } as PaymentErrorResponse,
       { status: 400 },
     );
   }
-
-  if (amount < 500) { // Example: minimum amount check for failure
+  if (amount === 50000 && paymentMethodId === 'pm_card_charge_fail') {
+    // Simulate a card decline or specific payment method error
     return HttpResponse.json(
       {
-        message: 'Payment amount too low. Minimum is 500 cents.',
-        statusCode: 400,
-        code: 'amount_too_low',
-        param: 'amount',
+        message: 'Payment declined by card issuer.',
+        statusCode: 402, // 402 Payment Required for declines
+        code: 'card_declined',
+        param: 'paymentMethodId',
       } as PaymentErrorResponse,
-      { status: 400 },
+      { status: 402 },
+    );
+  }
+  if (amount === 99999) {
+    // Simulate a server-side error during intent creation
+    return HttpResponse.json(
+      {
+        message: 'Internal server error during payment intent creation.',
+        statusCode: 500,
+        code: 'internal_server_error',
+      } as PaymentErrorResponse,
+      { status: 500 },
     );
   }
 
@@ -364,36 +425,54 @@ http.post('/payments/create-intent', async ({ request }) => {
 }),
 
 // Handler for POST /ads/credit
-http.post('/ads/credit', async ({ request }) => {
+http.post('/api/ads/credit', async ({ request }) => {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || authHeader !== 'Bearer mock-jwt-token') {
     console.warn('MSW: Unauthorized attempt to add ad credit');
     return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const { amount, currency, description } = (await request.json()) as AddAdCreditRequest;
+  const { amount, currency, paymentMethodId } = (await request.json()) as AddAdCreditRequest;
 
-  if (amount === 999 && currency === 'usd') {
-    // Simulate a failure scenario for ad credit (e.g., ad not watched fully)
+  if (amount === 999) { // Simulate a failure scenario for ad credit
     return HttpResponse.json(
       {
-        message: 'Ad credit failed: Ad not fully watched or invalid ad session.',
+        message: 'Ad credit failed: Invalid ad session or ad not fully watched.',
         statusCode: 400,
         code: 'ad_credit_failed',
-      } as PaymentErrorResponse, // Re-using PaymentErrorResponse as a generic error
+      } as PaymentErrorResponse,
       { status: 400 },
+    );
+  }
+  if (amount === 555) { // Simulate a server error during ad credit
+    return HttpResponse.json(
+      {
+        message: 'Internal server error while processing ad credit.',
+        statusCode: 500,
+        code: 'internal_server_error',
+      } as PaymentErrorResponse,
+      { status: 500 },
     );
   }
 
   // Simulate successful ad credit
-  const newBalance = 50000 + amount; // Example: user had 500 credits, add the amount
-  console.log(`MSW: Added ${amount} ${currency} to ad credit. New balance: ${newBalance}`);
+  const creditedAmount = amount || 1000; // Use provided amount or default
+  const newBalance = 50000 + creditedAmount; // Example: user had 500 credits, add the amount
+  console.log(`MSW: Added ${creditedAmount} to ad credit. New balance: ${newBalance}`);
   return HttpResponse.json(
     {
       newBalance,
-      creditedAmount: amount,
+      creditedAmount: creditedAmount,
+      currency: currency || 'usd',
+      transactionId: `txn_${Date.now()}`
     } as AdCreditResponse,
     { status: 200 },
   );
+}),
+
+// Add a catch-all handler at the very end to log any unhandled requests
+http.all('*', ({ request }) => {
+  console.error(`MSW: Unhandled request: ${request.method} ${request.url}`);
+  return HttpResponse.json({ message: `Unhandled request: ${request.method} ${request.url}` }, { status: 404 });
 }),
 ];

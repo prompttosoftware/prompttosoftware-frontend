@@ -1,5 +1,8 @@
-import { act } from '@testing-library/react'; // Import act for state updates that trigger re-renders
-import { useBalanceStore } from './balanceStore'; // Make sure this path is correct
+import { act, renderHook } from '@testing-library/react'; // Import act for state updates that trigger re-renders
+import { useBalance } from './balanceStore'; // Make sure this path is correct
+// Temporarily import useBalanceStore to make the existing describe block compile.
+// The persistence test will re-import it after resetting modules.
+import { useBalanceStore } from './balanceStore';
 import { httpClient } from '@/lib/httpClient'; // Import httpClient for mocking
 
 // Mock the httpClient to control API responses
@@ -178,24 +181,97 @@ describe('useBalanceStore', () => {
   });
 
   // Test persistence
-  it('should persist the state to localStorage', () => {
-    // Simulate initial load where persist reads from storage
+  // This test re-imports the module to simulate a fresh load with persisted state.
+  it('should persist the state to localStorage', async () => {
+    // Reset module registry before dynamic import to ensure a fresh store instance.
+    // This is crucial for re-testing persistence logic which runs on module load.
+    jest.resetModules();
+  
+    // Mock localStorage.getItem before the module is re-imported
     (localStorage.getItem as jest.Mock).mockReturnValueOnce(
       JSON.stringify({ state: { balance: 777, lastFetched: 12345 }, version: 0 })
     );
-
-    // Re-initialize the store to trigger persistence loading
-    const { balance, lastFetched } = useBalanceStore.getState();
+  
+    // Dynamically import useBalanceStore AFTER mocking localStorage and resetting modules.
+    // This simulates a fresh application load where the store would read from storage.
+    const { useBalanceStore: freshUseBalanceStore /*, useBalance */ } = await import('./balanceStore');
+  
+    // Now get the state from the freshly loaded store
+    const { balance, lastFetched } = freshUseBalanceStore.getState();
     expect(balance).toBe(777);
     expect(lastFetched).toBe(12345);
-
+  
     // Change state and verify setItem is called
     act(() => {
-      useBalanceStore.getState().setBalance(888);
+      freshUseBalanceStore.getState().setBalance(888);
     });
     expect(localStorage.setItem).toHaveBeenCalledWith(
       'balance-storage',
       expect.stringContaining('"balance":888')
     );
+  });
+});
+
+describe('useBalance hook', () => {
+  beforeEach(() => {
+// Reset the store before each test for the useBalance hook
+useBalanceStore.setState({ balance: 0, lastFetched: null });
+mockGet.mockClear();
+  });
+
+  it('should return the initial balance of 0', () => {
+const { result } = renderHook(() => useBalance());
+expect(result.current).toBe(0);
+  });
+
+  it('should update when the balance in the store changes via setBalance', () => {
+const { result } = renderHook(() => useBalance());
+
+act(() => {
+  useBalanceStore.getState().setBalance(150.75);
+});
+
+expect(result.current).toBe(150.75);
+  });
+
+  it('should update when the balance in the store changes via fetchBalance (initial data fetching)', async () => {
+// Mock a successful fetch balance response
+mockGet.mockResolvedValueOnce({
+  data: { user: { balance: 999.99 } },
+});
+
+const { result } = renderHook(() => useBalance());
+
+// Initially, it should be 0
+expect(result.current).toBe(0);
+
+// Trigger fetchBalance
+await act(async () => {
+  await useBalanceStore.getState().fetchBalance();
+});
+
+// Expect the balance to be updated after fetch
+expect(result.current).toBe(999.99);
+expect(mockGet).toHaveBeenCalledTimes(1);
+expect(mockGet).toHaveBeenCalledWith('/auth/me');
+  });
+
+  it('should reflect multiple balance updates', () => {
+const { result } = renderHook(() => useBalance());
+
+act(() => {
+  useBalanceStore.getState().setBalance(100);
+});
+expect(result.current).toBe(100);
+
+act(() => {
+  useBalanceStore.getState().updateBalance(25);
+});
+expect(result.current).toBe(125);
+
+act(() => {
+  useBalanceStore.getState().setBalance(50);
+});
+expect(result.current).toBe(50);
   });
 });

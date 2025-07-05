@@ -11,7 +11,7 @@
     "format": "prettier . --check --ignore-unknown",
     "format:fix": "prettier . --write --ignore-unknown",
     "check-format": "prettier --check \"{app,components,lib,src}/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "test": "NODE_ENV=test jest --runTestsByPath"
+    "test": "NODE_OPTIONS=--max-old-space-size=4096 NODE_ENV=test NEXT_PUBLIC_API_MOCKING=enabled jest --runTestsByPath"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -38,6 +38,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.0.1",
     "lucide-react": "^0.525.0",
     "next": "14.2.5",
     "next-themes": "^0.4.6",
@@ -58,11 +59,13 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^2",
+    "@playwright/test": "^1.53.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@tanstack/react-query-devtools": "^5.81.5",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/dotenv": "^6.1.1",
     "@types/jest": "^30.0.0",
     "@types/node": "20.19.4",
     "@types/react": "18.2.0",

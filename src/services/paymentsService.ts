@@ -2,9 +2,7 @@ import { httpClient } from '../lib/httpClient'; // Using the pre-configured axio
 import { logger } from '../utils/logger';
 import { setGlobalError } from '../store/globalErrorStore';
 import { AxiosError } from 'axios';
-import { DeleteSavedCardResponse } from '../types/payments';
-
-import { GetSavedCardsResponse } from '../types/payments'; // Import GetSavedCardsResponse type
+import { DeleteSavedCardResponse, CreatePaymentIntentRequest, CreatePaymentIntentResponse, AddAdCreditRequest, AddAdCreditResponse, GetSavedCardsResponse } from '../types/payments';
 
 export class PaymentsService {
   /**
@@ -14,7 +12,7 @@ export class PaymentsService {
   public async getSavedCards(): Promise<GetSavedCardsResponse> {
     try {
       logger.info('Attempting to fetch saved cards.');
-      const response = await httpClient.get<GetSavedCardsResponse>('/payments/cards');
+      const response = await httpClient.get<GetSavedCardsResponse>('/api/payments/cards');
       logger.info('Successfully fetched saved cards:', response.data);
       return response.data;
     } catch (error) {
@@ -53,7 +51,7 @@ export class PaymentsService {
       // The backend expects a 204 No Content for a successful deletion.
       // Axios resolves the promise for 2xx status codes.
       const response = await httpClient.delete<DeleteSavedCardResponse>(
-        `/payments/cards/${cardId}`,
+        `/api/payments/cards/${cardId}`,
       );
       logger.info(`Successfully deleted card with ID: ${cardId}`, response.data);
       return {
@@ -84,6 +82,78 @@ export class PaymentsService {
       });
 
       // Re-throw the error to allow calling components to handle it further
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Creates a payment intent for a new transaction.
+   * @param data The request body for creating a payment intent.
+   * @returns A promise that resolves with the CreatePaymentIntentResponse or rejects with an error.
+   */
+  public async createPaymentIntent(data: CreatePaymentIntentRequest): Promise<CreatePaymentIntentResponse> {
+    try {
+      logger.info('Attempting to create payment intent.', data);
+      const response = await httpClient.post<CreatePaymentIntentResponse>('/api/payments/create-intent', data);
+      logger.info('Successfully created payment intent:', response.data);
+      return response.data;
+    } catch (error) {
+      let errorMessage = 'Failed to create payment intent.';
+      let errorDetails: any = null;
+
+      if (error instanceof AxiosError) {
+        errorDetails = error.response?.data || error.message;
+        errorMessage += ` ${errorDetails.message || error.message}`;
+        logger.error('API Error during payment intent creation:', error, errorDetails);
+      } else if (error instanceof Error) {
+        errorMessage += ` ${error.message}`;
+        logger.error('Unexpected error during payment intent creation:', error);
+      } else {
+        logger.error('Unknown error during payment intent creation:', error);
+      }
+
+      setGlobalError({
+        message: errorMessage,
+        type: 'error',
+        details: errorDetails,
+      });
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Adds ad credit to the user's account.
+   * @param data The request body for adding ad credit.
+   * @returns A promise that resolves with the AddAdCreditResponse or rejects with an error.
+   */
+  public async addAdCredit(data: AddAdCreditRequest): Promise<AddAdCreditResponse> {
+    try {
+      logger.info('Attempting to add ad credit.', data);
+      const response = await httpClient.post<AddAdCreditResponse>('/api/ads/credit', data);
+      logger.info('Successfully added ad credit:', response.data);
+      return response.data;
+    } catch (error) {
+      let errorMessage = 'Failed to add ad credit.';
+      let errorDetails: any = null;
+
+      if (error instanceof AxiosError) {
+        errorDetails = error.response?.data || error.message;
+        errorMessage += ` ${errorDetails.message || error.message}`;
+        logger.error('API Error during adding ad credit:', error, errorDetails);
+      } else if (error instanceof Error) {
+        errorMessage += ` ${error.message}`;
+        logger.error('Unexpected error during adding ad credit:', error);
+      } else {
+        logger.error('Unknown error during adding ad credit:', error);
+      }
+
+      setGlobalError({
+        message: errorMessage,
+        type: 'error',
+        details: errorDetails,
+      });
+
       throw new Error(errorMessage);
     }
   }
