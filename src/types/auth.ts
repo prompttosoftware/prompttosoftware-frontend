@@ -3,6 +3,11 @@
 /**
  * Represents the detailed profile information of an authenticated user.
  */
+import { UserUsage } from './usage'; // Import UserUsage
+
+/**
+ * Represents the detailed profile information of an authenticated user.
+ */
 export interface UserProfile {
   id: string;
   email: string;
@@ -12,6 +17,7 @@ export interface UserProfile {
   imageUrl?: string; // Optional URL to user's profile image
   role?: string; // Optional user role (e.g., 'admin', 'user')
   savedCards?: string[]; // Array of identifiers for saved payment cards
+  usage?: UserUsage; // Optional usage statistics
   // Add other user properties as needed based on the /auth/me API response
 }
 
