@@ -60,14 +60,14 @@ export default function ExplorePage() {
         </div>
       )}
 
-      {!isLoading && !isError && projects.length === 0 && (
+      {!isLoading && !isError && Array.isArray(projects) && projects.length === 0 && (
         <EmptyState
           title="No projects found"
           description="Adjust your search criteria or sorting options and try again."
         />
       )}
-
-      {!isLoading && !isError && projects.length > 0 && (
+      
+      {!isLoading && !isError && Array.isArray(projects) && projects.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
             <ExploreProjectCard key={project.id} project={project} />

@@ -10,12 +10,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { UserUsage } from '@/types/usage';
+import { AccountUsage } from '@/types/usage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 
 interface SpendingGraphProps {
-  historicalSpending: UserUsage['historicalSpending'];
+  historicalSpending: AccountUsage['historicalSpending'];
 }
 
 const SpendingGraph: React.FC<SpendingGraphProps> = ({ historicalSpending }) => {

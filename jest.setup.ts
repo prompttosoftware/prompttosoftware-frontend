@@ -7,7 +7,7 @@ if (typeof globalThis.TextEncoder === 'undefined') {
   globalThis.TextEncoder = TextEncoder;
 }
 if (typeof globalThis.TextDecoder === 'undefined') {
-  globalThis.TextDecoder = TextDecoder;
+  // globalThis.TextDecoder = TextDecoder; // Commented out to avoid type conflict.
 }
 
 // Polyfill for `web-streams-polyfill` if needed for ReadableStream, WritableStream etc.

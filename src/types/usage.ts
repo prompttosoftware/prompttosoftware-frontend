@@ -4,9 +4,14 @@ export interface HistoricalSpending {
 }
 
 export interface AccountUsage {
-  currentPeriodSpent: number;
-  budgetLimit: number;
+  currentMonthSpending: number;
+  previousMonthSpending: number;
+  totalBudget: number;
   historicalSpending: HistoricalSpending[];
+}
+
+export interface UserUsage {
+  usage: AccountUsage;
 }
 
 export interface AuthMeResponse {
@@ -14,5 +19,5 @@ export interface AuthMeResponse {
   email: string;
   name?: string;
   // ... other user details
-  usage: AccountUsage; // This will contain the usage data
+  usage: UserUsage; // This will contain the usage data
 }

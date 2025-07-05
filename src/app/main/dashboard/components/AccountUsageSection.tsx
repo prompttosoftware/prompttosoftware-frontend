@@ -35,7 +35,7 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = () => {
     }
   }, [error, setError]);
 
-  const usageData = data?.usage; // Extract usage data from the response
+  const usageData = data?.usage.usage; // Extract usage data from the response
 
   const rawHistoricalData = useMemo(() => {
     if (!usageData?.historicalSpending) return [];

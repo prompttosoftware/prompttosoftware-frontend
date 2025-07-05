@@ -1,4 +1,4 @@
-import { ProjectSummary } from '@/src/types/project';
+import { ProjectSummary } from '@/types/project';
 import ExploreProjectCard from './ExploreProjectCard';
 
 interface ProjectGridProps {

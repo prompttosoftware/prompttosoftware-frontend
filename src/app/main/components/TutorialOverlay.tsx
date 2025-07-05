@@ -5,7 +5,7 @@ import { tutorialSteps, TutorialStep } from '@/lib/tutorialSteps';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-import { openPaymentModal } from '@/store/paymentModalStore';
+import { usePaymentModalStore } from '@/store/paymentModalStore';
 
 interface TutorialOverlayProps {
   onTutorialComplete: () => void;
@@ -14,6 +14,7 @@ interface TutorialOverlayProps {
 const TUTORIAL_COMPLETED_KEY = 'prompt2code_tutorial_completed';
 
 const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onTutorialComplete }) => {
+  const { openModal: openPaymentModal } = usePaymentModalStore(); // Destructure openModal as openPaymentModal
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isTutorialActive, setIsTutorialActive] = useState(false);
   const [showGitHubPrompt, setShowGitHubPrompt] = useState(false);

@@ -1,3 +1,10 @@
+export interface HistoryItem {
+  timestamp: string;
+  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event'; // Example types, adjust as needed
+  content: string;
+  sender?: 'user' | 'agent' | 'system'; // Optional sender for messages/system activities
+}
+
 export interface ProjectMessage {
   sender: 'user' | 'agent';
   message: string;
@@ -15,7 +22,7 @@ export interface Project {
   progress: number;
   createdAt: string;
   updatedAt: string;
-  history: ProjectMessage[]; // Add this line
+  history: HistoryItem[]; // Add this line
 }
 
 export interface ProjectStatus {
