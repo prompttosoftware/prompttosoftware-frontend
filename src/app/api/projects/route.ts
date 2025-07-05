@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 // Assuming these service functions exist in projectsService.ts
 import { getAllProjects, createProject } from '@/services/projectsService'; 
-import { ProjectFormData } from '@/lib/types'; // Assuming ProjectFormData for project creation
+import { ProjectFormData } from '@/types/project'; // Assuming ProjectFormData for project creation
 
 // Handler for GET /api/projects - Get all projects
 export async function GET(request: NextRequest) {

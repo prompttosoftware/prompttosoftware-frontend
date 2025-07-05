@@ -1,9 +1,9 @@
 'use client';
 
 import { useUserProjects } from '@/hooks/useUserProjects';
-import { ProjectCard } from '../components/ProjectCard';
-import { SkeletonLoader } from '../components/SkeletonLoader';
-import { EmptyState } from '../components/EmptyState';
+import ProjectCard from '../components/ProjectCard';
+import SkeletonLoader from '../components/SkeletonLoader';
+import EmptyState from '../components/EmptyState';
 import { useGlobalErrorStore } from '@/store/globalErrorStore'; // Corrected import
 import React, { useEffect } from 'react';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ import AddPaymentButton from '@/app/main/components/AddPaymentButton'; // Import
 import ActiveProjectsSummary from './components/ActiveProjectsSummary'; // Import ActiveProjectsSummary
 
 export default function DashboardPage() {
-  const { projects, isLoading, error } = useUserProjects();
+    const { data: projects, isLoading, error } = useUserProjects();
   const store = useGlobalErrorStore();
   const { setError } = store;
 

@@ -11,7 +11,7 @@ import { SavedCard } from '../../../../types/payments'; // Assuming SavedCard is
 
 export default function PaymentsPage() {
   const { isAuthenticated } = useAuth();
-  const { addError } = useGlobalError();
+  const { showError } = useGlobalError();
 
   const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +34,7 @@ export default function PaymentsPage() {
         setSavedCards(response.data);
       } catch (err: any) {
         const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch saved cards.';
-        addError(errorMessage);
+        showError(errorMessage);
         setError(errorMessage);
         setSavedCards([]); // Clear any old data on error
       } finally {
@@ -43,7 +43,7 @@ export default function PaymentsPage() {
     };
 
     fetchSavedCards();
-  }, [isAuthenticated, addError]);
+  }, [isAuthenticated, showError]);
 
   if (isLoading) {
     return (
@@ -68,7 +68,7 @@ export default function PaymentsPage() {
       {savedCards.length > 0 ? (
         <SavedCardsList cards={savedCards} />
       ) : (
-        <EmptyState message="No saved payment methods found." />
+        <EmptyState title="No Payment Methods" description="You don't have any saved payment methods yet." />
       )}
     </div>
   );

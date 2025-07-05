@@ -17,12 +17,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import LoadingSpinner from '@/app/main/components/LoadingSpinner';
-import AIModelConfigurationSection from './components/AIModelConfigurationSection';
+import { IntelligenceLevelModelSelector } from '@/components/ai-model-selection/IntelligenceLevelModelSelector';
 import { NewRepositoryFields } from '@/app/main/new-project/NewRepositoryFields';
 import { ExistingRepositoryFields } from '@/app/main/new-project/ExistingRepositoryFields';
 import { getEstimatedCost } from '@/lib/api'; // Assume this API call exists
 import { JiraLinkResponse, LinkJiraAccount } from '@/lib/jira'; // Import Jira API functions
-import { AIModelConfig, ProjectFormData } from '@/lib/types';
+import { AIModelConfig, ProjectFormData } from '@/types/project';
 import { processProject } from '@/services/projectsService'; // Import the service
 
 const MAX_INSTALLATIONS = 20;
@@ -52,44 +52,44 @@ const formSchema = z.object({
           modelName: z.string().min(1, 'Model Name is required.'),
           apiKey: z.string().optional(),
         })
-      ).optional(),
+      ).default([]),
       low: z.array(
         z.object({
           provider: z.string().min(1, 'Provider is required.'),
           modelName: z.string().min(1, 'Model Name is required.'),
           apiKey: z.string().optional(),
         })
-      ).optional(),
+      ).default([]),
       medium: z.array(
         z.object({
           provider: z.string().min(1, 'Provider is required.'),
           modelName: z.string().min(1, 'Model Name is required.'),
           apiKey: z.string().optional(),
         })
-      ).optional(),
+      ).default([]),
       high: z.array(
         z.object({
           provider: z.string().min(1, 'Provider is required.'),
           modelName: z.string().min(1, 'Model Name is required.'),
           apiKey: z.string().optional(),
         })
-      ).optional(),
+      ).default([]),
       super: z.array(
         z.object({
           provider: z.string().min(1, 'Provider is required.'),
           modelName: z.string().min(1, 'Model Name is required.'),
           apiKey: z.string().optional(),
         })
-      ).optional(),
+      ).default([]),
       backup: z.array(
         z.object({
           provider: z.string().min(1, 'Provider is required.'),
           modelName: z.string().min(1, 'Model Name is required.'),
           apiKey: z.string().optional(),
         })
-      ).optional(),
-    }).optional(),
-    installations: z.array(z.string()).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
+      ).default([]),
+    }), // Removed .optional() here
+    installations: z.array(z.object({ value: z.string().min(1, "Installation name cannot be empty.") })).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
     jiraLinked: z.boolean(),
   }),
 });
@@ -103,7 +103,14 @@ export default function NewProjectPage() {
       maxBudget: 500, // Default value
       githubRepositories: [], // Default to no repositories
       advancedOptions: {
-        aiModels: {},
+        aiModels: { // Initializing all as empty arrays to prevent undefined issues
+          utility: [],
+          low: [],
+          medium: [],
+          high: [],
+          super: [],
+          backup: [],
+        },
         installations: [],
         jiraLinked: false,
       },
@@ -250,6 +257,14 @@ export default function NewProjectPage() {
               {errors.description && (
                 <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
               )}
+              
+              {/* Hidden div to expose form state to Chrome Agent */}
+              <div
+                data-testid="advanced-options-ai-models-output"
+                style={{ display: 'none' }}
+              >
+                {JSON.stringify(watch('advancedOptions.aiModels'))}
+              </div>
 
               <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
                 <p className="text-md font-semibold text-gray-700">Estimated Cost:</p>
@@ -490,12 +505,12 @@ export default function NewProjectPage() {
                 >
                   {/* AI Model Selection UI */}
                   <div className="space-y-6">
-                    <AIModelConfigurationSection level="utility" title="Utility" />
-                    <AIModelConfigurationSection level="low" title="Low" />
-                    <AIModelConfigurationSection level="medium" title="Medium" />
-                    <AIModelConfigurationSection level="high" title="High" />
-                    <AIModelConfigurationSection level="super" title="Super" />
-                    <AIModelConfigurationSection level="backup" title="Backup" />
+                    <IntelligenceLevelModelSelector level="utility" />
+                    <IntelligenceLevelModelSelector level="low" />
+                    <IntelligenceLevelModelSelector level="medium" />
+                    <IntelligenceLevelModelSelector level="high" />
+                    <IntelligenceLevelModelSelector level="super" />
+                    <IntelligenceLevelModelSelector level="backup" />
                     
 
                     {/* Link Jira Account Button */}
@@ -526,7 +541,7 @@ export default function NewProjectPage() {
                               key={index}
                               className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
                             >
-                              <span className="text-sm text-gray-700">{installation}</span>
+                              <span className="text-sm text-gray-700">{installation.value}</span>
                               <Button
                                 type="button"
                                 onClick={() => removeInstallation(index)}
@@ -579,7 +594,7 @@ export default function NewProjectPage() {
                                   onSelect={() => {
                                     setSelectedInstallationType(option);
                                     if (option !== 'Other') {
-                                      appendInstallation(option);
+                                      appendInstallation({ value: option });
                                       setShowInstallationDropdown(false);
                                       setCustomInstallationName(''); // Clear custom input
                                     }
@@ -600,7 +615,7 @@ export default function NewProjectPage() {
                                 onChange={(e) => setCustomInstallationName(e.target.value)}
                                 onBlur={() => {
                                   if (customInstallationName.trim()) {
-                                    appendInstallation(customInstallationName.trim());
+                                    appendInstallation({ value: customInstallationName.trim() });
                                     setCustomInstallationName('');
                                     setSelectedInstallationType(null);
                                     setShowInstallationDropdown(false);
@@ -612,7 +627,7 @@ export default function NewProjectPage() {
                                 type="button"
                                 onClick={() => {
                                   if (customInstallationName.trim()) {
-                                    appendInstallation(customInstallationName.trim());
+                                    appendInstallation({ value: customInstallationName.trim() });
                                     setCustomInstallationName('');
                                     setSelectedInstallationType(null);
                                     setShowInstallationDropdown(false);
