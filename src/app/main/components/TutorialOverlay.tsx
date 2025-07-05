@@ -5,7 +5,7 @@ import { tutorialSteps, TutorialStep } from '@/lib/tutorialSteps';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-import { openPaymentModal } from '../../store/paymentModalStore';
+import { openPaymentModal } from '@/store/paymentModalStore';
 
 interface TutorialOverlayProps {
   onTutorialComplete: () => void;
