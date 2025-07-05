@@ -35,13 +35,13 @@ export interface ProjectSummary {
   id: string;
   name: string;
   description: string;
-  status: 'active' | 'stopped' | 'completed' | 'failed';
-  repositoryUrl: string;
-  costToDate: number;
-  totalRuntime: number;
-  progress: number;
   githubStars?: number;
   createdAt: string;
+  status: 'active' | 'stopped' | 'completed' | 'failed';
+  repositoryUrl: string; // Add if not present, based on Prom-70 and general project data
+  costToDate: number; // Add if not present
+  totalRuntime: number; // Add if not present
+  progress: number; // Add if not present
 }
 
 type GithubRepository =
