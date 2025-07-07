@@ -64,28 +64,31 @@ const ConfirmationDialog: React.FC = () => {
 
   return (
     <Dialog open={confirmationDialog.isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white/90 text-gray-900 backdrop-blur-md rounded-lg shadow-lg">
         <DialogHeader>
           <DialogTitle>{confirmationDialog.title}</DialogTitle>
           <DialogDescription>{confirmationDialog.message}</DialogDescription>
         </DialogHeader>
         {showConfirmPhraseInput && (
           <div className="grid gap-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              To confirm, please type &quot;
-              <span className="font-semibold text-foreground">
-                {confirmationDialog.confirmPhrase}
+            <p className="text-sm text-gray-700">
+              To confirm, please type&nbsp;
+              <span className="font-semibold text-gray-900">
+                “{confirmationDialog.confirmPhrase}”
               </span>
-              &quot; in the box below.
+              &nbsp;in the box below.
             </p>
             <div className="grid gap-2">
-              <Label htmlFor="confirm-input">Confirmation Phrase</Label>
+              <Label htmlFor="confirm-input" className="text-gray-700">
+                Confirmation Phrase
+              </Label>
               <Input
                 id="confirm-input"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={confirmationDialog.confirmPhrase}
-                disabled={confirmationDialog.isLoading} // Disable input during loading
+                disabled={confirmationDialog.isLoading}
+                className="border border-gray-300 focus:ring-2 focus:ring-blue-500 rounded-md"
               />
             </div>
           </div>

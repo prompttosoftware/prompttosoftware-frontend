@@ -2,11 +2,13 @@
 
 import React from 'react';
 
-export default function TestPage() {
+export default function Test() {
   return (
-    <div>
-      <h1>Hello from Test Page!</h1>
-      <p>This page is outside the (main) group.</p>
+    <div className="p-10 space-y-4">
+      <div className="bg-red-500 text-white p-4 rounded">Tailwind Test 1</div>
+      <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        Test Button
+      </button>
     </div>
   );
 }

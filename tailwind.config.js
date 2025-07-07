@@ -7,7 +7,12 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        popover: '#374151', // example: Tailwind's gray-700
+        'popover-foreground': '#ffffff',
+      },
+    },
   },
   plugins: [],
 };

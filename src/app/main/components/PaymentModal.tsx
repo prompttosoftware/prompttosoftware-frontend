@@ -25,21 +25,19 @@ import { logger } from '@/lib/logger';
 
 export function PaymentModal() {
   // Destructure state and actions from the payment modal store
-  const {
-    isOpen,
-    closePaymentModal: storeCloseModal, // Renamed to avoid conflict with local closeModal below if needed
-    clientSecret,
-    setClientSecret,
-    amount,
-    setAmount,
-    step,
-    setStep,
-    clearState,
-    onClose, // Callback from store to execute on successful close
-    onSuccess, // Callback from store to execute on successful payment/setup
-    onGoToPaymentProvider, // Callback for redirect-based payments
-    setPaymentModalState, // Generic setter for complex state updates
-  } = usePaymentModalStore();
+  const isOpen = usePaymentModalStore((state) => state.isOpen);
+  const storeCloseModal = usePaymentModalStore((state) => state.closePaymentModal);
+  const clientSecret = usePaymentModalStore((state) => state.clientSecret);
+  const setClientSecret = usePaymentModalStore((state) => state.setClientSecret);
+  const amount = usePaymentModalStore((state) => state.amount);
+  const setAmount = usePaymentModalStore((state) => state.setAmount);
+  const step = usePaymentModalStore((state) => state.step);
+  const setStep = usePaymentModalStore((state) => state.setStep);
+  const clearState = usePaymentModalStore((state) => state.clearState);
+  const onClose = usePaymentModalStore((state) => state.onClose);
+  const onSuccess = usePaymentModalStore((state) => state.onSuccess);
+  const onGoToPaymentProvider = usePaymentModalStore((state) => state.onGoToPaymentProvider);
+  const setPaymentModalState = usePaymentModalStore((state) => state.setPaymentModalState);
 
   // Destructure error handling from global error store
   const { setError, clearError } = useGlobalErrorStore();
@@ -51,13 +49,21 @@ export function PaymentModal() {
   const [isLoadingPaymentIntent, setIsLoadingPaymentIntent] = useState(false);
   
   const globalError = useGlobalErrorStore((state) => state.error); // Get global error state
+  const prevIsOpenRef = React.useRef(isOpen);
 
   // Effect to handle modal open/close and general state resetting
   useEffect(() => {
-    if (!isOpen) { // When modal is closing
+    const wasOpen = prevIsOpenRef.current;
+    const isClosing = wasOpen && !isOpen;
+
+    if (isClosing) { // When modal is closing
       // Clear all states (local and store) to ensure a clean slate for next open
-      setSelectedPaymentMethod('card');
-      setIsLoadingPaymentIntent(false);
+      if (selectedPaymentMethod !== 'card') {
+        setSelectedPaymentMethod('card');
+      }
+      if (isLoadingPaymentIntent !== false) {
+        setIsLoadingPaymentIntent(false);
+      }
       clearState(); // Clears all Zustand store states
       clearError(); // Clear any global errors
       setSuccessMessageStore(null); // Clear success message
@@ -79,6 +85,8 @@ export function PaymentModal() {
         logger.warn('Opened to confirm_card with clientSecret but amount is 0. This might lead to unexpected behavior.');
       }
     }
+    // Update ref after checks
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, clearState, clearError, setSuccessMessageStore, onClose, clientSecret, amount]);
 
 // Log global errors when they change
@@ -246,21 +254,21 @@ useEffect(() => {
 
   return (
     <Dialog open={isOpen} onOpenChange={storeCloseModal}> {/* Use storeCloseModal */}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white/90 text-gray-900 backdrop-blur-md rounded-lg shadow-lg">
         <DialogHeader>
-          <DialogTitle>Add Funds</DialogTitle>
-          <DialogDescription>
-            {step === 'add_amount' // Use step from store
+          <DialogTitle className="text-2xl font-semibold">Add Funds</DialogTitle>
+          <DialogDescription className="text-sm text-gray-700">
+            {step === 'add_amount'
               ? 'Enter the amount you wish to add to your account.'
               : 'Confirm your payment details.'}
           </DialogDescription>
         </DialogHeader>
-  
-        {step === 'add_amount' && ( // Use step from store
+
+        {step === 'add_amount' && (
           <>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right">
+                <Label htmlFor="amount" className="text-right text-gray-700">
                   Amount
                 </Label>
                 <div className="col-span-3 relative">
@@ -269,69 +277,65 @@ useEffect(() => {
                     id="amount"
                     type="text"
                     placeholder="e.g., 50.00"
-                    value={amount === 0 ? '' : amount.toString()} // Use amount from store, convert 0 to empty string for input
+                    value={amount === 0 ? '' : amount.toString()}
                     onChange={handleAmountChange}
-                    className="pl-8"
+                    className="pl-8 border border-gray-300 focus:ring-2 focus:ring-blue-500 rounded-md"
                     required
                   />
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4 mt-2">
-                <Label htmlFor="paymentMethod" className="text-right">
+                <Label htmlFor="paymentMethod" className="text-right text-gray-700">
                   Method
                 </Label>
                 <select
                   id="paymentMethod"
                   value={selectedPaymentMethod}
                   onChange={(e) => setSelectedPaymentMethod(e.target.value as 'card' | 'paypal')}
-                  className="col-span-3 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                  className="col-span-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm p-2 bg-white"
                 >
                   <option value="card">Credit Card</option>
                   <option value="paypal" disabled>
                     PayPal (Coming Soon)
-                  </option>{' '}
+                  </option>
                 </select>
               </div>
             </div>
-  
+
             <DialogFooter>
-              <Button variant="outline" onClick={storeCloseModal} disabled={isLoadingPaymentIntent}> {/* Use storeCloseModal */}
+              <Button variant="outline" onClick={storeCloseModal} disabled={isLoadingPaymentIntent}>
                 Cancel
               </Button>
               <Button
                 onClick={handleInitiatePaymentProcess}
-                disabled={amount === 0 || isLoadingPaymentIntent} // Use amount from store
+                disabled={amount === 0 || isLoadingPaymentIntent}
               >
                 {isLoadingPaymentIntent ? 'Processing...' : 'Next'}
               </Button>
             </DialogFooter>
           </>
         )}
-  
-        {step === 'confirm_card' && clientSecret && ( // Use step from store
+
+        {step === 'confirm_card' && clientSecret && (
           <>
             <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md mb-4 mt-4">
               <span className="font-semibold text-lg">Amount to add:</span>
-              {/* Display amount from store. Handle potential division by 100 if it's in cents. */}
-              <span className="font-bold text-xl text-blue-600">
-                {/* Assuming amount is already in dollars/euros, not cents. If in cents, need amount / 100 */}
-                ${amount.toFixed(2)} 
-              </span>
+              <span className="font-bold text-xl text-blue-600">${amount.toFixed(2)}</span>
             </div>
             <PaymentFormContent
               clientSecret={clientSecret}
               setClientSecret={setClientSecret}
-              closeModal={storeCloseModal} // Use storeCloseModal
+              closeModal={storeCloseModal}
               clearStoreState={clearState}
               clearGlobalError={clearError}
               setGlobalError={setError}
               setSuccessMessageStore={setSuccessMessageStore}
-resetAddFundsStep={() => setStep('add_amount')}
+              resetAddFundsStep={() => setStep('add_amount')}
             />
           </>
         )}
-        {/* If clientSecret is null but step is confirm_card, something went wrong. */}
-        {step === 'confirm_card' && !clientSecret && ( // Use step from store
+
+        {step === 'confirm_card' && !clientSecret && (
           <div className="py-4 text-center text-red-600">
             Error: Payment details could not be loaded. Please try again.
           </div>

@@ -79,7 +79,7 @@ export interface ProjectFormData {
   githubRepositories: GithubRepository[];
   advancedOptions: {
     aiModels: NewProjectModels; // Updated to use NewProjectModels
-    installations: string[];
+    installations: { value: string }[];
     jiraLinked: boolean;
   };
 }

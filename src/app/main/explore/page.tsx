@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useExploreProjects } from '@/hooks/useExploreProjects';
-import ExploreProjectCard from '@/app/(main)/explore/components/ExploreProjectCard';
+import ExploreProjectCard from '@/app/main/explore/components/ExploreProjectCard';
 import EmptyState from '@/app/main/components/EmptyState';
 import LoadingSpinner from '@/app/main/components/LoadingSpinner';
 import { ProjectSummary } from '@/types/project';

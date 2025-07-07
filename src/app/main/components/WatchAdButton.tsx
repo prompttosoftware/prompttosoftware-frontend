@@ -6,7 +6,7 @@ import { useBalanceStore } from '@/store/balanceStore';
 import { useGlobalError } from '@/hooks/useGlobalError';
 import { logger } from '@/lib/logger'; // Import the global logger
 import { httpClient } from '@/lib/httpClient'; // Import the http client
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal, TooltipArrow } from '@/components/ui/tooltip';
 import LoadingSpinner from './LoadingSpinner'; // Import the LoadingSpinner component
 
 const AD_DURATION_SECONDS = 10; // Ad playback duration in seconds
@@ -125,9 +125,15 @@ const WatchAdButton: React.FC = () => {
               AD
             </button>
           </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-sm">Watch an advertisement to earn credit towards your account balance.</p>
-          </TooltipContent>
+          <TooltipPortal>
+            <TooltipContent
+              className="bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-[60]"
+              sideOffset={5}
+            >
+              Watch an advertisement to earn credit towards your account balance.
+              <TooltipArrow className="fill-current text-gray-700" />
+            </TooltipContent>
+          </TooltipPortal>
         </Tooltip>
       </TooltipProvider>
 

@@ -57,7 +57,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
               <SelectTrigger id={`${providerFieldName}`} className="w-full">
                 <SelectValue placeholder="Select a provider" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="relative z-[60] max-h-96 min-w-[8rem] rounded-md border bg-gray-700 text-white shadow-md">
                 {AI_PROVIDERS.map((provider) => (
                   <SelectItem key={provider.value} value={provider.value}>
                     {provider.label}

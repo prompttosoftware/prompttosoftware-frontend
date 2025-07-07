@@ -18,12 +18,12 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import WatchAdButton from './WatchAdButton';
 
 const navigationItems = [
-  { name: 'Home/Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'New Project', href: '/new-project', icon: PlusIcon },
-  { name: 'Projects', href: '/projects', icon: FolderIcon },
-  { name: 'Explore', href: '/explore', icon: RocketLaunchIcon },
-  { name: 'Help', href: '/help', icon: QuestionMarkCircleIcon },
-  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  { name: 'Home/Dashboard', href: '/main/dashboard', icon: HomeIcon },
+  { name: 'New Project', href: '/main/new-project', icon: PlusIcon },
+  { name: 'Projects', href: '/main/projects', icon: FolderIcon },
+  { name: 'Explore', href: '/main/explore', icon: RocketLaunchIcon },
+  { name: 'Help', href: '/main/help', icon: QuestionMarkCircleIcon },
+  { name: 'Settings', href: '/main/settings', icon: Cog6ToothIcon },
 ];
 
 interface SideNavBarProps {
@@ -108,7 +108,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
               {!isExpanded && (
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    className="bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg"
+                    className="bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-[60]"
                     sideOffset={5}
                   >
                     {item.name}

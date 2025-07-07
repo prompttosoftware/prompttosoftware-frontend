@@ -13,13 +13,13 @@ const helpMenuItems: HelpMenuItem[] = [
     content: (
       <div>
         <h2 className="text-2xl font-bold mb-4">About This Application</h2>
-        <p className="text-gray-700 leading-relaxed">
+        <p className="text-gray-700 leading-relaxed dark:text-gray-300">
           This application is designed to help you generate software projects from simple text prompts.
           It leverages advanced AI models to interpret your requirements and produce functional codebases,
           boilerplate, and project structures. Our goal is to streamline the development process and make it
           accessible to everyone, regardless of their coding expertise.
         </p>
-        <p className="text-gray-700 leading-relaxed mt-2">
+        <p className="text-gray-700 leading-relaxed mt-2 dark:text-gray-300">
           We are constantly working to improve our services, add new features, and expand the range of
           technologies we support. Your feedback is invaluable in helping us achieve this.
         </p>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ProfileButton from '@/app/(main)/components/ProfileButton';
+import ProfileButton from '@/app/main/components/ProfileButton';
 import Link from 'next/link';
 
 const Header = () => {

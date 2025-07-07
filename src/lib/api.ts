@@ -22,11 +22,18 @@ export interface CostEstimation {
   tokensUsed: number;
 }
 
+export interface AiModel {
+  id: string;
+  intelligence: string;
+  provider: string;
+  modelName: string;
+}
+
 export async function getEstimatedCost(
   description: string,
   maxRuntimeHours: number,
   maxBudget: number,
-  aiModels: string[]
+  aiModels: AiModel[]
 ): Promise<CostEstimation> {
   console.log('Mock getEstimatedCost called with:', { description, maxRuntimeHours, maxBudget, aiModels });
   return {

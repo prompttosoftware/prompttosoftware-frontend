@@ -15,16 +15,16 @@ import { MswProvider } from '../components/MswProvider'; // Import MswProvider
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr">
-      <body className={inter.className}>
+    <html lang="en" dir="ltr" className="h-full">
+      <body className={`${inter.className} h-full bg-gray-100`}>
         <ErrorBoundary>
           <StripeWrapper>
-            <MswProvider> {/* Wrap Providers with MswProvider */}
+            <MswProvider>
               <Providers>{children}</Providers>
             </MswProvider>
           </StripeWrapper>
         </ErrorBoundary>
-        <Toaster /> {/* Render Toaster */}
+        <Toaster />
       </body>
     </html>
   );

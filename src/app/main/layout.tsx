@@ -19,6 +19,7 @@ import SuccessToast from './components/SuccessToast';
 import TutorialOverlay from './components/TutorialOverlay'; // Import TutorialOverlay
 import { usePaymentModalStore } from '@/store/paymentModalStore';
 import { AuthContext } from '@/lib/AuthContext'; // Import AuthContext
+import { usePathname } from 'next/navigation';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -28,7 +29,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const initialBanners: Omit<Banner, 'id'>[] = [
-      { message: "This website was created from a single prompt!", type: 'info', dismissible: false },
+      { message: "This website was created from a single prompt!", type: 'info', dismissible: true },
       { message: "Welcome to our new feature! Check it out.", type: 'success', dismissible: true },
       { message: "Heads up! Some services might be temporarily unavailable.", type: 'warning', dismissible: true },
       { message: "Just an informative message for you.", type: 'info', dismissible: true },
@@ -42,6 +43,23 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   };
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
+
+  const formatPathToTitle = (path: string) => {
+    if (path === '/') return 'Home';
+
+    // Get the last non-empty segment from the path
+    const lastSegment = path.split('/').filter(Boolean).pop() || '';
+
+    // Replace dashes with spaces and capitalize each word
+    return lastSegment
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  
+  const pathname = usePathname();
+  const pageTitle = formatPathToTitle(pathname);
 
   return (
     <AuthProvider>
@@ -68,7 +86,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               >
                 <Bars3Icon className="h-6 w-6 text-gray-700" />
               </button>
-              <div className="text-2xl font-semibold text-gray-800">Page Title</div>
+              <div className="text-2xl font-semibold text-gray-800">{pageTitle}</div>
             </div>
             <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
               <AddPaymentButton />

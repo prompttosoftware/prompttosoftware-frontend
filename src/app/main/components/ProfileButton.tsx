@@ -31,7 +31,7 @@ const ProfileButton = () => {
 
   // Authenticated state: Display profile icon and dropdown
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full profile-button">
           <Avatar className="h-8 w-8">
@@ -42,7 +42,7 @@ const ProfileButton = () => {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 sm:min-w-[180px] sm:max-w-xs" align="end" forceMount>
+      <DropdownMenuContent className="relative z-[60] max-h-96 min-w-[8rem] rounded-md border bg-gray-700 text-white shadow-md">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.username || 'User'}</p>
@@ -57,7 +57,7 @@ const ProfileButton = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push('/main/settings')}>Settings</DropdownMenuItem>
         <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
