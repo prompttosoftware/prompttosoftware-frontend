@@ -50,6 +50,7 @@ export function PaymentModal() {
   
   const globalError = useGlobalErrorStore((state) => state.error); // Get global error state
   const prevIsOpenRef = React.useRef(isOpen);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
 
   // Effect to handle modal open/close and general state resetting
   useEffect(() => {
@@ -310,6 +311,9 @@ useEffect(() => {
                 onClick={handleInitiatePaymentProcess}
                 disabled={amount === 0 || isLoadingPaymentIntent}
               >
+                {isLoadingPaymentIntent && (
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                )}
                 {isLoadingPaymentIntent ? 'Processing...' : 'Next'}
               </Button>
             </DialogFooter>
@@ -331,6 +335,8 @@ useEffect(() => {
               setGlobalError={setError}
               setSuccessMessageStore={setSuccessMessageStore}
               resetAddFundsStep={() => setStep('add_amount')}
+              isConfirmingPayment={isConfirmingPayment}
+              setIsConfirmingPayment={setIsConfirmingPayment}
             />
           </>
         )}

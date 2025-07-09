@@ -16,6 +16,8 @@ const WatchAdButton: React.FC = () => {
   const [adCountdown, setAdCountdown] = useState(AD_DURATION_SECONDS);
   const [showAdModal, setShowAdModal] = useState(false);
   const [adCreditSuccessMessage, setAdCreditSuccessMessage] = useState<string | null>(null);
+  const [adComplete, setAdComplete] = useState(false);
+  const [adFailed, setAdFailed] = useState(false);
 
   // Get authentication status from useAuth hook
   const { isAuthenticated } = useAuth();
@@ -62,6 +64,7 @@ const WatchAdButton: React.FC = () => {
           setAdCreditSuccessMessage(null); // Clear message for next time
         }, 3000); // Close after 3 seconds
       } catch (error: any) {
+        setAdFailed(true); // Show the close button
         const errorMessage =
           error.response?.data?.message || 'Failed to credit ad. Please try again.';
         console.error('Error crediting ad:', error); // Keep console.error for immediate debug visibility
@@ -75,8 +78,8 @@ const WatchAdButton: React.FC = () => {
         setAdCountdown((prev) => prev - 1);
       }, 1000);
     } else if (isAdPlaying && adCountdown === 0) {
-      // Ad has finished playing
       setIsAdPlaying(false);
+      setAdComplete(true);
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
       }
@@ -114,7 +117,7 @@ const WatchAdButton: React.FC = () => {
               className="
                 flex items-center justify-center
                 w-10 h-10 md:w-12 md:h-12 rounded-lg
-                bg-blue-500 hover:bg-blue-600 active:bg-blue-700
+                bg-gray-500 hover:bg-gray-600 active:bg-gray-700
                 text-white font-bold
                 transition-colors duration-200 ease-in-out
                 shadow-md
@@ -158,6 +161,19 @@ const WatchAdButton: React.FC = () => {
             </div>
             {adCountdown > 0 && !adCreditSuccessMessage && (
               <p className="text-sm text-gray-700 mt-4">Do not close this window.</p>
+            )}
+            {(adComplete || adFailed) && (
+              <button
+                onClick={() => {
+                  setShowAdModal(false);
+                  setAdCreditSuccessMessage(null);
+                  setAdComplete(false);
+                  setAdFailed(false);
+                }}
+                className="mt-4 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+              >
+                Close
+              </button>
             )}
           </div>
         </div>

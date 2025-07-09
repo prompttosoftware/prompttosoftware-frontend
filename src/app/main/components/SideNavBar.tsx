@@ -15,10 +15,8 @@ import {
 } from '@heroicons/react/24/outline'; // Using outline icons
 import * as Tooltip from '@radix-ui/react-tooltip';
 
-import WatchAdButton from './WatchAdButton';
-
 const navigationItems = [
-  { name: 'Home/Dashboard', href: '/main/dashboard', icon: HomeIcon },
+  { name: 'Dashboard', href: '/main/dashboard', icon: HomeIcon },
   { name: 'New Project', href: '/main/new-project', icon: PlusIcon },
   { name: 'Projects', href: '/main/projects', icon: FolderIcon },
   { name: 'Explore', href: '/main/explore', icon: RocketLaunchIcon },
@@ -95,11 +93,11 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                   } text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   aria-label={item.name}
                   {...(
-  item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
-  item.name === 'Explore' ? { id: 'explore-tab' } :
-  item.name === 'Projects' ? { id: 'projects-tab' } :
-  {}
-)}
+                    item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
+                    item.name === 'Explore' ? { id: 'explore-tab' } :
+                    item.name === 'Projects' ? { id: 'projects-tab' } :
+                    {}
+                  )}
                 >
                   <item.icon className={`h-6 w-6 ${isExpanded ? 'mr-3' : ''}`} />
                   <span className={`${isExpanded ? '' : 'hidden'}`}>{item.name}</span>
@@ -118,15 +116,6 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
               )}
             </Tooltip.Root>
           ))}
-          
-          {/* Watch Ad Button */}
-          <div
-            className={`flex items-center p-3 rounded-lg text-sm font-medium ${
-              isExpanded ? 'justify-start' : 'justify-center'
-            } text-gray-300`}
-          >
-            <WatchAdButton />
-          </div>
         </nav>
 
         {/* Spacer to push content up if needed or for future bottom items */}

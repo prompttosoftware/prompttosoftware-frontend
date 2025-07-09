@@ -28,11 +28,31 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { showTutorial, setShowTutorial } = useContext(AuthContext); // Use showTutorial from AuthContext
 
   useEffect(() => {
-    const initialBanners: Omit<Banner, 'id'>[] = [
-      { message: "This website was created from a single prompt!", type: 'info', dismissible: true },
-      { message: "Welcome to our new feature! Check it out.", type: 'success', dismissible: true },
-      { message: "Heads up! Some services might be temporarily unavailable.", type: 'warning', dismissible: true },
-      { message: "Just an informative message for you.", type: 'info', dismissible: true },
+    const initialBanners: Banner[] = [
+      {
+        id: 'site-created-from-prompt',
+        message: 'This website was created from a single prompt!',
+        type: 'info',
+        dismissible: true,
+      },
+      {
+        id: 'new-feature-welcome',
+        message: 'Welcome to our new feature! Check it out.',
+        type: 'success',
+        dismissible: true,
+      },
+      {
+        id: 'service-unavailability-warning',
+        message: 'Heads up! Some services might be temporarily unavailable.',
+        type: 'warning',
+        dismissible: true,
+      },
+      {
+        id: 'just-info-message',
+        message: 'Just an informative message for you.',
+        type: 'info',
+        dismissible: true,
+      },
     ];
     initBanners(initialBanners);
   }, []); // Empty dependency array to run only once
@@ -89,10 +109,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <div className="text-2xl font-semibold text-gray-800">{pageTitle}</div>
             </div>
             <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
-              <AddPaymentButton />
-              <ProfileButton />
-              <BalanceDisplay />
               <WatchAdButton />
+              <AddPaymentButton />
+              <BalanceDisplay />
+              <ProfileButton />
             </div>
           </header>
 

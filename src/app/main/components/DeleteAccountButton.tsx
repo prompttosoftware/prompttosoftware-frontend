@@ -1,17 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore'; // Import success message store
 import { httpClient } from '@/lib/httpClient'; // Import the axios instance
 import { AuthContext } from '@/lib/AuthContext'; // Import AuthContext
-import { useContext } from 'react'; // Import useContext
 import { logger } from '@/utils/logger'; // Import logger
 import { AxiosError } from 'axios'; // Import AxiosError type
+import { api } from '@/lib/api';
 
 const DeleteAccountButton: React.FC = () => {
-  const { showConfirmation, setError } = useGlobalErrorStore();
+  const { showConfirmation, setError, setConfirmationLoading } = useGlobalErrorStore();
   const { logout } = useContext(AuthContext); // Get logout from AuthContext
   const { setMessage: setSuccessMessage } = useSuccessMessageStore(); // Get setSuccessMessage from store hook
 
@@ -20,11 +20,12 @@ const DeleteAccountButton: React.FC = () => {
       'Delete My Account',
       "This action is irreversible and will permanently delete your account and all associated data. To confirm, please type 'DELETE MY ACCOUNT' in the box below.",
       async () => {
+        setConfirmationLoading(true); // Set loading before async action
         try {
           // Perform the DELETE request to the backend
-          await httpClient.delete('/users/me');
+          await api.deleteAccount(); 
           logger.info('Account deleted successfully.');
-          await logout(); // Call the logout function from AuthContext to clear state and redirect
+          logout(); // Call the logout function from AuthContext to clear state and redirect
           setSuccessMessage('Your account has been successfully deleted.'); // Set success message
         } catch (error: unknown) {
           logger.error('Failed to delete account:', error); // Use logger.error
@@ -66,6 +67,8 @@ const DeleteAccountButton: React.FC = () => {
             description: errorDescription,
             statusCode: statusCode,
           });
+        } finally {
+          setConfirmationLoading(false); // Clear loading after action completes
         }
       },
       {

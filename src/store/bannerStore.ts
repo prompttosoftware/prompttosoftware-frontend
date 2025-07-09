@@ -8,7 +8,7 @@ interface BannerStore {
     addBanner: (banner: Omit<Banner, 'id'>) => void;
     setNextBanner: () => void;
     dismissCurrentBanner: () => void;
-    initBanners: (initialBanners: Omit<Banner, 'id'>[]) => void;
+    initBanners: (initialBanners: Banner[]) => void;
 }
 
 const LOCAL_STORAGE_KEY = 'dismissedBannerIds';
@@ -27,10 +27,7 @@ const useBannerStore = create<BannerStore>((set, get) => ({
 
             // Add initial banners, filtering out already dismissed ones
             const currentDismissedIds = get().dismissedBannerIds;
-            const newBanners = initialBanners.map(banner => ({
-                ...banner,
-                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-            })).filter(banner => !currentDismissedIds.includes(banner.id));
+            const newBanners = initialBanners.filter(banner => !currentDismissedIds.includes(banner.id));
 
             set((state) => {
                 const updatedQueue = [...state.bannerQueue, ...newBanners];

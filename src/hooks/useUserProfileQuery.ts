@@ -4,13 +4,7 @@ import axios from 'axios'; // Import axios
 import { api } from '@/lib/api'; // Import api
 import { UserProfile } from '@/types/auth'; // Import UserProfile for explicit typing
 import { useBalanceStore } from '@/store/balanceStore'; // Import the balance store
-
-// Temporary basic logger. In a real app, use a dedicated logging solution.
-const logger = {
-  info: console.log,
-  warn: console.warn,
-  error: console.error,
-};
+import { logger } from '@/utils/logger';
 
 export const useUserProfileQuery = () => {
   const queryClient = useQueryClient();

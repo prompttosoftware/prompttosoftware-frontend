@@ -30,4 +30,21 @@ export interface AuthResponse {
   user: UserProfile;
 }
 
+/**
+ * Defines the shape of the credentials required for a user to log in.
+ */
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+/**
+ * Defines the shape of the payload required to register a new user.
+ */
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  username?: string;
+}
+
 // You can add more auth-related types here if needed, e.g., for login/registration forms.

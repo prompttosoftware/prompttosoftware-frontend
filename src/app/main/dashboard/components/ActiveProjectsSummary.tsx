@@ -22,8 +22,10 @@ const ActiveProjectsSummary: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <SkeletonLoader count={3} height="h-48" /> {/* Adjust height for card-like appearance */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <SkeletonLoader key={i} height="h-64" className="rounded-lg" />
+        ))}
       </div>
     );
   }
@@ -49,7 +51,7 @@ const ActiveProjectsSummary: React.FC = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {activeProjects.map((project) => (
         <ProjectSummaryCard key={project.id} project={project} />
       ))}

@@ -21,6 +21,8 @@ interface PaymentFormContentProps {
   clearGlobalError: () => void;
   setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
   setSuccessMessageStore: (message: string | null) => void;
+  isConfirmingPayment: boolean;
+  setIsConfirmingPayment: (value: boolean) => void;
   // Amount and description are no longer passed down here, as they are used by the parent for payment intent creation
   // and displayed there.
 }
@@ -34,6 +36,8 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   clearGlobalError,
   setGlobalError,
   setSuccessMessageStore,
+  isConfirmingPayment,
+  setIsConfirmingPayment,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -42,7 +46,6 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   // Log the state of Stripe, Elements, and Client Secret when component renders or dependencies change
   logger.debug(`PaymentFormContent rendered. clientSecret: ${!!clientSecret}, stripe: ${!!stripe}, elements: ${!!elements}`);
 
-  const [isLoading, setIsLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
 
   const cardElementOptions = useMemo(
@@ -86,7 +89,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       return;
     }
 
-    setIsLoading(true);
+    setIsConfirmingPayment(true);
     clearGlobalError();
 
     try {
@@ -95,7 +98,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       if (!cardElement) {
         setGlobalError({ message: 'Card details not found. Please re-enter.', type: 'error' });
         logger.error('CardElement not found in PaymentFormContent.');
-        setIsLoading(false);
+        setIsConfirmingPayment(false);
         return;
       }
 
@@ -155,7 +158,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       });
       resetAddFundsStep(); // Reset the add funds step on error
     } finally {
-      setIsLoading(false);
+      setIsConfirmingPayment(false);
     }
   }, [
     stripe,
@@ -182,14 +185,18 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       <DialogFooter className="mt-4">
         {' '}
         {/* Footer added back but with margin-top */}
-        <Button onClick={closeModal} variant="outline" disabled={isLoading}>
+        <Button onClick={closeModal} variant="outline" disabled={isConfirmingPayment}>
           Cancel
         </Button>
         <Button
           onClick={handleStripeConfirmation}
-          disabled={isLoading || !clientSecret || !stripe || !elements}
+          disabled={isConfirmingPayment || !clientSecret || !stripe || !elements}
+          className="relative flex items-center justify-center min-w-[8rem]"
         >
-          {isLoading ? 'Confirming...' : 'Confirm Payment'}
+          {isConfirmingPayment && (
+            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          )}
+          {isConfirmingPayment ? 'Confirming...' : 'Confirm Payment'}
         </Button>
       </DialogFooter>
     </div>

@@ -1,6 +1,6 @@
 export interface HistoryItem {
   timestamp: string;
-  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event'; // Example types, adjust as needed
+  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event' | 'cost_update'; // Example types, adjust as needed
   content: string;
   sender?: 'user' | 'agent' | 'system'; // Optional sender for messages/system activities
 }
@@ -9,20 +9,6 @@ export interface ProjectMessage {
   sender: 'user' | 'agent';
   message: string;
   timestamp: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  repositoryUrl: string;
-  status: 'active' | 'stopped' | 'completed' | 'error' | 'building' | 'queued';
-  elapsedTime: number;
-  cost: number;
-  progress: number;
-  createdAt: string;
-  updatedAt: string;
-  history: HistoryItem[]; // Add this line
 }
 
 export interface ProjectStatus {
@@ -37,25 +23,6 @@ export interface ProjectStatus {
   cost: number;
   pendingSensitiveRequest?: boolean;
 }
-
-export interface ProjectSummary {
-  id: string;
-  name: string;
-  description: string;
-  githubStars?: number;
-  createdAt: string;
-  status: 'active' | 'stopped' | 'completed' | 'failed';
-  repositoryUrl: string; // Add if not present, based on Prom-70 and general project data
-  costToDate: number; // Add if not present
-  totalRuntime: number; // Add if not present
-  progress: number; // Add if not present
-}
-
-type GithubRepository =
-  | { type: 'new'; name: string; isPrivate: boolean }
-  | { type: 'existing'; url: string };
-
-
 
 export interface AIModelConfig {
     provider: string;
@@ -79,7 +46,120 @@ export interface ProjectFormData {
   githubRepositories: GithubRepository[];
   advancedOptions: {
     aiModels: NewProjectModels; // Updated to use NewProjectModels
-    installations: { value: string }[];
+    installations: { ecosystem: string, name: string }[];
     jiraLinked: boolean;
   };
+}
+
+/**
+ * Represents a single GitHub repository linked to a project.
+ */
+export interface GithubRepository {
+  type: 'new' | 'existing';
+  name?: string; // For 'new'
+  isPrivate?: boolean; // For 'new'
+  url?: string; // For 'existing'
+}
+
+/**
+ * Represents the full details of a project.
+ */
+export interface Project {
+  id: string; // MongoDB ObjectId
+  name: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'archived' | 'failed' | 'starting' | 'stopping';
+  desiredStatus?: 'pending' | 'in_progress' | 'completed' | 'archived';
+  ownerId: string;
+  createdAt: string; // ISO Date string
+  updatedAt: string; // ISO Date string
+  lastError?: string;
+  pendingSensitiveRequest?: any; // Define this more strictly if you know the structure
+  // Add other fields from your backend model as needed
+  cost: number;
+  elapsedTime: number;
+  progress: number;
+  description: string;
+  repositories: GithubRepository[];
+  history: HistoryItem[];
+}
+
+/**
+ * A summarized version of a project for list views.
+ */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'archived' | 'failed' | 'starting' | 'stopping';
+  createdAt: string;
+  costToDate: number;
+  totalRuntime: number;
+  progress: number;
+}
+
+
+/**
+ * Represents an item in a project's history log.
+ */
+export interface HistoryItem {
+  id: string;
+  projectId: string;
+  timestamp: string;
+  sender?: 'user' | 'agent' | 'system';
+  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event' | 'cost_update';
+  content: string;
+}
+
+// API Payload and Response Types
+
+/**
+ * Payload for creating a new project.
+ * POST /projects
+ */
+export interface CreateProjectPayload {
+  name: string;
+  // Add any other fields from your createProjectSchema
+}
+
+/**
+* Payload for sending a message to a project.
+* POST /projects/:projectId/message
+*/
+export interface UserMessagePayload {
+  message: string;
+}
+
+/**
+* Payload for responding to a sensitive data request.
+* POST /projects/:projectId/response-sensitive
+*/
+export interface SensitiveDataResponsePayload {
+  requestId: string; // UUID
+  approved: boolean;
+  data?: Record<string, string>; // Optional data object
+}
+
+/**
+ * Response type for listing projects.
+ * GET /projects
+ */
+export interface ListProjectsResponse {
+    success: boolean;
+    data: ProjectSummary[];
+}
+
+/**
+ * Response type for getting a single project.
+ * GET /projects/:projectId
+ */
+export interface GetProjectResponse {
+    success: boolean;
+    data: Project;
+}
+
+/**
+ * Generic success response for actions like start, stop, delete.
+ */
+export interface ProjectActionResponse {
+    success: boolean;
+    message: string;
 }

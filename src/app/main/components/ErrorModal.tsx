@@ -62,7 +62,7 @@ const ErrorModal: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 p-4 max-w-sm w-full">
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] p-4 max-w-sm w-full">
       <div
         className={`relative ${bgColorClass} ${textColorClass} p-4 rounded-lg shadow-lg border-2 ${borderColorClass} flex items-center justify-between`}
         role="alert"

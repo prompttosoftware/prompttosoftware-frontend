@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, FormProvider, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,7 +90,14 @@ const formSchema = z.object({
         })
       ).default([]),
     }), // Removed .optional() here
-    installations: z.array(z.object({ value: z.string().min(1, "Installation name cannot be empty.") })).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
+    installations: z
+    .array(
+      z.object({
+        ecosystem: z.string().min(1, "Installation type is required."),
+        name: z.string().min(1, "Package name is required."),
+      })
+    )
+    .max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
     jiraLinked: z.boolean(),
   }),
 });
@@ -325,7 +332,7 @@ export default function NewProjectPage() {
                     <LoadingSpinner className="mr-2" /> Calculating...
                   </div>
                 ) : (
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-lg font-bold text-gray-600">
                     {estimatedCostResult?.estimatedTotal
                       ? `$${estimatedCostResult.estimatedTotal.toFixed(2)}`
                       : '$0.00'}
@@ -365,14 +372,14 @@ export default function NewProjectPage() {
                     onClick={() =>
                       appendGithubRepository({ type: 'new', name: '', isPrivate: false })
                     }
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-gray-600 hover:bg-gray-700 text-white"
                   >
                     Add New Repository
                   </Button>
                   <Button
                     type="button"
                     onClick={() => appendGithubRepository({ type: 'existing', url: '' })}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-gray-600 hover:bg-gray-700 text-white"
                   >
                     Add Existing Repository
                   </Button>
@@ -413,7 +420,7 @@ export default function NewProjectPage() {
                     <div className="bg-white shadow-sm">
                       {estimatedCostResult.modelUsed ? (
                         <div className="flex items-center text-sm text-gray-600 mb-2">
-                          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full mr-2">
+                          <span className="bg-blue-100 text-gray-800 text-xs px-2 py-0.5 rounded-full mr-2">
                             ML Model Used
                           </span>
                           Estimation powered by a machine learning model.
@@ -446,7 +453,7 @@ export default function NewProjectPage() {
                             </span>
                           </p>
                         </div>
-                        <p className="text-lg font-bold text-green-700">
+                        <p className="text-lg font-bold text-gray-700">
                           Total Estimated Cost: ${estimatedCostResult.estimatedTotal.toFixed(2)}
                         </p>
                         <p className="text-md text-gray-600 mt-2">
@@ -492,7 +499,7 @@ export default function NewProjectPage() {
                     valueAsNumber: true,
                     min: { value: 0.01, message: 'Must be a positive number' },
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm p-3"
                   placeholder="e.g., 24"
                   aria-invalid={errors.maxRuntimeHours ? 'true' : 'false'}
                 />
@@ -514,7 +521,7 @@ export default function NewProjectPage() {
                     valueAsNumber: true,
                     min: { value: 0.01, message: 'Must be a positive number' },
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm p-3"
                   placeholder="e.g., 500.00"
                   aria-invalid={errors.maxBudget ? 'true' : 'false'}
                 />
@@ -565,19 +572,20 @@ export default function NewProjectPage() {
                 <Button
                   type="button"
                   onClick={handleLinkJira}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-gray-600 hover:bg-gray-700 text-white"
                   disabled={watch('advancedOptions.jiraLinked')}
                 >
                   {watch('advancedOptions.jiraLinked') ? 'Jira Account Linked!' : 'Link Jira Account'}
                 </Button>
               </div>
               {watch('advancedOptions.jiraLinked') && (
-                <p className="mt-2 text-sm text-green-600">Jira account linked successfully!</p>
+                <p className="mt-2 text-sm text-gray-600">Jira account linked successfully!</p>
               )}
               {/* Installations Section */}
               <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
                 <h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
-                {/* Display existing installations */}
+
+                {/* Existing Installations */}
                 <div className="space-y-3 mb-4">
                   {installationFields.length === 0 ? (
                     <p className="text-sm text-gray-500">No installations added.</p>
@@ -587,7 +595,9 @@ export default function NewProjectPage() {
                         key={index}
                         className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
                       >
-                        <span className="text-sm text-gray-700">{installation.value}</span>
+                        <span className="text-sm text-gray-700">
+                          {installation.ecosystem} {installation.name}
+                        </span>
                         <Button
                           type="button"
                           onClick={() => removeInstallation(index)}
@@ -600,93 +610,78 @@ export default function NewProjectPage() {
                     ))
                   )}
                 </div>
-              
-                {/* Add Installation Button */}
-                <Button
-                  type="button"
-                  onClick={() => setShowInstallationDropdown(true)}
-                  className="mb-4"
-                >
-                  Add Installation
-                </Button>
-              
-                {/* Dropdown Menu and Conditional Input */}
-                {showInstallationDropdown && (
-                  <div className="mt-4 p-3 border border-gray-100 bg-white rounded-md shadow-sm">
-                    <DropdownMenu open={showInstallationDropdown} onOpenChange={setShowInstallationDropdown}>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between">
-                          {selectedInstallationType || 'Select Installation Type'}
-                          <svg
-                            className="ml-2 -mr-0.5 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 9l-7 7-7-7"
-                            ></path>
-                          </svg>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)]">
-                        {['Python', 'JavaScript/TypeScript', 'Java', 'Go', 'Rust', 'Ruby', 'PHP', 'C#/.NET', 'Swift/Objective-C', 'Kotlin', 'Dart/Flutter', 'React.js', 'Angular', 'Vue.js', 'Node.js', 'Django', 'Ruby on Rails', 'Spring Boot', 'Laravel', 'ASP.NET Core', 'Express.js', 'Docker', 'Kubernetes', 'AWS CLI', 'Azure CLI', 'Google Cloud SDK', 'Terraform', 'Ansible', 'Git', 'GitHub CLI', 'Jira CLI', 'Slack CLI', 'VS Code', 'IntelliJ IDEA', 'PyCharm', 'VS Studio', 'Xcode', 'Android Studio', 'Postman', 'Insomnia', 'DBeaver', 'MongoDB Compass', 'RedisInsight', 'Grafana', 'Prometheus', 'ELK Stack (Elasticsearch, Logstash, Kibana)', 'Jupyter Notebook', 'RStudio', 'Tableau', 'Power BI', 'Figma', 'Sketch', 'Adobe XD', 'Photoshop', 'Illustrator', 'OpenAPI/Swagger', 'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Kafka', 'RabbitMQ', 'Nginx', 'Apache HTTP Server', 'Serverless Framework', 'Heroku CLI', 'Vercel CLI', 'Netlify CLI', 'npm', 'yarn', 'Gradle', 'Maven', 'pip', 'Homebrew (macOS)', 'Chocolatey (Windows)', 'GitHub repo', 'Other'].map((option) => (
-                          <DropdownMenuItem
-                            key={option}
-                            onSelect={() => {
-                              setSelectedInstallationType(option);
-                              if (option !== 'Other') {
-                                appendInstallation({ value: option });
-                                setShowInstallationDropdown(false);
-                                setCustomInstallationName(''); // Clear custom input
-                              }
-                            }}
-                          >
-                            {option}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-              
-                    {selectedInstallationType === 'Other' && (
-                      <div className="flex items-center gap-2 mt-3">
-                        <Input
-                          type="text"
-                          placeholder="Enter custom installation name"
-                          value={customInstallationName}
-                          onChange={(e) => setCustomInstallationName(e.target.value)}
-                          onBlur={() => {
-                            if (customInstallationName.trim()) {
-                              appendInstallation({ value: customInstallationName.trim() });
-                              setCustomInstallationName('');
-                              setSelectedInstallationType(null);
-                              setShowInstallationDropdown(false);
-                            }
-                          }}
-                          className="flex-grow"
-                        />
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            if (customInstallationName.trim()) {
-                              appendInstallation({ value: customInstallationName.trim() });
-                              setCustomInstallationName('');
-                              setSelectedInstallationType(null);
-                              setShowInstallationDropdown(false);
-                            }
-                          }}
-                        >
-                          Add Custom
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+
+                {/* Add Installation Inputs */}
+                <Toaster position="top-right" />
+<div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4">
+  {/* Dropdown */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="outline" className="min-w-[150px]">
+        {selectedInstallationType || 'Select Type'}
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      {[
+        'apt',
+        'brew',
+        'choco',
+        'docker',
+        'github',
+        'npm',
+        'pip',
+        'yarn',
+      ]
+        .sort()
+        .map((option) => (
+          <DropdownMenuItem
+            key={option}
+            onSelect={() => setSelectedInstallationType(option)}
+          >
+            {option}
+          </DropdownMenuItem>
+        ))}
+    </DropdownMenuContent>
+  </DropdownMenu>
+
+  {/* Text Input */}
+  <Input
+    placeholder="Package name"
+    value={customInstallationName}
+    onChange={(e) => setCustomInstallationName(e.target.value)}
+    className="flex-grow"
+  />
+
+  {/* Add Button */}
+  <Button
+  type="button"
+  onClick={() => {
+    const name = customInstallationName.trim();
+    const ecosystem = selectedInstallationType?.trim();
+
+    if (!name || !ecosystem) return;
+
+    const duplicate = installationFields.some(
+      (inst) =>
+        inst.ecosystem.toLowerCase() === ecosystem.toLowerCase() &&
+        inst.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (duplicate) {
+      toast.error(`"${ecosystem} ${name}" is already added.`);
+      return; // Exit early
+    }
+
+    appendInstallation({ ecosystem, name });
+    setCustomInstallationName('');
+    setSelectedInstallationType(null);
+  }}
+>
+  Add
+</Button>
+
+</div>
+</div>
               </div>
               )}
 
@@ -694,7 +689,7 @@ export default function NewProjectPage() {
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center h-10 px-4 min-w-[5.5rem] border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center h-10 px-4 min-w-[5.5rem] border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isPending || isSubmitting}
                 >
                   {isPending || isSubmitting ? (

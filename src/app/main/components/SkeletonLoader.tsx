@@ -10,20 +10,13 @@ interface SkeletonLoaderProps {
 const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   width = 'w-full',
   height = 'h-4',
-  count = 1,
   className = '',
 }) => {
-  const skeletonItems = Array.from({ length: count }).map((_, index) => (
+  return (
     <div
-      key={index}
+      data-testid="skeleton-loader"
       className={`bg-gray-300 dark:bg-gray-700 rounded animate-pulse ${width} ${height} ${className}`}
     />
-  ));
-
-  return (
-    <div className="space-y-2" data-testid="skeleton-loader">
-      {skeletonItems}
-    </div>
   );
 };
 

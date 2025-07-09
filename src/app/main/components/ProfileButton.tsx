@@ -4,7 +4,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,17 +28,16 @@ const ProfileButton = () => {
     );
   }
 
-  // Authenticated state: Display profile icon and dropdown
+  const initial = user?.username?.charAt(0).toUpperCase() || 'U';
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full profile-button">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.imageUrl || '/avatars/01.png'} alt="User Avatar" />
-            <AvatarFallback>
-              {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
-            </AvatarFallback>
-          </Avatar>
+        <Button
+          variant="ghost"
+          className="h-8 w-8 rounded-full bg-gray-300 text-gray-700 font-bold flex items-center justify-center p-0"
+        >
+          {initial}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="relative z-[60] max-h-96 min-w-[8rem] rounded-md border bg-gray-700 text-white shadow-md">

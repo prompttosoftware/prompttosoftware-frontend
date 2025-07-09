@@ -33,6 +33,8 @@ export const AuthContext = createContext<AuthContextType>({
   login: () => {}, // Placeholder
   logout: () => {}, // Placeholder
   updateProfile: () => {}, // Placeholder
+  showTutorial: false,
+  setShowTutorial: () => {},
 });
 
 // 3. Define the props for AuthProvider
@@ -81,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     // Marked as async
     try {
-      await api.post('/auth/logout'); // Make the API call
+      await api.logout();  // Make the API call
       logger.info('Logout API call successful.');
     } catch (error) {
       logger.error('Logout API call failed:', error);

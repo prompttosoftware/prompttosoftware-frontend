@@ -7,14 +7,14 @@ export const useUserProjects = () => {
   return useQuery<ProjectSummary[], Error>({
     queryKey: ['projects'],
     queryFn: async () => {
-      const projects = await api.getUserProjects(); // Use the new function through the api abstraction
+      const projects = await api.listProjects();
       return projects;
     },
     onError: (err: any) => {
       setGlobalError({
         message: err.message || 'Failed to fetch projects.',
         type: 'error',
-        details: err.response?.data || null,
+        description: err.response?.data || null,
       });
     },
     staleTime: 5 * 60 * 1000, // Data considered fresh for 5 minutes
