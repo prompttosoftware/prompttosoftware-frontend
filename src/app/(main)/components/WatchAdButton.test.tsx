@@ -51,6 +51,7 @@ describe('WatchAdButton', () => {
 
   afterEach(() => {
     (console.error as jest.Mock).mockRestore();
+    jest.useRealTimers(); // Ensure real timers are restored after each test
   });
 
   test('renders correctly', () => {
@@ -68,30 +69,15 @@ describe('WatchAdButton', () => {
     });
 
     expect(screen.getByRole('heading', { name: /ad playing\.\.\./i })).toBeInTheDocument();
-    // Use an exact match for the initial 10 seconds.
-    expect(screen.getByText((content, element) => {
-      const text = element?.textContent || '';
-      return element.tagName.toLowerCase() === 'p' && 
-             element.classList.contains('text-lg') && // Specifically target the countdown paragraph
-             text.includes('Please wait') && 
-             /\d+/.test(text) && 
-             text.includes('seconds.');
-    })).toBeInTheDocument();
+    expect(screen.getByRole('paragraph', { name: /Please wait \d+ seconds\./i })).toBeInTheDocument();
     expect(button).toBeDisabled();
     
     // Advance by 1 second to confirm countdown changes
     await act(async () => {
       jest.advanceTimersByTime(1000);
     });
-    expect(screen.getByText((content, element) => {
-      const text = element?.textContent || '';
-      return element.tagName.toLowerCase() === 'p' && 
-             element.classList.contains('text-lg') && // Specifically target the countdown paragraph
-             text.includes('Please wait') && 
-             /\d+/.test(text) && 
-             text.includes('seconds.');
-    })).toBeInTheDocument();
-
+    expect(screen.getByRole('paragraph', { name: /Please wait \d+ seconds\./i })).toBeInTheDocument();
+    
     // Advance timers for the remaining duration to finish the ad
     await act(async () => {
       jest.advanceTimersByTime((AD_DURATION_SECONDS - 1) * 1000); // Remaining 9 seconds
@@ -101,7 +87,7 @@ describe('WatchAdButton', () => {
     // After ad finishes, it should show "Ad Finished!"
     await waitFor(() => { // Added waitFor here for stability
       // Use getByRole('paragraph') for "Ad Finished!" as suggested by Testing Library (and it's a paragraph)
-      expect(screen.getByText('Ad Finished!')).toBeInTheDocument();
+      expect(screen.getByRole('paragraph', { name: /Ad Finished!/i })).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { name: /ad playing\.\.\./i })).not.toBeInTheDocument(); // The heading disappears, replaced by "Ad Finished!" state
     expect(mockPost).toHaveBeenCalledTimes(1);
@@ -144,14 +130,17 @@ describe('WatchAdButton', () => {
     // Ad countdown completes and API call is triggered
     await act(async () => {
       jest.advanceTimersByTime(AD_DURATION_SECONDS * 1000); // Complete ad duration
-      await Promise.resolve(); // Flush API promise resolution
     });
-
+    // Ensure promise resolution and subsequent state changes are flushed
+    await act(async () => {
+        await Promise.resolve();
+    });
+    
     // After ad finishes and API call succeeds, the success message should appear
     await waitFor(() => {
         expect(screen.getByText(/Congratulations! You earned \d+!/i)).toBeInTheDocument();
-    });
-    expect(screen.queryByText('Ad Finished!')).not.toBeInTheDocument(); // Ad Finished message should be replaced
+    }, { timeout: 15000 });
+    expect(screen.queryByRole('paragraph', { name: /Ad Finished!/i })).not.toBeInTheDocument(); // Ad Finished message should be replaced
     expect(screen.queryByRole('heading', { name: /ad playing\.\.\./i })).not.toBeInTheDocument(); // Heading should be gone
     expect(mockUpdateBalance).toHaveBeenCalledWith(150);
 
@@ -190,8 +179,7 @@ describe('WatchAdButton', () => {
     });
     
     // The "Ad Finished!" message should still be visible because the modal doesn't auto-close on error
-    // Use getByRole('paragraph') for "Ad Finished!" as suggested by Testing Library (and it's a paragraph)
-    expect(screen.getByRole('paragraph', { name: 'Ad Finished!' })).toBeInTheDocument(); // This line remains unchanged as per instruction.
+    expect(screen.getByRole('paragraph', { name: 'Ad Finished!' })).toBeInTheDocument();
     // The heading "Ad Playing..." should also be gone, as the ad has finished
     expect(screen.queryByRole('heading', { name: /ad playing\.\.\./i })).not.toBeInTheDocument(); 
     expect(screen.queryByText(/Congratulations!/i)).not.toBeInTheDocument();

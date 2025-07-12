@@ -1,20 +1,27 @@
+// components/Providers.tsx
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from '../lib/AuthContext';
-import AuthInitializer from './AuthInitializer';
+import { UserProfile } from '@/types/auth';
+interface ProvidersProps {
+  children: React.ReactNode;
+  initialAuthData?: { user: UserProfile | null }; // Define the prop type
+}
 
-const queryClient = new QueryClient();
+export function Providers({ children, initialAuthData }: ProvidersProps) {
+  // Use useState to ensure the client is only created once per component lifecycle
+  const [queryClient] = useState(() => new QueryClient());
 
-export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AuthInitializer>{children}</AuthInitializer>
+      <AuthProvider initialData={initialAuthData?.user || null}>
+        {children}
       </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* Conditionally render Devtools only in development */}
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
 }

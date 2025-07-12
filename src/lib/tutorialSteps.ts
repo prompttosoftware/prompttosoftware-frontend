@@ -2,7 +2,7 @@ export interface TutorialStep {
   id: string;
   title: string;
   description: string;
-  targetSelector: string;
+  targetSelector?: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
   disableBeacon?: boolean; // From existing structure
 }
@@ -10,9 +10,8 @@ export interface TutorialStep {
 export const tutorialSteps: TutorialStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to Prompt2Code!',
+    title: 'Welcome to PromptToSoftware!',
     description: 'This quick tour will show you around.',
-    targetSelector: 'body',
     position: 'center',
     disableBeacon: true,
   },
@@ -21,14 +20,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: 'Add Funds',
     description: 'To generate code, you\'ll need funds. Click the "Add Funds" button to top up your balance.',
     targetSelector: '[data-test-id="add-payment-button"]', // Target the AddPaymentButton component
-    position: 'right', // Adjusted position to be more general or suitable for a button
-  },
-  {
-    id: 'watch-ads',
-    title: 'Earn Free Funds with Ads',
-    description: 'You can also earn free funds by watching short ads. Look for the "Watch Ad" button.',
-    targetSelector: '[data-tutorialid="watch-ad-button"]', // Updated to target data-tutorialid
-    position: 'bottom',
+    position: 'bottom', // Adjusted position to be more general or suitable for a button
   },
   {
     id: 'explore-projects',
@@ -41,7 +33,6 @@ export const tutorialSteps: TutorialStep[] = [
     id: 'explore-page',
     title: 'Explore Page Content',
     description: 'Welcome to the Explore page! Here you can browse and learn from various projects. Use the search and sort options to find what you need.',
-    targetSelector: '[data-tutorialid="explore-controls-container"]',
     position: 'top',
   },
   {
@@ -55,7 +46,6 @@ export const tutorialSteps: TutorialStep[] = [
     id: 'projects-page-content',
     title: 'Projects Page',
     description: 'This is your projects dashboard. You can view, manage, and interact with all your past and ongoing projects here.',
-    targetSelector: '[data-tutorialid="projects-page-container"]', // Placeholder - to be refined by Epic_ProjectManagementAndCreation.txt for main projects list container
     position: 'top',
   },
   {

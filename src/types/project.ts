@@ -1,3 +1,5 @@
+import * as z from 'zod';
+
 export interface HistoryItem {
   timestamp: string;
   type: 'message' | 'status_update' | 'sensitive_request' | 'system_event' | 'cost_update'; // Example types, adjust as needed
@@ -11,10 +13,12 @@ export interface ProjectMessage {
   timestamp: string;
 }
 
+export type Status = 'pending' | 'in_progress' | 'completed' | 'failed' | 'starting' | 'stopping';
+
 export interface ProjectStatus {
   id: string;
   projectId: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'failed' | 'starting' | 'stopping';
+  status: Status;
   progress: number; // 0-100
   message: string;
   updatedAt: string;
@@ -67,8 +71,8 @@ export interface GithubRepository {
 export interface Project {
   id: string; // MongoDB ObjectId
   name: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'archived' | 'failed' | 'starting' | 'stopping';
-  desiredStatus?: 'pending' | 'in_progress' | 'completed' | 'archived';
+  status: Status;
+  desiredStatus?: Status;
   ownerId: string;
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
@@ -77,25 +81,56 @@ export interface Project {
   // Add other fields from your backend model as needed
   cost: number;
   elapsedTime: number;
-  progress: number;
+  completeIssues: number;
+  incompleteIssues: number;
   description: string;
   repositories: GithubRepository[];
   history: HistoryItem[];
+  stars: number;
 }
 
-/**
- * A summarized version of a project for list views.
- */
-export interface ProjectSummary {
-  id: string;
+// An interface for the populated user data
+export interface ProjectCreator {
+  _id: string;
   name: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'archived' | 'failed' | 'starting' | 'stopping';
-  createdAt: string;
-  costToDate: number;
-  totalRuntime: number;
-  progress: number;
+  avatarUrl?: string;
 }
 
+// A summary version of the project for list views
+export type ProjectSummary = Pick<
+  Project,
+  | 'id' // Make sure to use _id if you're using MongoDB/Mongoose
+  | 'name'
+  | 'status'
+  | 'stars'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'incompleteIssues'
+  | 'completeIssues'
+  | 'repositories'
+  // You could add a 'description' field here if you add it to your backend schema
+> & {
+  user: ProjectCreator,
+  starredByCurrentUser?: boolean;
+};
+
+// A generic type for paginated API responses
+export interface PaginatedResponse<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  totalPages: number;
+  total: number;
+}
+
+// Type for the parameters of the explore search, matches the Zod schema
+export interface ExploreProjectsParams {
+  query?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: 'stars' | 'createdAt';
+  sortOrder?: 'asc' | 'desc';
+}
 
 /**
  * Represents an item in a project's history log.
@@ -163,3 +198,31 @@ export interface ProjectActionResponse {
     success: boolean;
     message: string;
 }
+
+const MAX_INSTALLATIONS = 20;
+
+export const formSchema = z.object({
+  description: z.string().min(10, { message: 'Project description must be at least 10 characters.' }),
+  maxRuntimeHours: z.number().min(0.01, { message: 'Must be a positive number.' }),
+  maxBudget: z.number().min(0.01, { message: 'Must be a positive number.' }),
+  githubRepositories: z.array(
+    z.union([
+      z.object({ type: z.literal('new'), name: z.string().min(1, 'Name is required.'), isPrivate: z.boolean() }),
+      z.object({ type: z.literal('existing'), url: z.string().url('Invalid URL.').min(1, 'URL is required.') }),
+    ]),
+  ),
+  advancedOptions: z.object({
+    aiModels: z.object({
+      utility: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+      low: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+      medium: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+      high: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+      super: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+      backup: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+    }),
+    installations: z.array(
+      z.object({ ecosystem: z.string().min(1), name: z.string().min(1) })
+    ).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
+    jiraLinked: z.boolean(),
+  }),
+});

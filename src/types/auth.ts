@@ -1,24 +1,58 @@
 // src/types/auth.ts
 
-/**
- * Represents the detailed profile information of an authenticated user.
- */
-import { UserUsage } from './usage'; // Import UserUsage
+export interface SavedCard {
+  id: string;
+  brand: string;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cardHolderName?: string;
+  isDefault?: boolean;
+}
+
+export interface ApiKey {
+  provider: string;
+  api_key: string;
+}
+
+export interface Transaction {
+  amount: number;        // Positive (credit) or negative (debit)
+  timestamp: string;     // ISO string from backend Date
+}
 
 /**
  * Represents the detailed profile information of an authenticated user.
  */
 export interface UserProfile {
   id: string;
-  email: string;
+  email?: string;
   isNewUser: boolean;
-  balance: number; // User's current balance
-  username?: string; // Optional username
-  imageUrl?: string; // Optional URL to user's profile image
-  role?: string; // Optional user role (e.g., 'admin', 'user')
-  savedCards?: string[]; // Array of identifiers for saved payment cards
-  usage?: UserUsage; // Optional usage statistics
-  // Add other user properties as needed based on the /auth/me API response
+  balance: number;
+  username?: string;
+  imageUrl?: string;
+  role?: string;
+  integrations: {
+    jira: {
+      isLinked?: boolean;
+    }
+  };
+  apiKeys?: {
+    provider: string;
+    api_key: string;
+  }[];
+  savedCards?: {
+    id: string;
+    brand: string;
+    last4: string;
+    expiryMonth: number;
+    expiryYear: number;
+    cardHolderName?: string;
+    isDefault?: boolean;
+  }[];
+  transactionHistory?: Transaction[];
+  starredProjects?: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

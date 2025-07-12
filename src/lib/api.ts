@@ -3,7 +3,7 @@ import { setupHttpClientInterceptors } from './httpClient';
 import { paymentsService } from '../services/paymentsService';
 
 // Auth Types
-import { UserProfile, AuthResponse } from '@/types/auth';
+import { UserProfile, AuthResponse, SavedCard } from '@/types/auth';
 
 // Project Types
 import {
@@ -15,53 +15,69 @@ import {
     SensitiveDataResponsePayload,
     ListProjectsResponse,
     GetProjectResponse,
-    ProjectActionResponse
+    ProjectActionResponse,
+    ExploreProjectsParams
 } from '@/types/project';
+
+// API Key Types
+export interface ApiKey {
+  provider: string;
+  masked_key: string; // Backend returns masked version like "sk-...abc123"
+}
+
+export interface ApiKeyPayload {
+  provider: string;
+  api_key: string;
+}
 
 export { paymentsService };
 
 // Generic/Utility Types from your original file
 export interface PaginatedResponse<T> {
-  data: T[];
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
+ data: T[];
+ page: number;
+ limit: number;
+ total: number;
+ totalPages: number;
 }
 export interface CostEstimation {
-  cost: number;
-  durationHours: number;
-  tokensUsed: number;
+ cost: number;
+ durationHours: number;
+ tokensUsed: number;
 }
 export interface AiModel {
-  id: string;
-  intelligence: string;
-  provider: string;
-  modelName: string;
+ id: string;
+ intelligence: string;
+ provider: string;
+ modelName: string;
 }
 interface UserProfileResponse {
-    success: boolean;
-    data: { user: UserProfile; };
+  success: boolean;
+  data: { user: any }; // temporarily any for mapping
 }
 interface BackendAuthResponse {
   success: boolean;
   token: string;
   data: { user: UserProfile; };
 }
+interface ApiKeyResponse {
+  success: boolean;
+  data: ApiKey;
+}
 
 export async function getEstimatedCost(
-  description: string,
-  maxRuntimeHours: number,
-  maxBudget: number,
-  aiModels: AiModel[]
+ description: string,
+ maxRuntimeHours: number,
+ maxBudget: number,
+ aiModels: AiModel[]
 ): Promise<CostEstimation> {
-  console.log('Mock getEstimatedCost called with:', { description, maxRuntimeHours, maxBudget, aiModels });
-  return { cost: 100.00, durationHours: 50, tokensUsed: 100000 };
+ console.log('Mock getEstimatedCost called with:', { description, maxRuntimeHours, maxBudget, aiModels });
+ return { cost: 100.00, durationHours: 50, tokensUsed: 100000 };
 }
 
 
 export const api = {
-  // authentication
+ // authentication
   /**
    * Exchanges a GitHub OAuth code for a JWT and user profile.
    * POST /auth/github
@@ -70,10 +86,35 @@ export const api = {
     const response = await httpClient.post<AuthResponse>("/auth/github", { code });
     return response.data;
   },
+
   getUserProfile: async (): Promise<UserProfile> => {
     const response = await httpClient.get<UserProfileResponse>("/users/me");
-    return response.data.data.user;
+
+    // Map backend IUserObject to frontend UserProfile
+    const backendUser = response.data.data.user;
+
+    const userProfile: UserProfile = {
+      id: backendUser._id,
+      email: backendUser.email,
+      isNewUser: backendUser.isNewUser ?? false, // fallback if missing
+      balance: backendUser.balance,
+      username: backendUser.name,
+      imageUrl: backendUser.avatarUrl,
+      role: backendUser.role, // optional if you have roles
+      integrations: {
+        jira: {
+          isLinked: backendUser.integrations?.jira?.isLinked,
+        }
+      },
+      apiKeys: backendUser.apiKeys || [],
+      savedCards: backendUser.savedCards || [],
+      createdAt: backendUser.createdAt,
+      updatedAt: backendUser.updatedAt,
+    };
+
+    return userProfile;
   },
+
   logout: async (): Promise<void> => {
     const response = await httpClient.post("/auth/logout");
     return response.data;
@@ -84,10 +125,28 @@ export const api = {
    * DELETE /auth/me
    */
   deleteAccount: async (): Promise<void> => {
-    await httpClient.delete("/auth/me");
+    await httpClient.delete("/users/me");
   },
 
-  // project lifecycle
+  // API Key Management
+  /**
+   * Saves a new API key for the authenticated user.
+   * POST /api-keys
+   */
+  saveApiKey: async (payload: ApiKeyPayload): Promise<ApiKey> => {
+    const response = await httpClient.post<ApiKeyResponse>("/me/apikeys", payload);
+    return response.data.data;
+  },
+
+  /**
+   * Deletes an API key by provider.
+   * DELETE /api-keys/:provider
+   */
+  deleteApiKey: async (provider: string): Promise<void> => {
+    await httpClient.delete(`/me/apikeys/${provider}`);
+  },
+
+ // project lifecycle
   /**
    * Creates a new project.
    * POST /projects
@@ -98,21 +157,22 @@ export const api = {
   },
 
   /**
-   * Lists all projects for the authenticated user.
-   * GET /projects
+   * Fetches the list of projects for the currently logged-in user.
+   * Corresponds to: GET /projects
    */
-  listProjects: async (): Promise<ProjectSummary[]> => {
-    const response = await httpClient.get<ListProjectsResponse>("/projects");
-    return response.data.data;
+  listUserProjects: async (): Promise<ProjectSummary[]> => {
+    const response = await httpClient.get<ProjectSummary[]>('/projects');
+    return response.data;
   },
 
   /**
-   * Retrieves a single project by its ID.
-   * GET /projects/:projectId
+   * Fetches the complete data for a single project by its ID.
+   * Corresponds to: GET /projects/:projectId
+   * @param projectId - The ID of the project to fetch.
    */
-  getProject: async (projectId: string): Promise<Project> => {
-    const response = await httpClient.get<GetProjectResponse>(`/projects/${projectId}`);
-    return response.data.data;
+  getProjectById: async (projectId: string): Promise<Project> => {
+    const response = await httpClient.get<Project>(`/projects/${projectId}`);
+    return response.data;
   },
 
   /**
@@ -124,7 +184,21 @@ export const api = {
     return response.data;
   },
 
-  // Project container control
+  /**
+   * Searches and filters public projects on the Explore page.
+   * Corresponds to: GET /projects/explore
+   * @param params - The query, sorting, and pagination parameters.
+   */
+  searchExploreProjects: async (params: ExploreProjectsParams): Promise<PaginatedResponse<ProjectSummary>> => {
+    // We pass the params object, and axios will automatically serialize it into URL query parameters.
+    // e.g., { page: 1, sortBy: 'stars' } becomes ?page=1&sortBy=stars
+    const response = await httpClient.get<PaginatedResponse<ProjectSummary>>('/projects/explore', {
+      params,
+    });
+    return response.data;
+  },
+
+ // Project container control
   /**
    * Sends a request to start a project's container.
    * POST /projects/:projectId/start
@@ -152,7 +226,7 @@ export const api = {
     return response.data;
   },
 
-  // Project communication & data
+ // Project communication & data
   /**
    * Sends a message from the user to the project agent.
    * POST /projects/:projectId/message
@@ -169,6 +243,96 @@ export const api = {
   handleSensitiveDataResponse: async (projectId: string, payload: SensitiveDataResponsePayload): Promise<ProjectActionResponse> => {
     const response = await httpClient.post<ProjectActionResponse>(`/projects/${projectId}/response-sensitive`, payload);
     return response.data;
+  },
+
+  /**
+   * Links a Jira account to the user's profile.
+   * This is the final step in the OAuth flow, where the frontend sends
+   * the authorization code from Jira to the backend.
+   * POST /auth/jira/callback
+   */
+  linkJiraAccount: async (code: string): Promise<UserProfile> => {
+    // The backend will exchange this code for an access token and save it.
+    // It should return the updated user profile, which includes a flag
+    // indicating the Jira account is now linked.
+    const response = await httpClient.post<UserProfileResponse>("/jira/callback", { code });
+    return response.data.data.user;
+  },
+
+  /**
+   * Save or update a saved card.
+   * POST /me/card
+   */
+  saveCard: async (card: SavedCard): Promise<UserProfile> => {
+    const response = await httpClient.post<UserProfileResponse>("/me/card", card);
+    // Return the updated user profile after mapping
+    const backendUser = response.data.data.user;
+
+    return {
+      id: backendUser._id,
+      email: backendUser.email,
+      isNewUser: backendUser.isNewUser ?? false,
+      balance: backendUser.balance,
+      username: backendUser.name,
+      imageUrl: backendUser.avatarUrl,
+      role: backendUser.role,
+      integrations: {
+        jira: {
+          isLinked: backendUser.integrations?.jira?.isLinked,
+        }
+      },
+      apiKeys: backendUser.apiKeys || [],
+      savedCards: backendUser.savedCards || [],
+      createdAt: backendUser.createdAt,
+      updatedAt: backendUser.updatedAt,
+    };
+  },
+
+  /**
+   * Delete a saved card by cardId.
+   * DELETE /me/card/:cardId
+   */
+  deleteCard: async (cardId: string): Promise<UserProfile> => {
+    const response = await httpClient.delete<UserProfileResponse>(`/me/card/${cardId}`);
+
+    const backendUser = response.data.data.user;
+
+    return {
+      id: backendUser._id,
+      email: backendUser.email,
+      isNewUser: backendUser.isNewUser ?? false,
+      balance: backendUser.balance,
+      username: backendUser.name,
+      imageUrl: backendUser.avatarUrl,
+      role: backendUser.role,
+      integrations: {
+        jira: {
+          isLinked: backendUser.integrations?.jira?.isLinked,
+        }
+      },
+      apiKeys: backendUser.apiKeys || [],
+      savedCards: backendUser.savedCards || [],
+      createdAt: backendUser.createdAt,
+      updatedAt: backendUser.updatedAt,
+    };
+  },
+
+  /**
+   * Stars a project. Returns the new star count or a success message.
+   * POST /projects/:projectId/star
+   */
+  starProject: async (projectId: string): Promise<{ stars: number }> => {
+    const response = await httpClient.post<{ data: { stars: number } }>(`/projects/${projectId}/star`);
+    return response.data.data;
+  },
+
+  /**
+   * Unstars a project. Returns the new star count or a success message.
+   * POST /projects/:projectId/unstar
+   */
+  unstarProject: async (projectId: string): Promise<{ stars: number }> => {
+    const response = await httpClient.post<{ data: { stars: number } }>(`/projects/${projectId}/unstar`);
+    return response.data.data;
   },
 };
 

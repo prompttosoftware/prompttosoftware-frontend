@@ -28,12 +28,12 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
   // Add an initial empty model if the list is empty
   React.useEffect(() => {
     if (fields.length === 0) {
-      append({ provider: '', modelName: '', apiKey: '' });
+      append({ provider: '', modelName: '', apiKey: '' }, { shouldFocus: false });
     }
   }, [fields, append]);
 
   const handleAddModel = useCallback(() => {
-    append({ provider: '', modelName: '', apiKey: '' });
+    append({ provider: '', modelName: '', apiKey: '' }, { shouldFocus: false });
   }, [append]);
 
   const handleDeleteModel = useCallback(
@@ -57,29 +57,31 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
 
 
   return (
-    <div className="space-y-6 p-6 border rounded-lg bg-white shadow-md">
+    <div className="space-y-4">
       {(fields || []).map((field, index) => (
-        <div key={field.id} className="flex items-center gap-4">
-          <div className="flex-1">
+        <div
+          key={field.id}
+          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
+        >
+          <div className="flex-1 w-full">
             <SingleModelInput
-              register={control.register} // Pass register function
+              register={control.register}
               index={index}
               level={level}
-              field={field as AIModelConfig} // Cast field to AIModelConfig to access its properties
+              field={field as AIModelConfig}
             />
           </div>
           <Button
             variant="destructive"
             size="icon"
-            onClick={() => handleDeleteModel(index)} // Pass index to delete
-            className="flex-shrink-0"
+            onClick={() => handleDeleteModel(index)}
+            className="self-end sm:self-auto"
           >
             <Trash2 className="h-4 w-4" />
             <span className="sr-only">Delete model</span>
           </Button>
         </div>
       ))}
-
       <Button onClick={handleAddModel} variant="outline" className="w-full">
         <PlusCircle className="mr-2 h-4 w-4" />
         Add another model

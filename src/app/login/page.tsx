@@ -1,100 +1,93 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 
 function LoginContent() {
- const router = useRouter();
- const searchParams = useSearchParams();
-  // Use the new loginWithGithub function and loading state from our hook
- const { loginWithGithub, isLoading, error: authError, clearError } = useAuth(); 
- const [localError, setLocalError] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 1. We only need the `loginWithGithub` function from the auth context.
+  const { loginWithGithub } = useAuth();
+  
+  // 2. Use local state for the login action's loading and error states.
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const sessionExpired = searchParams.get('sessionExpired') === 'true';
 
-  // This function will be called when the component mounts and detects a GitHub code
+  // 3. This function now manages its own loading and error state.
   const handleGithubCallback = useCallback(async (code: string) => {
+    setIsLoggingIn(true);
+    setError(null); // Clear previous errors before trying
     try {
       await loginWithGithub(code);
-      router.replace('/dashboard'); // On success, redirect to the dashboard
-    } catch (err) {
-      // The error is already set in the useAuth hook, so we don't need to set it again here.
-      // The UI will react to the `authError` from the hook.
-      console.error('Failed to exchange code for token.', err);
+      // On success, redirect to dashboard. Clear any lingering success messages first.
+      useSuccessMessageStore.getState().clearMessage();
+      router.replace('/dashboard');
+    } catch (err: any) {
+      // If login fails, set the local error state to display to the user.
+      setError(err.message || 'An unknown error occurred during login.');
+    } finally {
+      setIsLoggingIn(false);
     }
   }, [loginWithGithub, router]);
 
- useEffect(() => {
-    // Clear any previous errors when the component loads
-    clearError(); 
-    setLocalError(null);
+  // 4. The main effect is now simpler and focuses on URL params.
+  useEffect(() => {
+    // Clear any success messages from other pages (e.g., after registration)
+    useSuccessMessageStore.getState().clearMessage();
 
-  const { successMessage, clearSuccessMessage } = useSuccessMessageStore.getState();
-  if (successMessage) {
-   clearSuccessMessage();
-  }
+    const code = searchParams.get('code');
+    const urlError = searchParams.get('error');
+    const errorDescription = searchParams.get('error_description');
 
-  const code = searchParams.get('code');
-  const error = searchParams.get('error');
-  const error_description = searchParams.get('error_description');
+    if (code) {
+      handleGithubCallback(code);
+    } else if (urlError) {
+      const message = errorDescription
+        ? decodeURIComponent(errorDescription).replace(/\+/g, ' ')
+        : 'Access to your GitHub account was denied.';
+      setError(`Authentication Failed: ${message}`);
+    }
+  }, [searchParams, handleGithubCallback]);
 
-  if (code) {
-      // If we have a code and are not already in a loading state, process it.
-   if (!isLoading) {
-    handleGithubCallback(code);
-   }
-  } else if (error) {
-   let errorMessage = 'GitHub authentication failed.';
-   if (error_description) {
-    errorMessage += ` Reason: ${decodeURIComponent(error_description).replace(/\+/g, ' ')}`;
-   } else if (error === 'access_denied') {
-    errorMessage = 'You denied access to your GitHub account.';
-   }
-   setLocalError(errorMessage);
-  }
- }, [searchParams, isLoading, handleGithubCallback, clearError]);
+  const handleGitHubLogin = () => {
+    const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+    if (!GITHUB_CLIENT_ID) {
+      setError('GitHub Client ID is not configured. Please contact support.');
+      return;
+    }
+    const REDIRECT_URI = `${window.location.origin}/login`;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=repo&redirect_uri=${REDIRECT_URI}`;
+  };
 
- const handleGitHubLogin = () => {
-  const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
-  if (!GITHUB_CLIENT_ID) {
-   setLocalError('GitHub Client ID is not configured. Please contact support.');
-   console.error('NEXT_PUBLIC_GITHUB_CLIENT_ID is not set.');
-   return;
-  }
-    // The redirect URI must exactly match what you've configured in your GitHub OAuth App settings
-  const REDIRECT_URI = `${window.location.origin}/login`; 
-  window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=repo&redirect_uri=${REDIRECT_URI}`;
- };
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
+      <div className="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-2xl w-full max-w-lg text-center">
+        <h1 className="text-4xl font-bold text-white mb-4">Welcome</h1>
 
-  const displayError = authError || localError;
+        {sessionExpired && (
+          <div className="bg-yellow-900 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg mb-6">
+            <strong className="font-bold">Session Expired.</strong>
+            <span className="block sm:inline"> Please sign in again.</span>
+          </div>
+        )}
 
- return (
-  <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
-   <div className="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-2xl w-full max-w-lg text-center">
-    <h1 className="text-4xl font-bold text-white mb-4">Welcome</h1>
+        {error && (
+          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6">
+            <strong className="font-bold">Authentication Error:</strong>
+            <span className="block sm:inline"> {error}</span>
+          </div>
+        )}
 
-    {sessionExpired && (
-     <div className="bg-yellow-900 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg relative mb-6" role="alert">
-      <strong className="font-bold">Session Expired.</strong>
-      <span className="block sm:inline"> Please sign in again.</span>
-     </div>
-    )}
-
-    {displayError && (
-     <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative mb-6" role="alert">
-      <strong className="font-bold">Authentication Error:</strong>
-      <span className="block sm:inline"> {displayError}</span>
-     </div>
-    )}
-
-    <p className="text-gray-400 mb-6">
+        <p className="text-gray-400 mb-6">
           Sign in with your GitHub account to continue. We request repository access to create and manage your software projects.
-    </p>
-        
-        {isLoading ? (
+        </p>
+
+        {isLoggingIn ? (
           <div className="flex justify-center items-center h-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
             <p className="ml-4 text-lg">Authenticating...</p>
@@ -110,15 +103,15 @@ function LoginContent() {
             Sign in with GitHub
           </button>
         )}
-   </div>
-  </div>
- );
+      </div>
+    </div>
+  );
 }
 
 export default function LoginPage() {
- return (
-  <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Loading...</div>}>
-   <LoginContent />
-  </Suspense>
- );
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
 }

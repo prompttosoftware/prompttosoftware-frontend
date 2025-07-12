@@ -1,7 +1,7 @@
 'use client';
 
 // src/lib/AuthContext.tsx
-import { UserProfile } from '../types/auth';
+import { AuthResponse, UserProfile } from '../types/auth';
 
 import React, { createContext, useEffect, ReactNode, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,17 +10,22 @@ import { logger } from '../utils/logger'; // Import logger
 import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
+import { toast } from 'sonner';
 
 // 1. Define the shape of the AuthContext value
 interface AuthContextType {
   isAuthenticated: boolean;
   user: UserProfile | null | undefined;
   isLoading: boolean;
-  login: (token: string, user: UserProfile) => void; // Modified to accept token and user
+  isError: boolean; // Add this
+  error: Error | null; // Add this, adjust type if needed
+  login: (token: string, user: UserProfile) => void;
   logout: () => void;
-  updateProfile: () => void;
-  showTutorial: boolean; // Add showTutorial to the context type
-  setShowTutorial: (show: boolean) => void; // Add setShowTutorial to the context type
+  updateProfile: (newUserProfile: UserProfile) => void;
+  showTutorial: boolean;
+  setShowTutorial: (show: boolean) => void;
+  loginWithGithub: (code: string) => Promise<AuthResponse>; // Add this
+  refreshUser: () => Promise<void>; // Add this
 }
 
 // 2. Create the AuthContext with a default unauthenticated state
@@ -35,18 +40,23 @@ export const AuthContext = createContext<AuthContextType>({
   updateProfile: () => {}, // Placeholder
   showTutorial: false,
   setShowTutorial: () => {},
+  isError: false,
+  error: null,
+  refreshUser: () => Promise.reject(new Error('AuthProvider not found')),
+  loginWithGithub: () => Promise.reject(new Error('AuthProvider not found')),
 });
 
-// 3. Define the props for AuthProvider
+const TUTORIAL_COMPLETED_KEY = 'prompttosoftware_tutorial_completed';
+
 interface AuthProviderProps {
   children: ReactNode;
+  initialData: UserProfile | null;
 }
 
-// 4. Create the AuthProvider component
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialData }) => {
   const router = useRouter(); // Get the router instance
   const queryClient = useQueryClient(); // Get query client for invalidation
-  const { user, isLoading } = useUserProfileQuery(); // Use the new useAuth hook
+  const { user, isLoading, isError, error } = useUserProfileQuery(initialData); // Use the new useAuth hook
   const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
   const [showTutorial, setShowTutorial] = useState<boolean>(false); // State to control tutorial visibility
 
@@ -69,14 +79,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logger.info('AuthProvider: User logged in and token stored. User profile will be refetched.');
 
     // Set show_tutorial flag if it's a new user
-    const TUTORIAL_COMPLETED_KEY = 'prompt2code_tutorial_completed';
     if (userData?.isNewUser) {
       localStorage.removeItem(TUTORIAL_COMPLETED_KEY); // If it's a new user, remove the tutorial completion flag to force the tutorial to show
       logger.info('AuthProvider: New user detected, tutorial completion flag removed.');
-    } else {
-      // For existing users, ensure the tutorial completed flag is set to prevent it from showing
-      localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true');
-      logger.info('AuthProvider: Existing user detected, tutorial completion flag set.');
     }
   };
 
@@ -100,45 +105,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setShowTutorial(false); // Ensure tutorial is hidden on logout
   };
 
-  const updateProfile = () => {
-    // For Apollo/React Query setup, instead of direct state update,
-    // you might trigger a mutation or refetch the 'me' query after a profile update API call.
-    // For now, let's just invalidate and refetch.
-    queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-    logger.info('AuthProvider: Profile update initiated, refetching user data.');
+  const updateProfile = (newUserProfile: UserProfile) => {
+    // `setQueryData` synchronously updates the query cache.
+    // Any component using `useUserProfileQuery` (or `useQuery` with this key)
+    // will re-render immediately with the new data.
+    queryClient.setQueryData(['auth', 'me'], newUserProfile);
+    logger.info('AuthProvider: Profile updated in cache synchronously.');
+  };
+
+  const loginWithGithub = async (code: string): Promise<AuthResponse> => {
+    logger.info('AuthProvider: Attempting GitHub login');
+    try {
+      const response = await api.loginWithGithub(code);
+
+      if (response.token && response.user) {
+        logger.info('AuthProvider: GitHub login successful, setting token and refetching profile');
+        localStorage.setItem('jwtToken', response.token);
+        // Invalidate the query. This will cause useUserProfileQuery to refetch
+        // and update the 'user' state automatically.
+        await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        return response;
+      } else {
+        throw new Error('GitHub authentication failed: Invalid response from server.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'GitHub login failed';
+      logger.error('AuthProvider: GitHub Login error:', errorMessage);
+      toast.error(errorMessage); // It's better to show toast errors here
+      throw error;
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      logger.info('AuthProvider: Refreshing user profile');
+      // Just tell React Query to refetch. It will handle the API call and state updates.
+      await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
+      toast.success("Session refreshed!");
+    } catch (error) {
+      logger.error('AuthProvider: Failed to refresh user profile', error);
+      toast.error("Could not refresh your session.");
+    }
   };
 
   // Effect to check and set tutorial visibility based on authentication status and localStorage
   useEffect(() => {
-    const TUTORIAL_COMPLETED_KEY = 'prompt2code_tutorial_completed';
-    // Only check for tutorial completion if authentication status is stable and isAuthenticated is true
-    if (!isLoading && isAuthenticated) {
-      const tutorialCompleted = localStorage.getItem(TUTORIAL_COMPLETED_KEY);
-      if (!tutorialCompleted) {
-        //If no flag is found, it's a first-time user or tutorial needs to be shown
-        setShowTutorial(true);
-        logger.info('AuthProvider: Tutorial will be shown because completion flag is absent.');
-      } else {
-        setShowTutorial(false); // Tutorial has been completed
-        logger.info('AuthProvider: Tutorial will not be shown because completion flag is present.');
-      }
-    } else if (!isLoading && !isAuthenticated) {
-      setShowTutorial(false); // Not authenticated, ensure tutorial is not shown
-      logger.info('AuthProvider: User not authenticated, tutorial will not be shown.');
+    if (isLoading) {
+      // Don't make any decisions while auth status is still loading.
+      return;
     }
-  }, [isAuthenticated, isLoading]); // Depend on authentication and loading states
+    
+    // This single line clearly defines the condition for showing the tutorial.
+    const shouldShow = isAuthenticated && !localStorage.getItem(TUTORIAL_COMPLETED_KEY);
+    setShowTutorial(shouldShow);
+
+    if(shouldShow) {
+        logger.info('AuthProvider: Conditions met, tutorial will be shown.');
+    }
+
+  }, [isAuthenticated, isLoading]);
 
 
   // The value provided to the consumers of the context
   const contextValue: AuthContextType = {
     isAuthenticated,
     user,
-    isLoading,
-    login,
+    isLoading, // The ONE source of truth for loading state
+    isError, // Pass this down too
+    error,   // And the error object
+    login, // Your old login function
     logout,
     updateProfile,
-    showTutorial, // Add showTutorial to the context
-    setShowTutorial, // Add setShowTutorial to the context
+    // Add the new methods to the context value
+    loginWithGithub,
+    refreshUser,
+    showTutorial,
+    setShowTutorial,
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
