@@ -16,7 +16,8 @@ import {
     ListProjectsResponse,
     GetProjectResponse,
     ProjectActionResponse,
-    ExploreProjectsParams
+    ExploreProjectsParams,
+    ProjectFormData
 } from '@/types/project';
 
 // API Key Types
@@ -94,12 +95,12 @@ export const api = {
     const backendUser = response.data.data.user;
 
     const userProfile: UserProfile = {
-      id: backendUser._id,
+      _id: backendUser._id,
       email: backendUser.email,
       isNewUser: backendUser.isNewUser ?? false, // fallback if missing
       balance: backendUser.balance,
-      username: backendUser.name,
-      imageUrl: backendUser.avatarUrl,
+      name: backendUser.name,
+      avatarUrl: backendUser.avatarUrl,
       role: backendUser.role, // optional if you have roles
       integrations: {
         jira: {
@@ -108,6 +109,8 @@ export const api = {
       },
       apiKeys: backendUser.apiKeys || [],
       savedCards: backendUser.savedCards || [],
+      transactionHistory: backendUser.transactionHistory || [],
+      starredProjects: backendUser.starredProjects || [],
       createdAt: backendUser.createdAt,
       updatedAt: backendUser.updatedAt,
     };
@@ -148,20 +151,36 @@ export const api = {
 
  // project lifecycle
   /**
-   * Creates a new project.
-   * POST /projects
+   * --- MODIFIED ---
+   * Creates a new project and initiates its start-up process.
+   * The payload is now the complete form data.
+   * Corresponds to: POST /api/projects
    */
-  createProject: async (payload: CreateProjectPayload): Promise<Project> => {
-    const response = await httpClient.post<GetProjectResponse>("/projects", payload);
-    return response.data.data;
+  createProject: async (payload: ProjectFormData): Promise<Project> => {
+      // The backend now returns the full project object directly on creation.
+      // We expect a response like: { id: "...", name: "...", ... }
+      const response = await httpClient.post<Project>("/projects", payload);
+      return response.data;
+  },
+
+  /**
+   * --- NEW ---
+   * Updates an existing project's details.
+   * The payload is the complete form data.
+   * Corresponds to: PUT /api/projects/:projectId
+   */
+  updateProject: async (projectId: string, payload: ProjectFormData): Promise<Project> => {
+      // The backend returns the updated full project object.
+      const response = await httpClient.put<Project>(`/projects/${projectId}`, payload);
+      return response.data;
   },
 
   /**
    * Fetches the list of projects for the currently logged-in user.
    * Corresponds to: GET /projects
    */
-  listUserProjects: async (): Promise<ProjectSummary[]> => {
-    const response = await httpClient.get<ProjectSummary[]>('/projects');
+  listUserProjects: async (): Promise<Project[]> => {
+    const response = await httpClient.get<Project[]>('/projects');
     return response.data;
   },
 
@@ -269,12 +288,12 @@ export const api = {
     const backendUser = response.data.data.user;
 
     return {
-      id: backendUser._id,
+      _id: backendUser._id,
       email: backendUser.email,
       isNewUser: backendUser.isNewUser ?? false,
       balance: backendUser.balance,
-      username: backendUser.name,
-      imageUrl: backendUser.avatarUrl,
+      name: backendUser.name,
+      avatarUrl: backendUser.avatarUrl,
       role: backendUser.role,
       integrations: {
         jira: {
@@ -283,6 +302,8 @@ export const api = {
       },
       apiKeys: backendUser.apiKeys || [],
       savedCards: backendUser.savedCards || [],
+      transactionHistory: backendUser.transactionHistory || [],
+      starredProjects: backendUser.starredProjects || [],
       createdAt: backendUser.createdAt,
       updatedAt: backendUser.updatedAt,
     };
@@ -298,12 +319,12 @@ export const api = {
     const backendUser = response.data.data.user;
 
     return {
-      id: backendUser._id,
+      _id: backendUser._id,
       email: backendUser.email,
       isNewUser: backendUser.isNewUser ?? false,
       balance: backendUser.balance,
-      username: backendUser.name,
-      imageUrl: backendUser.avatarUrl,
+      name: backendUser.name,
+      avatarUrl: backendUser.avatarUrl,
       role: backendUser.role,
       integrations: {
         jira: {
@@ -312,6 +333,8 @@ export const api = {
       },
       apiKeys: backendUser.apiKeys || [],
       savedCards: backendUser.savedCards || [],
+      transactionHistory: backendUser.transactionHistory || [],
+      starredProjects: backendUser.starredProjects || [],
       createdAt: backendUser.createdAt,
       updatedAt: backendUser.updatedAt,
     };

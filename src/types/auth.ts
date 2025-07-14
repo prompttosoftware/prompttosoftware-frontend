@@ -24,12 +24,12 @@ export interface Transaction {
  * Represents the detailed profile information of an authenticated user.
  */
 export interface UserProfile {
-  id: string;
+  _id: string;
   email?: string;
   isNewUser: boolean;
   balance: number;
-  username?: string;
-  imageUrl?: string;
+  name?: string;
+  avatarUrl?: string;
   role?: string;
   integrations: {
     jira: {

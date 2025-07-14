@@ -4,7 +4,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Project, Status } from '@/types/project';
+import { Project, Status, statusConfig } from '@/types/project';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Star, AlertTriangle, GitCommit } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,16 +13,8 @@ import { formatDistanceToNow } from 'date-fns';
  * A small helper component to display a colored dot and text for the project status.
  */
 const StatusIndicator = ({ status }: { status: Status }) => {
-  const statusConfig = {
-    running: { className: 'bg-green-500', label: 'Running' },
-    starting: { className: 'bg-yellow-500 animate-pulse', label: 'Starting' },
-    stopping: { className: 'bg-orange-500 animate-pulse', label: 'Stopping' },
-    restarting: { className: 'bg-yellow-500 animate-pulse', label: 'Restarting' },
-    stopped: { className: 'bg-gray-500', label: 'Stopped' },
-    error: { className: 'bg-red-500', label: 'Error' },
-  };
 
-  const config = statusConfig[status] || statusConfig.stopped;
+  const config = statusConfig[status] || statusConfig.completed;
 
   return (
     <div className="flex items-center gap-2" title={`Status: ${config.label}`}>

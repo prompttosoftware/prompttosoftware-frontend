@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react'; // Assuming lucide-react is installed for icons
 
 import { useFormContext, useFieldArray } from 'react-hook-form';
-import { ProjectFormData, AIModelConfig } from '@/types/project'; // Import ProjectFormData and AIModelConfig
+import { Model, ProjectFormData } from '@/types/project'; // Import ProjectFormData and AIModelConfig
 
 interface IntelligenceLevelModelSelectorProps {
   level: 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
@@ -28,12 +28,12 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
   // Add an initial empty model if the list is empty
   React.useEffect(() => {
     if (fields.length === 0) {
-      append({ provider: '', modelName: '', apiKey: '' }, { shouldFocus: false });
+      append({ provider: undefined, model: '' }, { shouldFocus: false });
     }
   }, [fields, append]);
 
   const handleAddModel = useCallback(() => {
-    append({ provider: '', modelName: '', apiKey: '' }, { shouldFocus: false });
+    append({ provider: undefined, model: '' }, { shouldFocus: false });
   }, [append]);
 
   const handleDeleteModel = useCallback(
@@ -42,14 +42,14 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
         remove(index);
       } else {
         // If only one model exists, clear its values instead of removing
-        update(index, { provider: '', modelName: '', apiKey: '' });
+        update(index, { provider: undefined, model: '' });
       }
     },
     [fields, remove, update]
   );
 
   const handleUpdateModel = useCallback(
-    (index: number, updatedModel: AIModelConfig) => {
+    (index: number, updatedModel: Model) => {
       update(index, updatedModel);
     },
     [update]
@@ -68,7 +68,7 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
               register={control.register}
               index={index}
               level={level}
-              field={field as AIModelConfig}
+              field={field}
             />
           </div>
           <Button

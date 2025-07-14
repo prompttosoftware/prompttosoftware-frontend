@@ -23,7 +23,7 @@ export const useUserProfileQuery = (initialData: UserProfile | null) => {
   } = useQuery<UserProfile, Error>({
     queryKey: ['auth', 'me'],
     queryFn: api.getUserProfile,
-    initialData: initialData,
+    initialData: initialData ?? undefined,
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes. Infinity can be risky if user data changes.
     // This prevents unnecessary network requests.

@@ -28,28 +28,13 @@ export interface ProjectStatus {
   pendingSensitiveRequest?: boolean;
 }
 
-export interface AIModelConfig {
-    provider: string;
-    modelName: string;
-    apiKey?: string; // Handled by PROM-61, but important for structure
-}
-
-export interface NewProjectModels {
-    utility?: AIModelConfig[];
-    low?: AIModelConfig[];
-    medium?: AIModelConfig[];
-    high?: AIModelConfig[];
-    super?: AIModelConfig[];
-    backup?: AIModelConfig[];
-}
-
 export interface ProjectFormData {
   description: string;
   maxRuntimeHours: number;
   maxBudget: number;
   githubRepositories: GithubRepository[];
   advancedOptions: {
-    aiModels: NewProjectModels; // Updated to use NewProjectModels
+    aiModels: Models;
     installations: { ecosystem: string, name: string }[];
     jiraLinked: boolean;
   };
@@ -64,6 +49,27 @@ export interface GithubRepository {
   isPrivate?: boolean; // For 'new'
   url?: string; // For 'existing'
 }
+
+export interface Model {
+  provider: Provider | undefined;
+  model: string;
+}
+
+export interface Models {
+  utility: Model[] | undefined;
+  low: Model[] | undefined;
+  medium: Model[] | undefined;
+  high: Model[] | undefined;
+  super: Model[] | undefined;
+  backup: Model[] | undefined;
+}
+
+export interface Installation {
+  ecosystem: string;
+  name: string;
+}
+
+export type Provider = "google" | "openrouter" | "openai" | "groq" | "anthropic" | "deepseek";
 
 /**
  * Represents the full details of a project.
@@ -87,6 +93,8 @@ export interface Project {
   repositories: GithubRepository[];
   history: HistoryItem[];
   stars: number;
+  installations: Installation[];
+  models: Models;
 }
 
 // An interface for the populated user data
@@ -108,6 +116,7 @@ export type ProjectSummary = Pick<
   | 'incompleteIssues'
   | 'completeIssues'
   | 'repositories'
+  | 'models'
   // You could add a 'description' field here if you add it to your backend schema
 > & {
   user: ProjectCreator,
@@ -199,6 +208,15 @@ export interface ProjectActionResponse {
     message: string;
 }
 
+export const statusConfig = {
+  in_progress: { className: 'bg-green-500', label: 'Running' },
+  pending: { className: 'bg-yellow-500 animate-pulse', label: 'Pending' },
+  starting: { className: 'bg-yellow-500 animate-pulse', label: 'Starting' },
+  stopping: { className: 'bg-orange-500 animate-pulse', label: 'Stopping' },
+  completed: { className: 'bg-gray-500', label: 'Completed'},
+  failed: { className: 'bg-red-500', label: 'Error' },
+};
+
 const MAX_INSTALLATIONS = 20;
 
 export const formSchema = z.object({
@@ -213,12 +231,12 @@ export const formSchema = z.object({
   ),
   advancedOptions: z.object({
     aiModels: z.object({
-      utility: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
-      low: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
-      medium: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
-      high: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
-      super: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
-      backup: z.array(z.object({ provider: z.string(), modelName: z.string(), apiKey: z.string().optional() })).default([]),
+      utility: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
+      low: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
+      medium: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
+      high: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
+      super: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
+      backup: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
     }),
     installations: z.array(
       z.object({ ecosystem: z.string().min(1), name: z.string().min(1) })

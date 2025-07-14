@@ -2,25 +2,39 @@ import { fetchExploreProjects } from '@/lib/data/projects';
 import { ExploreProjectsParams } from '@/types/project';
 import ExploreClient from './components/ExploreClient';
 
-// Define a type for the search params for better type safety.
-interface ExplorePageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
 /**
  * This is the main Server Component for the /explore route.
  * 1. It reads initial filter/sort/pagination state from the URL's search parameters.
  * 2. It fetches the initial set of projects on the server using `fetchExploreProjects`.
  * 3. It passes this initial data and params to the interactive `ExploreClient` component.
  */
-export default async function ExplorePage({ searchParams }: ExplorePageProps) {
+export default async function ExplorePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+
+  // Await the searchParams
+  const sParams = await searchParams;
+
   // Parse and validate search params, providing sensible defaults.
+  const validSortBy = ['stars', 'createdAt'] as const;
+  const validSortOrder = ['asc', 'desc'] as const;
+
+  function isValidSortBy(value: string): value is (typeof validSortBy)[number] {
+    return validSortBy.includes(value as any);
+  }
+
+  function isValidSortOrder(value: string): value is (typeof validSortOrder)[number] {
+    return validSortOrder.includes(value as any);
+  }
+
   const params: ExploreProjectsParams = {
-    query: typeof searchParams.query === 'string' ? searchParams.query : '',
-    sortBy: typeof searchParams.sortBy === 'string' ? searchParams.sortBy : 'createdAt',
-    sortOrder: typeof searchParams.sortOrder === 'string' ? searchParams.sortOrder : 'desc',
-    page: typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1,
-    limit: typeof searchParams.limit === 'string' ? parseInt(searchParams.limit, 10) : 12,
+    query: typeof sParams.query === 'string' ? sParams.query : '',
+    sortBy: isValidSortBy(sParams.sortBy as string) ? sParams.sortBy as 'stars' | 'createdAt' : 'createdAt',
+    sortOrder: isValidSortOrder(sParams.sortOrder as string) ? sParams.sortOrder as 'asc' | 'desc' : 'desc',
+    page: typeof sParams.page === 'string' ? parseInt(sParams.page, 10) : 1,
+    limit: typeof sParams.limit === 'string' ? parseInt(sParams.limit, 10) : 12,
   };
 
   // Fetch the initial data on the server.

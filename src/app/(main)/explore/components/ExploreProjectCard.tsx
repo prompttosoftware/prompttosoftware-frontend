@@ -37,9 +37,38 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
           <div>
             <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
             <p className="text-sm text-gray-500">by {project.user?.name || 'Unknown User'}</p>
+
+            <div className="mt-1 flex flex-wrap gap-1">
+              {project.models && project.models.medium && Array.isArray(project.models.medium) && project.models.medium.slice(0, 3).map((m, i) => (
+                <span
+                  key={i}
+                  className={`text-xs px-2 py-0.5 rounded
+                    ${
+                      {
+                        google: 'bg-red-500 text-white',
+                        openai: 'bg-emerald-600 text-white',
+                        openrouter: 'bg-purple-600 text-white',
+                        groq: 'bg-yellow-400 text-black',
+                        anthropic: 'bg-orange-500 text-white',
+                        deepseek: 'bg-sky-600 text-white',
+                        default: 'bg-gray-500 text-white'
+                      }[m.provider || 'default']
+                    }
+                  `}
+                >
+                  {m.model}
+                </span>
+              ))}
+              {project.models && project.models.medium && project.models.medium.length > 3 && (
+                <span className="text-xs px-2 py-0.5 rounded bg-gray-300 text-gray-800">
+                  +{project.models.medium.length - 3}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
+
 
       <CardContent className="flex-grow flex flex-col justify-center py-4">
         {project.repositories && project.repositories.length > 0 ? (

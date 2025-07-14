@@ -53,26 +53,10 @@ export const useProjectActions = (projectId: string) => {
   });
 
   return {
-    startProject: {
-      mutate: startProjectMutation.mutate,
-      isLoading: startProjectMutation.isPending,
-      isError: startProjectMutation.isError,
-    },
-    stopProject: {
-      mutate: stopProjectMutation.mutate,
-      isLoading: stopProjectMutation.isPending,
-    },
-    deleteProject: {
-      mutate: deleteProjectMutation.mutate,
-      isLoading: deleteProjectMutation.isPending,
-    },
-    sendMessage: {
-      mutate: sendMessageMutation.mutate,
-      isLoading: sendMessageMutation.isPending,
-    },
-    respondToSensitiveData: {
-      mutate: respondToSensitiveDataMutation.mutate,
-      isLoading: respondToSensitiveDataMutation.isPending,
-    }
+    startProject: startProjectMutation,
+    stopProject: stopProjectMutation,
+    deleteProject: deleteProjectMutation,
+    sendMessage: sendMessageMutation,
+    respondToSensitiveData: respondToSensitiveDataMutation,
   };
 };

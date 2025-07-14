@@ -11,7 +11,7 @@ import { useTheme } from 'next-themes';
 const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 if (!pk) console.warn("Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in environment");
 
-const stripePromise = loadStripe(pk);
+const stripePromise = loadStripe(pk ?? '');
 
 interface StripeWrapperProps {
   children: ReactNode;

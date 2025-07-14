@@ -24,18 +24,11 @@ export const useUserProjects = ({ enabled = true }: UseUserProjectsOptions = {})
     };
   }
 
-  return useQuery<ProjectSummary[], Error>({
+  return useQuery<Project[], Error>({
     // Query key identifies this specific data fetch
     queryKey: ['userProjects'],
     // The query function now calls our specific, typed service function
     queryFn: api.listUserProjects,
-    onError: (err: any) => {
-      setGlobalError({
-        message: err.message || 'Failed to fetch your projects.',
-        type: 'error',
-        description: err.response?.data?.message || null,
-      });
-    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true, // It's often good to refetch user data on focus
     enabled,

@@ -10,7 +10,7 @@ export const handlers = [
   // Auth Handlers
   // POST /auth/github - Login via GitHub
   http.post('/auth/github', async ({ request }) => {
-    const { code } = await request.json();
+    const { code } = await request.json() as Record<string, any>;
 
     if (code === 'valid_github_code') {
       const mockUser = {
@@ -89,7 +89,7 @@ export const handlers = [
     const mockStatus: ProjectStatus = {
       id: `status-${id}`,
       projectId: id as string,
-      status: 'in-progress',
+      status: 'in_progress',
       progress: Math.floor(Math.random() * 100), // Random progress
       message: 'Project is running smoothly.',
       updatedAt: new Date().toISOString(),

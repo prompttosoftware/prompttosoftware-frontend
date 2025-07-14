@@ -1,4 +1,4 @@
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions, keepPreviousData } from '@tanstack/react-query';
 import { useDebounce } from './useDebounce';
 import { FAKE_EXPLORE_PROJECTS } from '@/lib/dev/fakeData';
 import { ProjectSummary, PaginatedResponse, ExploreProjectsParams } from '../types/project';
@@ -16,9 +16,7 @@ export function useExploreProjects(
   options?: ExploreProjectsQueryOptions
 ) {
   const isDevFakeMode = process.env.NEXT_PUBLIC_FAKE_AUTH === 'true';
-
   const debouncedQuery = useDebounce(params.query || '', 500);
-
   const queryParams: ExploreProjectsParams = {
     ...params,
     query: debouncedQuery,
@@ -28,7 +26,7 @@ export function useExploreProjects(
     const filteredFakeProjects = FAKE_EXPLORE_PROJECTS.filter(p =>
       p.name.toLowerCase().includes(debouncedQuery.toLowerCase())
     );
-    // NOTE: The fake mode doesn't support `isPreviousData` as it bypasses useQuery.
+    // NOTE: The fake mode doesn't support `isPlaceholderData` as it bypasses useQuery.
     // This is an acceptable trade-off for a development-only feature.
     return {
       data: {
@@ -41,19 +39,18 @@ export function useExploreProjects(
       isLoading: false,
       isError: false,
       error: null,
-      isPreviousData: false, // Explicitly return false
+      isPlaceholderData: false, // Updated from isPreviousData
       isSuccess: true,
       status: 'success' as const,
     };
   }
 
   const queryKey = ['exploreProjects', queryParams];
-
   return useQuery<PaginatedResponse<ProjectSummary>, Error>({
     queryKey,
     queryFn: () => api.searchExploreProjects(queryParams),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    // Spread any additional options like `initialData` or `keepPreviousData`
+    // Spread any additional options like `initialData` or `placeholderData`
     ...options,
   });
 }

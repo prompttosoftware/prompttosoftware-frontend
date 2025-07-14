@@ -12,7 +12,7 @@ export const useGlobalError = () => {
   const setError = useGlobalErrorStore((state) => state.setError);
 
   const showError = (message: string, details?: string) => {
-    setError({ message, details });
+    setError({ message });
   };
 
   return { setError, showError };

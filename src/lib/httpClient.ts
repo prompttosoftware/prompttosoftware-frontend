@@ -96,7 +96,6 @@ export const setupHttpClientInterceptors = (router: AppRouterInstance) => {
       setGlobalError({
         message: errorMessage,
         type: 'error',
-        details: localErrorDetails,
       });
       logger.error('API Error:', error, localErrorDetails);
 

@@ -1,6 +1,14 @@
 import { UserProfile } from '@/types/auth';
-import { Project } from '@/types/project';
+import { Model, Project } from '@/types/project';
 
+const commonModels = {
+  utility: [{ provider: 'openai', model: 'gpt-3.5-turbo' } as Model],
+  low: [{ provider: 'openai', model: 'gpt-4o' } as Model],
+  medium: [{ provider: 'anthropic', model: 'claude-3-sonnet' } as Model],
+  high: [{ provider: 'openai', model: 'gpt-4-turbo' } as Model],
+  super: [{ provider: 'openai', model: 'gpt-4o' } as Model],
+  backup: [{ provider: 'deepseek', model: 'deepseek-7b' } as Model],
+};
 
 // A reusable set of fake projects for development mode.
 // You can add more variety here to test different UI states.
@@ -51,6 +59,11 @@ export const FAKE_PROJECTS: Project[] = [
         content: 'Cost updated: $23.45',
       },
     ],
+    models: commonModels,
+    installations: [
+      { ecosystem: 'npm', name: 'openai' },
+      { ecosystem: 'docker', name: 'node:18' },
+    ],
   },
   {
     id: 'proj_2',
@@ -86,6 +99,14 @@ export const FAKE_PROJECTS: Project[] = [
         type: 'system_event',
         content: 'Container image is being pulled.',
       },
+    ],
+    models: {
+      ...commonModels,
+      high: [{ provider: 'anthropic', model: 'claude-3-opus' }],
+    },
+    installations: [
+      { ecosystem: 'pip', name: 'slack_sdk' },
+      { ecosystem: 'docker', name: 'python:3.11' },
     ],
   },
   {
@@ -123,6 +144,11 @@ export const FAKE_PROJECTS: Project[] = [
         content: 'Shutting down resources.',
       },
     ],
+    models: commonModels,
+    installations: [
+      { ecosystem: 'docker', name: 'ffmpeg' },
+      { ecosystem: 'npm', name: 'fluent-ffmpeg' },
+    ],
   },
   {
     id: 'proj_4',
@@ -158,6 +184,14 @@ export const FAKE_PROJECTS: Project[] = [
         type: 'status_update',
         content: 'Marked project as completed.',
       },
+    ],
+    models: {
+      ...commonModels,
+      utility: [{ provider: 'openrouter', model: 'command-r+' }],
+    },
+    installations: [
+      { ecosystem: 'pip', name: 'pdfminer.six' },
+      { ecosystem: 'pip', name: 'spacy' },
     ],
   },
   {
@@ -195,6 +229,11 @@ export const FAKE_PROJECTS: Project[] = [
         content: 'Build failed: Missing env var `DB_URL`',
       },
     ],
+    models: commonModels,
+    installations: [
+      { ecosystem: 'npm', name: 'react' },
+      { ecosystem: 'npm', name: 'chart.js' },
+    ],
   },
   {
     id: 'proj_6',
@@ -223,14 +262,19 @@ export const FAKE_PROJECTS: Project[] = [
         content: 'Requested access to internal Slack workspace.',
       },
     ],
+    models: commonModels,
+    installations: [
+      { ecosystem: 'pip', name: 'pyyaml' },
+      { ecosystem: 'npm', name: 'dotenv' },
+    ],
   },
 ];
 
 export const FAKE_USER: UserProfile = {
-  id: 'test-user-id',
+  _id: 'test-user-id',
   email: 'dev-user@prompttosoftware.io',
-  username: 'devuser',
-  imageUrl: '/avatar.png',
+  name: 'devuser',
+  avatarUrl: '/avatar.png',
   isNewUser: true,
   balance: 100.00,
   role: 'user',
@@ -298,6 +342,15 @@ export const FAKE_USER: UserProfile = {
 
 import { ProjectSummary } from '@/types/project';
 
+const baseModels = {
+  utility: [{ provider: 'openai', model: 'gpt-3.5-turbo' } as Model],
+  low: [{ provider: 'openai', model: 'gpt-4o' } as Model],
+  medium: [{ provider: 'anthropic', model: 'claude-3-sonnet' } as Model],
+  high: [{ provider: 'openai', model: 'gpt-4-turbo' } as Model],
+  super: [{ provider: 'openai', model: 'gpt-4o' } as Model],
+  backup: [{ provider: 'deepseek', model: 'deepseek-7b' } as Model],
+};
+
 export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_1',
@@ -311,6 +364,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/ai-marketing' }],
     user: { _id: 'creator_1', name: 'Jess Wang', avatarUrl: '/avatars/jess.png' },
     starredByCurrentUser: true,
+    models: baseModels,
   },
   {
     id: 'explore_proj_2',
@@ -327,6 +381,16 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     ],
     user: { _id: 'creator_2', name: 'Leo Tran', avatarUrl: '/avatars/leo.png' },
     starredByCurrentUser: false,
+    models: {
+      ...baseModels,
+      high: [{ provider: 'anthropic', model: 'claude-3-opus' }],
+      medium: [
+        { provider: 'anthropic', model: 'claude-3-opus' },
+        { provider: 'openai', model: 'chatgpt-o' },
+        { provider: 'deepseek', model: 'r1-reasoner' },
+        { provider: 'anthropic', model: 'claude-3-opus' },
+      ]
+    },
   },
   {
     id: 'explore_proj_3',
@@ -340,6 +404,10 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/code-review-agent' }],
     user: { _id: 'creator_3', name: 'Riya Patel', avatarUrl: '/avatars/riya.png' },
     starredByCurrentUser: false,
+    models: {
+      ...baseModels,
+      utility: [{ provider: 'openrouter', model: 'llama-3-8b' }],
+    },
   },
   {
     id: 'explore_proj_4',
@@ -353,6 +421,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/learning-agent' }],
     user: { _id: 'creator_4', name: 'Ana Díaz', avatarUrl: '/avatars/ana.png' },
     starredByCurrentUser: false,
+    models: baseModels,
   },
   {
     id: 'explore_proj_5',
@@ -366,6 +435,10 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/resume-screener' }],
     user: { _id: 'creator_5', name: 'Imran Noor', avatarUrl: '/avatars/imran.png' },
     starredByCurrentUser: false,
+    models: {
+      ...baseModels,
+      medium: [{ provider: 'openrouter', model: 'command-r+' }],
+    },
   },
   {
     id: 'explore_proj_6',
@@ -379,6 +452,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/video-summary' }],
     user: { _id: 'creator_6', name: 'Mei Lin', avatarUrl: '/avatars/mei.png' },
     starredByCurrentUser: true,
+    models: baseModels,
   },
   {
     id: 'explore_proj_7',
@@ -392,6 +466,15 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/crypto-tracker' }],
     user: { _id: 'creator_7', name: 'Sam Gold', avatarUrl: '/avatars/sam.png' },
     starredByCurrentUser: false,
+    models: {
+      ...baseModels,
+      backup: [{ provider: 'google', model: 'gemini-pro' }],
+      medium: [
+        { provider: 'google', model: 'gemini-flash-lite' },
+        { provider: 'openai', model: 'chatgpt-o' },
+        { provider: 'openrouter', model: 'r1-reasoner' },
+      ]
+    },
   },
   {
     id: 'explore_proj_8',
@@ -405,6 +488,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/legal-analyzer' }],
     user: { _id: 'creator_8', name: 'Aisha Ali', avatarUrl: '/avatars/aisha.png' },
     starredByCurrentUser: false,
+    models: baseModels,
   },
   {
     id: 'explore_proj_9',
@@ -418,6 +502,10 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'new', name: 'onboarding-buddy', isPrivate: false }],
     user: { _id: 'creator_9', name: 'Chris Nolan', avatarUrl: '/avatars/chris.png' },
     starredByCurrentUser: false,
+    models: {
+      ...baseModels,
+      super: [{ provider: 'openai', model: 'gpt-4-turbo' }],
+    },
   },
   {
     id: 'explore_proj_10',
@@ -431,6 +519,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/fitness-tracker' }],
     user: { _id: 'creator_10', name: 'Erin Matthews', avatarUrl: '/avatars/erin.png' },
     starredByCurrentUser: false,
+    models: baseModels,
   },
   {
     id: 'explore_proj_11',
@@ -444,6 +533,14 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/podcast-summarizer' }],
     user: { _id: 'creator_11', name: 'Luca Romano', avatarUrl: '/avatars/luca.png' },
     starredByCurrentUser: false,
+    models: {
+      ...baseModels,
+      utility: [{ provider: 'deepseek', model: 'deepseek-7b' }],
+      medium: [
+        { provider: 'anthropic', model: 'claude-3-opus' },
+        { provider: 'openai', model: 'chatgpt-o' },
+      ]
+    },
   },
   {
     id: 'explore_proj_12',
@@ -457,6 +554,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/travel-recommender' }],
     user: { _id: 'creator_12', name: 'Nora Chen', avatarUrl: '/avatars/nora.png' },
     starredByCurrentUser: false,
+    models: baseModels,
   },
   {
     id: 'explore_proj_13',
@@ -470,5 +568,9 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     repositories: [{ type: 'existing', url: 'https://github.com/example/cooking-assistant' }],
     user: { _id: 'creator_13', name: 'Olivia Grant', avatarUrl: '/avatars/olivia.png' },
     starredByCurrentUser: true,
+    models: {
+      ...baseModels,
+      medium: [{ provider: 'google', model: 'gemini-pro' }],
+    },
   },
 ];

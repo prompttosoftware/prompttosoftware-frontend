@@ -33,7 +33,6 @@ export class PaymentsService {
       setGlobalError({
         message: errorMessage,
         type: 'error',
-        details: errorDetails,
       });
 
       throw new Error(errorMessage);
@@ -78,7 +77,6 @@ export class PaymentsService {
       setGlobalError({
         message: errorMessage,
         type: 'error',
-        details: errorDetails,
       });
 
       // Re-throw the error to allow calling components to handle it further
@@ -115,7 +113,6 @@ export class PaymentsService {
       setGlobalError({
         message: errorMessage,
         type: 'error',
-        details: errorDetails,
       });
 
       throw new Error(errorMessage);
@@ -151,7 +148,6 @@ export class PaymentsService {
       setGlobalError({
         message: errorMessage,
         type: 'error',
-        details: errorDetails,
       });
 
       throw new Error(errorMessage);

@@ -29,14 +29,14 @@ const ProfileButton = () => {
     );
   }
 
-  const initial = user?.username?.charAt(0).toUpperCase() || 'U';
+  const initial = user?.name?.charAt(0).toUpperCase() || 'U';
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full profile-button">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.imageUrl || '/avatars/01.png'} alt="User Avatar" />
+            <AvatarImage src={user?.avatarUrl || '/avatars/01.png'} alt="User Avatar" />
             <AvatarFallback>
               {initial}
             </AvatarFallback>
@@ -46,7 +46,7 @@ const ProfileButton = () => {
       <DropdownMenuContent className="relative z-[60] max-h-96 min-w-[8rem] rounded-md border bg-gray-700 text-white shadow-md">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.username || 'User'}</p>
+            <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email || 'user@example.com'}
             </p>
@@ -58,7 +58,7 @@ const ProfileButton = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/main/settings')}>Settings</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
         <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -9,9 +9,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useFormContext, UseFormRegister, Controller, FieldArrayWithId } from 'react-hook-form';
-import { AIModelConfig, ProjectFormData } from '@/types/project';
+import { ProjectFormData } from '@/types/project';
 import { AddApiKeyButton } from '../../app/(main)/components/ApiKeyManager';
-import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SingleModelInputProps {
   register: UseFormRegister<ProjectFormData>;
@@ -20,7 +20,6 @@ interface SingleModelInputProps {
   field: FieldArrayWithId<ProjectFormData, `advancedOptions.aiModels.${SingleModelInputProps['level']}`, "id">;
 }
 
-// Updated provider list that matches the API key system
 const AI_PROVIDERS = [
   { label: 'OpenAI', value: 'OPENAI' },
   { label: 'Anthropic', value: 'ANTHROPIC' },
@@ -37,8 +36,12 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
   field,
 }) => {
   const { control, watch } = useFormContext<ProjectFormData>();
-  const [availableProviders, setAvailableProviders] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use the auth hook to get user data, loading state, and refresh function
+  const { user, isLoading: authLoading, refreshUser } = useAuth();
+
+  // Derive available providers directly from the user object from useAuth
+  const apiKeys = user?.apiKeys || [];
+  const availableProviders = apiKeys.map(key => key.provider.toLowerCase());
 
   const basePath = `advancedOptions.aiModels.${level}.${index}`;
   const providerFieldName = `${basePath}.provider`;
@@ -48,39 +51,17 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
   // Watch the selected provider to show/hide API key button
   const selectedProvider = watch(providerFieldName as any);
 
-  // Fetch available providers (those with API keys)
-  useEffect(() => {
-    const fetchAvailableProviders = async () => {
-      try {
-        const userProfile = await api.getUserProfile();
-        const apiKeys = userProfile.apiKeys || [];
-        const providersWithKeys = apiKeys.map(key => key.provider);
-        setAvailableProviders(providersWithKeys);
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-        setAvailableProviders([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAvailableProviders();
-  }, []);
-
   // Check if the selected provider has an API key
-  const hasApiKey = (provider: string): boolean => {
-    return availableProviders.includes(provider);
+  const hasApiKey = (providerValue: string): boolean => {
+    return availableProviders.includes(providerValue.toLowerCase());
   };
 
-  // Handle API key added - refresh available providers
-  const handleApiKeyAdded = async (provider: string) => {
+  // Handle API key added by calling the refreshUser function from the hook
+  const handleApiKeyAdded = async () => {
     try {
-      const userProfile = await api.getUserProfile();
-      const apiKeys = userProfile.apiKeys || [];
-      const providersWithKeys = apiKeys.map(key => key.provider);
-      setAvailableProviders(providersWithKeys);
+      await refreshUser();
     } catch (error) {
-      console.error('Error refreshing user profile:', error);
+      console.error('Error refreshing user data after API key addition:', error);
     }
   };
 
@@ -106,8 +87,8 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
                 {AI_PROVIDERS.map((provider) => {
                   const isAvailable = hasApiKey(provider.value);
                   return (
-                    <SelectItem 
-                      key={provider.value} 
+                    <SelectItem
+                      key={provider.value}
                       value={provider.value}
                       disabled={!isAvailable}
                       className={!isAvailable ? 'opacity-50' : ''}
@@ -125,7 +106,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
             </Select>
           )}
         />
-        
+
         {/* Show Add API Key button if provider is selected but doesn't have a key */}
         {selectedProvider && !hasApiKey(selectedProvider) && (
           <div className="mt-2">
@@ -148,13 +129,13 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
           id={`${modelNameFieldName}`}
           type="text"
           placeholder="e.g., gpt-4, claude-3-opus-20240229"
-          {...register(modelNameFieldName as `advancedOptions.aiModels.${SingleModelInputProps['level']}.${number}.modelName`)}
+          {...register(modelNameFieldName as `advancedOptions.aiModels.${SingleModelInputProps['level']}.${number}.model`)}
           className="w-full"
         />
       </div>
 
-      {/* Loading state */}
-      {isLoading && (
+      {/* Loading state from the auth hook */}
+      {authLoading && (
         <div className="text-sm text-gray-500">Loading available providers...</div>
       )}
     </div>

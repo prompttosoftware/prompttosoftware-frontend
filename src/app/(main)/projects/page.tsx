@@ -32,10 +32,9 @@ const ProjectsPage = async () => {
         <EmptyState
           title="Please Log In"
           description="You need to be signed in to view your projects."
+          buttonLink="/login"
+          buttonText='Go to Login'
         >
-          <Link href="/login" passHref>
-            <Button>Go to Login</Button>
-          </Link>
         </EmptyState>
       );
     }

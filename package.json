@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
-    "build": "NODE_OPTIONS=--max-old-space-size=6144 npx next build",
+    "build": "npx next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --cache",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",

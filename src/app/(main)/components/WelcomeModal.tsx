@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Github, Code, GitBranch, Layers, Zap } from 'lucide-react';
 
-const WelcomeModal = ({ onClose, onLogin }) => {
+type WelcomeModalProps = {
+  onClose: () => void;
+  onLogin: () => void;
+};
+
+const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onLogin }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

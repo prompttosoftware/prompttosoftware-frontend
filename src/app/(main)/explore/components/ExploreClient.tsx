@@ -8,6 +8,7 @@ import EmptyState from '@/app/(main)/components/EmptyState';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import { PaginatedResponse, ExploreProjectsParams } from '@/types/project';
 import { Button } from '@/components/ui/button';
+import { keepPreviousData } from '@tanstack/react-query';
 
 interface ExploreClientProps {
   initialData: PaginatedResponse<any>;
@@ -30,9 +31,9 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
   // The `useExploreProjects` hook is now seeded with the initial data.
   // `react-query` is smart enough not to refetch on mount if initialData is provided.
   // It will only refetch when the `filters` dependency changes.
-  const { data, isLoading, isError, error, isPreviousData } = useExploreProjects(filters, {
+  const { data, isLoading, isError, error, isPlaceholderData } = useExploreProjects(filters, {
     initialData: initialData,
-    keepPreviousData: true, // Smoother UX for pagination
+    placeholderData: keepPreviousData, // Smoother UX for pagination
   });
   
   const projects = data?.data ?? [];
@@ -105,11 +106,11 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
           </div>
           
           <div className="flex justify-center items-center mt-8 space-x-4">
-            <Button onClick={() => handlePageChange(filters.page - 1)} disabled={filters.page === 1 || isPreviousData}>
+            <Button onClick={() => handlePageChange(filters.page ?? 1 - 1)} disabled={filters.page === 1 || isPlaceholderData}>
               Previous
             </Button>
             <span>Page {data?.page} of {data?.totalPages}</span>
-            <Button onClick={() => handlePageChange(filters.page + 1)} disabled={filters.page === data?.totalPages || isPreviousData}>
+            <Button onClick={() => handlePageChange(filters.page ?? 1 + 1)} disabled={filters.page === data?.totalPages || isPlaceholderData}>
               Next
             </Button>
           </div>
