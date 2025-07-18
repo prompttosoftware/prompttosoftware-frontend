@@ -3,7 +3,7 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import { Providers } from '../components/Providers';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { getInitialAuthData } from '@/lib/server-auth';
+import { getInitialAuthData } from '@/lib/data/user';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,8 +15,6 @@ export const metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Conditionally render MSW only in development
   if (process.env.NEXT_PUBLIC_API_MOCKING === 'enabled') {
-    // We can't conditionally return a different tree in a Server Component,
-    // so we create a simple client component to wrap the children.
     const { MswProvider } = require('../components/MswProvider');
     return (
       <html lang="en" dir="ltr" className="h-full">
@@ -33,7 +31,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const initialAuthData = await getInitialAuthData();
 
-  // Production layout (no MSW)
   return (
     <html lang="en" dir="ltr" className="h-full">
       <body className={`${inter.className} h-full bg-gray-100`}>

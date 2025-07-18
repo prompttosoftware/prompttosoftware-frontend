@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { usePaymentModalStore } from '@/store/paymentModalStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore'; // Import success message store
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,18 @@ import { Input } from '@/components/ui/input'; // Import Input component
 
 import { Label } from '@/components/ui/label';
 import PaymentFormContent from './PaymentFormContent'; // Import the new PaymentFormContent
-import { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from '@/types/payments'; // Import payment types
-import { httpClient } from '@/lib/httpClient';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { isAxiosError } from 'axios';
 
 import { logger } from '@/lib/logger';
 import { StripeWrapper } from '@/components/StripeWrapper';
+import { useAuth } from '@/hooks/useAuth';
+import { createPaymentIntent, getSavedCards } from '@/lib/payments';
+import { useStripe } from '@stripe/react-stripe-js';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { SavedCard } from '@/types/payments';
+import { FaCcMastercard, FaCcVisa, FaPlusCircle, FaRegCreditCard } from 'react-icons/fa';
+import { toast } from 'sonner';
 
 export function PaymentModal() {
   // Destructure state and actions from the payment modal store
@@ -36,9 +41,6 @@ export function PaymentModal() {
   const setStep = usePaymentModalStore((state) => state.setStep);
   const clearState = usePaymentModalStore((state) => state.clearState);
   const onClose = usePaymentModalStore((state) => state.onClose);
-  const onSuccess = usePaymentModalStore((state) => state.onSuccess);
-  const onGoToPaymentProvider = usePaymentModalStore((state) => state.onGoToPaymentProvider);
-  const setPaymentModalState = usePaymentModalStore((state) => state.setPaymentModalState);
 
   // Destructure error handling from global error store
   const { setError, clearError } = useGlobalErrorStore();
@@ -51,8 +53,32 @@ export function PaymentModal() {
   
   const globalError = useGlobalErrorStore((state) => state.error); // Get global error state
   const prevIsOpenRef = React.useRef(isOpen);
-  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+  const { isAuthenticated } = useAuth();
 
+  const stripe = useStripe(); // Get stripe instance for confirming saved card payments
+  const queryClient = useQueryClient();
+
+  // --- NEW: State for managing card selection and saving ---
+  const [selectedCardId, setSelectedCardId] = useState<string>('new_card');
+  const [saveCard, setSaveCard] = useState(true);
+
+  // --- NEW: Fetch saved cards when the modal is open ---
+  const { data: savedCards, isLoading: isLoadingCards } = useQuery<SavedCard[]>({
+    queryKey: ['savedCards'],
+    queryFn: () => getSavedCards(),
+    enabled: isOpen, // Only fetch when the modal is open
+  });
+
+  // Effect to set the default selected card once cards are loaded
+  useEffect(() => {
+    if (savedCards && savedCards.length > 0) {
+      const defaultCard = savedCards.find((c) => c.isDefault) || savedCards[0];
+      setSelectedCardId(defaultCard.id);
+    } else {
+      setSelectedCardId('new_card');
+    }
+  }, [savedCards]);
+  
   // Effect to handle modal open/close and general state resetting
   useEffect(() => {
     const wasOpen = prevIsOpenRef.current;
@@ -170,6 +196,29 @@ useEffect(() => {
     [validateAmount, clearError, setAmount], // Add setAmount to dependencies
   );
 
+  // --- UPDATED: Confirmation flow for saved cards ---
+  const handleConfirmWithSavedCard = useCallback(async () => {
+    if (!stripe || !clientSecret) {
+        setError({ message: 'Payment processing is not ready.', type: 'error' });
+        return;
+    }
+    setIsLoadingPaymentIntent(true);
+    const { error } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: selectedCardId,
+    });
+
+    if (error) {
+      setError({ message: error.message || 'Payment failed.', type: 'error' });
+      resetToAmountStep();
+    } else {
+      toast.success(`Successfully added $${amount.toFixed(2)} to your balance!`);
+      // Update balance, close modal, etc.
+      queryClient.invalidateQueries({ queryKey: ['user'] }); // To refresh balance
+      storeCloseModal();
+    }
+    setIsLoadingPaymentIntent(false);
+  }, [stripe, clientSecret, selectedCardId, amount, setError, storeCloseModal, queryClient]);
+
   const handleInitiatePaymentProcess = useCallback(async () => {
     logger.debug(`handleInitiatePaymentProcess called. amount: ${amount}, isLoadingPaymentIntent: ${isLoadingPaymentIntent}`);
     // Validate the amount from the store
@@ -182,8 +231,7 @@ useEffect(() => {
       setIsLoadingPaymentIntent(true);
       clearError();
   
-      const token = localStorage.getItem('jwtToken');
-      if (!token) {
+      if (!isAuthenticated) {
         setError({ message: 'Authentication required. Please log in again.', type: 'error' });
         logger.error('No JWT token found for payment intent creation.');
         setIsLoadingPaymentIntent(false);
@@ -197,27 +245,11 @@ useEffect(() => {
         `Attempting to create payment intent for amount: $${amount.toFixed(2)}`,
       );
       try {
-        const requestBody: CreatePaymentIntentRequest = {
-          amount: amountInCents,
-          currency: 'usd',
-          description: description,
-        };
-  
-        logger.debug('Sending request to /payments/create-intent with:', requestBody);
-        const response = await httpClient.post<
-          CreatePaymentIntentRequest,
-          CreatePaymentIntentResponse
-        >('/payments/create-intent', requestBody, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        const { clientSecret: newClientSecret } = response;
+        const payload = { amount: Math.round(amount * 100), currency: 'usd' };
+        const { clientSecret: newClientSecret } = await createPaymentIntent(payload);
         setClientSecret(newClientSecret);
-        setStep('confirm_card'); // Move to the next step using store's setStep
-        logger.info(`Payment Intent created successfully. Received clientSecret.`);
-      } catch (error) {
+        setStep('confirm_card'); // Always go to confirmation step
+    } catch (error) {
         logger.error('Failed to create Payment Intent.', error);
   
         // Error handling remains similar
@@ -253,6 +285,22 @@ useEffect(() => {
     storeCloseModal, // Use storeCloseModal in dependencies
     isLoadingPaymentIntent,
   ]);
+
+  const resetToAmountStep = useCallback(() => {
+    setClientSecret(null); // Explicitly clear the secret
+    setStep('add_amount');   // Go back to the first step
+  }, [setClientSecret, setStep]);
+
+  const getCardIcon = (brand: string): React.ReactElement => {
+          switch (brand.toLowerCase()) {
+        case 'visa':
+          return <FaCcVisa className="text-blue-600 w-8 h-8" />;
+        case 'mastercard':
+          return <FaCcMastercard className="text-orange-500 w-8 h-8" />;
+        default:
+          return <FaRegCreditCard className="text-gray-500 w-8 h-8" />;
+      }
+    };
 
   return (
     <Dialog open={isOpen} onOpenChange={storeCloseModal}> {/* Use storeCloseModal */}
@@ -304,6 +352,52 @@ useEffect(() => {
               </div>
             </div>
 
+            {/* --- Scrollable Card Selection UI --- */}
+            <div className="grid gap-2 py-4">
+              <Label className="text-gray-700">Payment Method</Label>
+
+              {/* scrollable container */}
+              <div className="max-h-60 overflow-y-auto pr-2 space-y-2">
+                {isLoadingCards && <p className="text-sm text-gray-500">Loading cards…</p>}
+
+                {savedCards?.map((card) => (
+                  <div
+                    key={card.id}
+                    onClick={() => setSelectedCardId(card.id)}
+                    className={`flex items-center p-3 border rounded-md cursor-pointer transition
+                                ${selectedCardId === card.id
+                                  ? 'border-blue-500 ring-2 ring-blue-500'
+                                  : 'border-gray-300 hover:border-gray-400'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {getCardIcon(card.brand)}
+                      <span>
+                        {card.brand} ending in {card.last4}
+                      </span>
+                      {card.isDefault && (
+                        <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                <div
+                  onClick={() => setSelectedCardId('new_card')}
+                  className={`flex items-center p-3 border rounded-md cursor-pointer transition
+                              ${selectedCardId === 'new_card'
+                                ? 'border-blue-500 ring-2 ring-blue-500'
+                                : 'border-gray-300 hover:border-gray-400'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <FaPlusCircle className="text-gray-500 w-6 h-6" />
+                    <span>Add a new card</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={storeCloseModal} disabled={isLoadingPaymentIntent}>
                 Cancel
@@ -323,24 +417,30 @@ useEffect(() => {
 
         {step === 'confirm_card' && clientSecret && (
           <StripeWrapper>
-          <>
-            <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md mb-4 mt-4">
-              <span className="font-semibold text-lg">Amount to add:</span>
-              <span className="font-bold text-xl text-blue-600">${amount.toFixed(2)}</span>
-            </div>
-            <PaymentFormContent
-              clientSecret={clientSecret}
-              setClientSecret={setClientSecret}
-              closeModal={storeCloseModal}
-              clearStoreState={clearState}
-              clearGlobalError={clearError}
-              setGlobalError={setError}
-              setSuccessMessageStore={setSuccessMessageStore}
-              resetAddFundsStep={() => setStep('add_amount')}
-              isConfirmingPayment={isConfirmingPayment}
-              setIsConfirmingPayment={setIsConfirmingPayment}
-            />
-          </>
+          {/* --- NEW: Conditional Rendering for Confirmation --- */}
+            {selectedCardId === 'new_card' ? (
+              <PaymentFormContent
+                clientSecret={clientSecret}
+                amount={amount}
+                showSaveCardOption={true} // Tell the form to show the checkbox
+                saveCardForFuture={saveCard}
+                setSaveCardForFuture={setSaveCard}
+                setClientSecret={setClientSecret}
+                closeModal={storeCloseModal}
+                clearStoreState={clearState}
+                clearGlobalError={clearError}
+                setGlobalError={setError}
+                setSuccessMessageStore={setSuccessMessageStore}
+                resetAddFundsStep={resetToAmountStep}
+              />
+            ) : (
+              <DialogFooter>
+                <Button variant="outline" onClick={resetToAmountStep} disabled={isLoadingPaymentIntent}>Back</Button>
+                <Button onClick={handleConfirmWithSavedCard} disabled={isLoadingPaymentIntent}>
+                  {isLoadingPaymentIntent ? 'Confirming...' : `Confirm Payment with Visa ${savedCards?.find(c => c.id === selectedCardId)?.last4}`}
+                </Button>
+              </DialogFooter>
+            )}
           </StripeWrapper>
         )}
 

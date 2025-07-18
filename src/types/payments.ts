@@ -1,18 +1,4 @@
 /**
- * Represents a single saved payment card.
- */
-export interface SavedCard {
-  id: string; // Unique identifier for the card
-  brand: string; // e.g., "visa", "mastercard"
-  last4: string; // Last four digits of the card number
-  expiryMonth: number; // Expiration month (1-12)
-  expiryYear: number; // Expiration year (YYYY)
-  fingerprint?: string; // Optional: unique identifier for the card number
-  cardHolderName?: string; // Optional: Name of the card holder
-  isDefault?: boolean; // Optional: Indicates if this is the user's default card
-}
-
-/**
  * Request body for creating a payment intent.
  */
 export interface CreatePaymentIntentRequest {
@@ -23,28 +9,6 @@ export interface CreatePaymentIntentRequest {
   description?: string; // Optional: Description for the payment
   metadata?: { [key: string]: string }; // Optional: Custom metadata
   saveCard?: boolean; // Optional: Whether to save the card for future use
-}
-
-/**
- * Response body for creating a payment intent.
- * This typically includes a client secret for client-side payment confirmation.
- */
-export interface CreatePaymentIntentResponse {
-  clientSecret: string; // The client secret to be used with the payment client SDK
-  paymentIntentId: string; // Unique ID of the payment intent
-  amount: number;
-  currency: string;
-  status:
-    | 'requires_payment_method'
-    | 'requires_confirmation'
-    | 'requires_action'
-    | 'processing'
-    | 'succeeded'
-    | 'canceled';
-  requiresAction?: {
-    type: 'url' | 'redirect';
-    url: string;
-  }; // Optional: For 3D secure or other actions
 }
 
 /**
@@ -91,4 +55,22 @@ export interface AddAdCreditResponse {
   newBalance: number; // The user's new ad credit balance
   currency: string;
   transactionId: string; // Unique ID for the credit transaction
+}
+
+// This represents a card fetched from Stripe via our backend
+export interface SavedCard {
+  id: string; // Stripe PaymentMethod ID (pm_...)
+  brand: string;
+  last4: string;
+  expiryMonth: number;
+  expiryYear: number;
+  isDefault: boolean;
+}
+
+export interface CreatePaymentIntentResponse {
+  clientSecret: string;
+  paymentIntentId: string;
+  amount: number;
+  currency: string;
+  status: string;
 }

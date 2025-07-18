@@ -46,7 +46,7 @@ export const AuthContext = createContext<AuthContextType>({
   loginWithGithub: () => Promise.reject(new Error('AuthProvider not found')),
 });
 
-const TUTORIAL_COMPLETED_KEY = 'prompttosoftware_tutorial_completed';
+export const TUTORIAL_COMPLETED_KEY = 'prompttosoftware_tutorial_completed';
 
 interface AuthProviderProps {
   children: ReactNode;

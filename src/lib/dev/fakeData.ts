@@ -1,4 +1,5 @@
 import { UserProfile } from '@/types/auth';
+import { SavedCard } from '@/types/payments';
 import { Model, Project } from '@/types/project';
 
 const commonModels = {
@@ -285,26 +286,6 @@ export const FAKE_USER: UserProfile = {
     { provider: 'OPENAI', api_key: 'sk-xxxxxx' },
     { provider: 'GOOGLE', api_key: 'AIzaSyxxxxxx' },
   ],
-  savedCards: [
-    {
-      id: 'card_1A2B3C',
-      brand: 'visa',
-      last4: '4242',
-      expiryMonth: 12,
-      expiryYear: 2026,
-      cardHolderName: 'Dev User',
-      isDefault: true,
-    },
-    {
-      id: 'card_4D5E6F',
-      brand: 'mastercard',
-      last4: '4444',
-      expiryMonth: 5,
-      expiryYear: 2025,
-      cardHolderName: 'Dev User',
-      isDefault: false,
-    },
-  ],
   transactionHistory: [
     // 2022
     { amount: 120.00, timestamp: new Date('2022-03-15T14:23:00Z').toISOString() },
@@ -572,5 +553,40 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
       ...baseModels,
       medium: [{ provider: 'google', model: 'gemini-pro' }],
     },
+  },
+];
+
+export const FAKE_CARDS: SavedCard[] = [
+  {
+    id: 'pm_card_visa_1',
+    brand: 'visa',
+    last4: '4242',
+    expiryMonth: 12,
+    expiryYear: 2026,
+    isDefault: true,
+  },
+  {
+    id: 'pm_card_mc_2',
+    brand: 'mastercard',
+    last4: '4444',
+    expiryMonth: 5,
+    expiryYear: 2025,
+    isDefault: false,
+  },
+  {
+    id: 'pm_card_amex_3',
+    brand: 'amex',
+    last4: '3782',
+    expiryMonth: 9,
+    expiryYear: 2027,
+    isDefault: false,
+  },
+  {
+    id: 'pm_card_discover_4',
+    brand: 'discover',
+    last4: '6011',
+    expiryMonth: 1,
+    expiryYear: 2028,
+    isDefault: false,
   },
 ];

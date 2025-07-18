@@ -1,19 +1,18 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useBalanceStore } from '@/store/balanceStore';
 
 import { Label } from '@/components/ui/label';
-import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { logger } from '@/lib/logger';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// New component to encapsulate Stripe-related logic
 interface PaymentFormContentProps {
-  clientSecret: string | null;
+  clientSecret: string;
+  amount: number;
   setClientSecret: (secret: string | null) => void;
   closeModal: () => void; // Still needed for closing the *entire* modal on success
   clearStoreState: () => void;
@@ -21,23 +20,24 @@ interface PaymentFormContentProps {
   clearGlobalError: () => void;
   setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
   setSuccessMessageStore: (message: string | null) => void;
-  isConfirmingPayment: boolean;
-  setIsConfirmingPayment: (value: boolean) => void;
-  // Amount and description are no longer passed down here, as they are used by the parent for payment intent creation
-  // and displayed there.
+  showSaveCardOption: boolean;
+  saveCardForFuture: boolean;
+  setSaveCardForFuture: (value: boolean) => void;
 }
 
 const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   clientSecret,
+  amount,
   setClientSecret,
   closeModal,
   clearStoreState,
-  resetAddFundsStep, // Destructure new prop
+  resetAddFundsStep,
   clearGlobalError,
   setGlobalError,
   setSuccessMessageStore,
-  isConfirmingPayment,
-  setIsConfirmingPayment,
+  showSaveCardOption,
+  saveCardForFuture,
+  setSaveCardForFuture,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -46,6 +46,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   // Log the state of Stripe, Elements, and Client Secret when component renders or dependencies change
   logger.debug(`PaymentFormContent rendered. clientSecret: ${!!clientSecret}, stripe: ${!!stripe}, elements: ${!!elements}`);
 
+  const [isProcessing, setIsProcessing] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
 
   const cardElementOptions = useMemo(
@@ -89,7 +90,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       return;
     }
 
-    setIsConfirmingPayment(true);
+    setIsProcessing(true);
     clearGlobalError();
 
     try {
@@ -98,7 +99,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       if (!cardElement) {
         setGlobalError({ message: 'Card details not found. Please re-enter.', type: 'error' });
         logger.error('CardElement not found in PaymentFormContent.');
-        setIsConfirmingPayment(false);
+        setIsProcessing(false);
         return;
       }
 
@@ -106,7 +107,10 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         payment_method: {
           card: cardElement,
         },
+        setup_future_usage: saveCardForFuture ? 'off_session' : undefined,
       });
+
+      logger.info('Confirm card payment.', `Intent: ${JSON.stringify(paymentIntent)}`);
 
       if (error) {
         logger.error(
@@ -120,20 +124,18 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         resetAddFundsStep(); // Reset the add funds step on error
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         logger.info('Funds added successfully in PaymentFormContent!');
-        // Assuming the amount is available from `inputAmount` which is a prop in `PaymentModal` or derived from `clientSecret`
-        // For now, we'll assume a fixed amount or fetch it from paymentIntent metadata if available.
-        // A more robust solution might pass the original amount from PaymentModal to PaymentFormContent.
-        // For this task, let's assume paymentIntent.amount is reliable (it's in cents).
-        if (paymentIntent.amount) {
-          const addedAmount = paymentIntent.amount / 100; // Convert cents to dollars
-          updateBalance(addedAmount);
-          setSuccessMessageStore(`Successfully added $${addedAmount.toFixed(2)} to your balance!`);
-          logger.info(`Balance updated in store by: $${addedAmount.toFixed(2)}`);
-        } else {
-          setSuccessMessageStore('Funds added successfully!');
-          logger.warn('PaymentIntent amount not found. Balance may not be updated correctly.');
-        }
+        
+        const addedAmount = amount;
+        updateBalance(addedAmount);
+        setSuccessMessageStore(`Successfully added $${addedAmount.toFixed(2)} to your balance!`);
+        logger.info(`Balance updated in store by: $${addedAmount.toFixed(2)}`);
 
+        if (paymentIntent.amount && Math.round(addedAmount * 100) !== paymentIntent.amount) {
+          logger.warn(
+            `Amount mismatch detected! UI Amount: ${addedAmount}, Stripe Amount: ${paymentIntent.amount / 100}`,
+          );
+        }
+        
         resetAddFundsStep(); // Reset the add funds step if payment succeeded
         closeModal(); // Still close the modal on successful payment
         clearStoreState(); // Clear all payment modal related state
@@ -158,15 +160,16 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       });
       resetAddFundsStep(); // Reset the add funds step on error
     } finally {
-      setIsConfirmingPayment(false);
+      setIsProcessing(false);
     }
   }, [
     stripe,
     elements,
     clientSecret,
     closeModal,
+    amount,
     clearStoreState,
-    resetAddFundsStep, // Add to dependency array
+    resetAddFundsStep,
     clearGlobalError,
     setGlobalError,
     setSuccessMessageStore,
@@ -182,21 +185,32 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         <CardElement options={cardElementOptions} onChange={handleCardChange} />
         {cardError && <div className="text-red-500 text-sm mt-2">{cardError}</div>}
       </div>
+      {/* --- NEW: "Save Card" Checkbox --- */}
+        {showSaveCardOption && (
+            <div className="flex items-center space-x-2 my-4">
+                <Checkbox
+                    id="save-card"
+                    checked={saveCardForFuture}
+                    onCheckedChange={(checked) => setSaveCardForFuture(Boolean(checked))}
+                />
+                <label htmlFor="save-card" className="text-sm font-medium leading-none">
+                    Save this card for future use
+                </label>
+            </div>
+        )}
       <DialogFooter className="mt-4">
-        {' '}
-        {/* Footer added back but with margin-top */}
-        <Button onClick={closeModal} variant="outline" disabled={isConfirmingPayment}>
+        <Button onClick={closeModal} variant="outline" disabled={isProcessing}>
           Cancel
         </Button>
         <Button
           onClick={handleStripeConfirmation}
-          disabled={isConfirmingPayment || !clientSecret || !stripe || !elements}
+          disabled={isProcessing || !stripe || !elements}
           className="relative flex items-center justify-center min-w-[8rem]"
         >
-          {isConfirmingPayment && (
+          {isProcessing && (
             <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           )}
-          {isConfirmingPayment ? 'Confirming...' : 'Confirm Payment'}
+          {isProcessing ? 'Confirming...' : 'Confirm Payment'}
         </Button>
       </DialogFooter>
     </div>

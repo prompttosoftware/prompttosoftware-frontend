@@ -1,7 +1,7 @@
 // app/projects/[id]/edit/page.tsx
 
 import { redirect, notFound } from 'next/navigation';
-import { getInitialAuthData } from '@/lib/server-auth';
+import { getInitialAuthData } from '@/lib/data/user';
 import { fetchProjectById } from '@/lib/data/projects';
 import ProjectForm from '@/app/(main)/new-project/components/ProjectForm';
 

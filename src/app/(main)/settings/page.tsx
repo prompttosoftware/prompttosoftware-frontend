@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getInitialAuthData } from '@/lib/server-auth';
+import { getInitialAuthData } from '@/lib/data/user';
 
 // Import the interactive components
 import DeleteAccountButton from '../components/DeleteAccountButton';

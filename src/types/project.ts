@@ -48,6 +48,7 @@ export interface GithubRepository {
   name?: string; // For 'new'
   isPrivate?: boolean; // For 'new'
   url?: string; // For 'existing'
+  organization?: string;
 }
 
 export interface Model {
@@ -225,7 +226,7 @@ export const formSchema = z.object({
   maxBudget: z.number().min(0.01, { message: 'Must be a positive number.' }),
   githubRepositories: z.array(
     z.union([
-      z.object({ type: z.literal('new'), name: z.string().min(1, 'Name is required.'), isPrivate: z.boolean() }),
+      z.object({ type: z.literal('new'), name: z.string().min(1, 'Name is required.'), isPrivate: z.boolean(), organization: z.string().optional() }),
       z.object({ type: z.literal('existing'), url: z.string().url('Invalid URL.').min(1, 'URL is required.') }),
     ]),
   ),

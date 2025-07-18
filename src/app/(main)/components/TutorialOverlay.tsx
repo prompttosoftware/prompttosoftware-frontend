@@ -5,6 +5,7 @@ import { tutorialSteps } from '@/lib/tutorialSteps';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { logger } from '@/utils/logger';
+import { TUTORIAL_COMPLETED_KEY } from '@/lib/AuthContext';
 
 // A little bit of CSS for our pulsating beacon effect.
 // You can also move this to your global CSS file.
@@ -21,8 +22,6 @@ const beaconStyles = `
 interface TutorialOverlayProps {
   onComplete: () => void;
 }
-
-const TUTORIAL_COMPLETED_KEY = 'prompttosoftware_tutorial_completed';
 
 // A custom hook to get element dimensions and handle window resizing
 const useElementRect = (selector: string | null | undefined) => {

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import AccountUsageSection from './components/AccountUsageSection';
 import ActiveProjectsSummary from './components/ActiveProjectsSummary';
-import { getInitialAuthData } from '@/lib/server-auth'; // Server-side auth check
+import { getInitialAuthData } from '@/lib/data/user'; // Server-side auth check
 import { fetchUserProjects } from '@/lib/data/projects'; // Server-side data fetching
 import { Project, Status } from '@/types/project';
 

@@ -1,7 +1,7 @@
 // src/app/(main)/components/MainUI.tsx
-'use client'; // This is now the client boundary
+'use client';
 
-import React, { useEffect, useContext, useState, Suspense } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 
 import SideNavBar from './SideNavBar';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +9,7 @@ import { StripeWrapper } from '@/components/StripeWrapper';
 import { AuthContext } from '@/lib/AuthContext';
 import useBannerStore from '@/store/bannerStore';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
 import BannerDisplay from './BannerDisplay';
 import ConfirmationDialog from './ConfirmationDialog';
@@ -17,7 +17,6 @@ import { PaymentModal } from './PaymentModal';
 import SuccessToast from './SuccessToast';
 import TutorialOverlay from './TutorialOverlay';
 import WelcomeModal from './WelcomeModal';
-import { api } from '@/lib/api';
 import { Banner } from '@/types/banner';
 import AppHeader from './AppHeader';
 
@@ -82,7 +81,6 @@ export default function MainUI({ children }: { children: React.ReactNode }) {
 
   const handleTutorialComplete = () => {
     setShowTutorial(false);
-    localStorage.setItem('prompttosoftware_tutorial_completed', 'true');
   };
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
