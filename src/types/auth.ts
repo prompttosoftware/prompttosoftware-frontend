@@ -49,7 +49,6 @@ export interface UserProfile {
     cardHolderName?: string;
     isDefault?: boolean;
   }[];
-  transactionHistory?: Transaction[];
   starredProjects?: string[];
   createdAt: string;
   updatedAt: string;

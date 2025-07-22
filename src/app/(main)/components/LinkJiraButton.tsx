@@ -4,6 +4,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { JiraLogoIcon } from '@/components/icons/JiraLogoIcon';
 
 const LinkJiraButton = () => {
   const { user, isLoading } = useAuth();
@@ -50,11 +51,12 @@ const LinkJiraButton = () => {
     <Button
       type="button"
       onClick={handleLinkJira}
-      className="bg-blue-600 hover:bg-blue-700 text-white"
+      // Using arbitrary value for Jira's brand blue
+      className="bg-[#0052CC] hover:bg-[#0052cc]/90 text-white font-semibold flex items-center"
       disabled={isLoading || isJiraLinked}
       aria-label={isJiraLinked ? 'Jira account is linked' : 'Link your Jira account'}
     >
-      {isJiraLinked ? 'Jira Linked' : 'Link Jira'}
+      <JiraLogoIcon className="text-white"/>
     </Button>
   );
 };

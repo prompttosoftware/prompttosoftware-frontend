@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,10 +9,68 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { ProjectFormData } from '@/types/project';
 
-const ECOSYSTEMS = ['apt', 'brew', 'choco', 'docker', 'github', 'npm', 'pip', 'yarn'].sort();
+// Always installed tools (shown as disabled)
+const ALWAYS_INSTALLED = [
+  'git',
+  'curl', 
+  'wget',
+  'build-essential',
+  'ca-certificates',
+];
+
+// Optional global development tools grouped by category
+const OPTIONAL_TOOLS = {
+  'Language Runtimes': [
+    { name: 'nodejs', description: 'JavaScript runtime' },
+    { name: 'python3-dev', description: 'Python development package' },
+    { name: 'golang', description: 'Go programming language' },
+    { name: 'openjdk-17-jdk', description: 'Java Development Kit' },
+    { name: 'php', description: 'PHP runtime' },
+    { name: 'ruby', description: 'Ruby programming language' },
+  ],
+  'Package Managers': [
+    { name: 'npm', description: 'Node.js package manager' },
+    { name: 'yarn', description: 'Alternative Node.js package manager' },
+    { name: 'pip', description: 'Python package manager' },
+    { name: 'composer', description: 'PHP package manager' },
+  ],
+  'Development Tools': [
+    { name: 'vim', description: 'Text editor' },
+    { name: 'neovim', description: 'Modern Vim fork' },
+    { name: 'tmux', description: 'Terminal multiplexer' },
+    { name: 'htop', description: 'Interactive process viewer' },
+    { name: 'jq', description: 'JSON processor' },
+    { name: 'tree', description: 'Directory tree viewer' },
+    { name: 'unzip', description: 'Archive extraction utility' },
+    { name: 'make', description: 'Build automation tool' },
+  ],
+  'Version Control & CI': [
+    { name: 'gh', description: 'GitHub CLI' },
+    { name: 'git-lfs', description: 'Git Large File Storage' },
+  ],
+  'Database Tools': [
+    { name: 'postgresql-client', description: 'PostgreSQL client tools' },
+    { name: 'mysql-client', description: 'MySQL client tools' },
+    { name: 'redis-tools', description: 'Redis client tools' },
+    { name: 'sqlite3', description: 'SQLite database engine' },
+  ],
+  'Cloud & DevOps': [
+    { name: 'awscli', description: 'AWS command line interface' },
+    { name: 'docker-compose', description: 'Docker container orchestration' },
+    { name: 'kubectl', description: 'Kubernetes command line tool' },
+    { name: 'terraform', description: 'Infrastructure as code tool' },
+  ],
+  'Code Quality': [
+    { name: 'shellcheck', description: 'Shell script linter' },
+    { name: 'yamllint', description: 'YAML linter' },
+    { name: 'clang-format', description: 'Code formatter' },
+  ],
+};
 
 export default function InstallationManager() {
   const { control } = useFormContext<ProjectFormData>();
@@ -21,60 +78,131 @@ export default function InstallationManager() {
     control,
     name: 'advancedOptions.installations',
   });
+  
+  const [customTool, setCustomTool] = useState('');
 
-  const [ecosystem, setEcosystem] = useState('');
-  const [name, setName] = useState('');
-
-  const handleAdd = () => {
-    if (!ecosystem || !name.trim()) {
-      toast.warning('Please select an ecosystem and enter a package name.');
+  const handleAddCustom = () => {
+    if (!customTool.trim()) {
+      toast.warning('Please enter a tool name.');
       return;
     }
-    append({ ecosystem, name: name.trim() });
-    setEcosystem('');
-    setName('');
+    
+    const toolName = customTool.trim();
+    
+    // Check if already exists
+    if (ALWAYS_INSTALLED.includes(toolName) || fields.some(field => field.name === toolName)) {
+      toast.warning('This tool is already included.');
+      return;
+    }
+    
+    append({ name: toolName });
+    setCustomTool('');
+    toast.success(`Added ${toolName}`);
+  };
+
+  const handleAddPredefined = (toolName: string) => {
+    // Check if already exists
+    if (fields.some(field => field.name === toolName)) {
+      toast.warning('This tool is already added.');
+      return;
+    }
+    
+    append({ name: toolName });
+    toast.success(`Added ${toolName}`);
+  };
+
+  const isToolAdded = (toolName: string) => {
+    return fields.some(field => field.name === toolName);
   };
 
   return (
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
-      <h3 className="text-md font-semibold text-gray-800 mb-3">Installations</h3>
-      <div className="space-y-3 mb-4">
-        {fields.length === 0 ? (
-            <p className="text-sm text-gray-500">No installations added.</p>
-        ) : (
-            fields.map((installation, index) => (
-            <div
-                key={index}
-                className="flex items-center justify-between p-3 border border-gray-100 bg-white rounded-md shadow-sm"
+      <h3 className="text-md font-semibold text-gray-800 mb-2">Development Tools</h3>
+      <p className="text-sm text-gray-600 mb-4">
+        Select additional development tools to install globally. Basic tools like git and curl are always included.
+      </p>
+      
+      {/* Always installed tools */}
+      <div className="mb-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Always Installed</h4>
+        <div className="flex flex-wrap gap-2">
+          {ALWAYS_INSTALLED.map((tool) => (
+            <span
+              key={tool}
+              className="px-2 py-1 bg-gray-200 text-gray-500 text-xs rounded border"
             >
-                <span className="text-sm text-gray-700">
-                {installation.ecosystem} {installation.name}
-                </span>
-                <Button
-                type="button"
-                onClick={() => remove(index)}
-                variant="destructive"
-                size="sm"
-                >
-                Delete
-                </Button>
-            </div>
-            ))
-        )}
+              {tool} (installed)
+            </span>
+          ))}
         </div>
-      <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="min-w-[120px]">{ecosystem || 'Select Type'}</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white">
-            {ECOSYSTEMS.map((eco) => (
-              <DropdownMenuItem key={eco} onSelect={() => setEcosystem(eco)}>{eco}</DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Input placeholder="Package name" value={name} onChange={(e) => setName(e.target.value)} />
-        <Button type="button" onClick={handleAdd}>Add</Button>
+      </div>
+
+      {/* User selected tools */}
+      <div className="mb-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Additional Tools</h4>
+        <div className="space-y-2">
+          {fields.length === 0 ? (
+            <p className="text-sm text-gray-500">No additional tools selected.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {fields.map((installation, index) => (
+                <div
+                  key={installation.id}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded border"
+                >
+                  <span>{installation.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="ml-1 text-blue-600 hover:text-blue-800 font-bold text-sm"
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add tools interface */}
+      <div className="space-y-3">
+        {/* Predefined tools dropdown */}
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[160px]">
+                Add Tools
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white w-80 max-h-96 overflow-y-auto">
+              {Object.entries(OPTIONAL_TOOLS).map(([category, tools]) => (
+                <div key={category}>
+                  <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase">
+                    {category}
+                  </DropdownMenuLabel>
+                  {tools.map((tool) => (
+                    <DropdownMenuItem
+                      key={tool.name}
+                      onSelect={() => handleAddPredefined(tool.name)}
+                      disabled={isToolAdded(tool.name)}
+                      className={`flex flex-col items-start px-3 py-2 ${
+                        isToolAdded(tool.name) ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <div className="font-medium text-sm">
+                        {tool.name} {isToolAdded(tool.name) && '(added)'}
+                      </div>
+                      <div className="text-xs text-gray-500">{tool.description}</div>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </div>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   );

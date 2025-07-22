@@ -1,23 +1,25 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { UserProfile } from '@/types/auth'; // Import UserProfile type
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddPaymentButton from '@/app/(main)/components/AddPaymentButton';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import { TransactionUserProfile } from '@/types/transactions';
 
-// Helper function remains the same
+// Helper function to calculate spending
 const calculateSpending = (transactions: any[], startDate: Date, endDate: Date): number => {
   return transactions
-    .filter(tx => tx.originalDate >= startDate && tx.originalDate <= endDate)
+    .filter(tx => {
+      const txDate = new Date(tx.createdAt); // Use createdAt from the new model
+      return txDate >= startDate && txDate <= endDate;
+    })
     .reduce((sum, tx) => sum + tx.amount, 0);
 };
 
 interface AccountUsageSectionProps {
-  initialUser: UserProfile; // Receive the initial user data as a prop
+  initialUser: TransactionUserProfile; // Receive the initial user data as a prop
 }
 
 const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ initialUser }) => {
@@ -30,15 +32,13 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ initialUser }
     }
 
     const spendingHistory = initialUser.transactionHistory
-      .filter(tx => tx.amount < 0)
+      .filter(tx => tx.type === 'debit' && tx.status === 'succeeded') // Filter for successful debits
       .map(tx => ({
-        amount: Math.abs(tx.amount),
-        originalDate: parseISO(tx.timestamp),
+        amount: tx.amount, // Amount is already positive
+        originalDate: parseISO(tx.createdAt), // Use createdAt from the new model
       }))
       .sort((a, b) => a.originalDate.getTime() - b.originalDate.getTime());
 
-    // ... The rest of your calculation logic remains exactly the same, using `initialUser` and `spendingHistory`
-    
     const now = new Date();
     const startOfCurrentMonth = startOfMonth(now);
     const startOfPreviousMonth = startOfMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1));

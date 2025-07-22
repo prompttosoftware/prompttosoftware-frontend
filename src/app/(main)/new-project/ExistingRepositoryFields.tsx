@@ -8,11 +8,13 @@ import { Button } from '@/components/ui/button';
 interface ExistingRepositoryFieldsProps {
   index: number;
   onRemove: () => void;
+  disableInputs: boolean;
 }
 
 export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> = ({
   index,
   onRemove,
+  disableInputs,
 }) => {
   const {
     register,
@@ -39,9 +41,9 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
       <h4 className="text-md font-semibold text-gray-700 mb-3">
         Existing Repository #{index + 1}
-        <Button type="button" onClick={onRemove} variant="destructive" size="sm" className="ml-2">
+        {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm" className="ml-2">
           Delete
-        </Button>
+        </Button>}
       </h4>
       <div>
         <Label htmlFor={`existing-repo-url-${index}`}>GitHub Repository URL</Label>
@@ -51,6 +53,7 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
           {...register(`githubRepositories.${index}.url`)}
           placeholder="e.g., https://github.com/username/repo"
           aria-invalid={isInvalid}
+          disabled={disableInputs}
         />
         {isInvalid && urlError?.message && (
           <p className="text-red-500 text-xs mt-1">{String(urlError.message)}</p>

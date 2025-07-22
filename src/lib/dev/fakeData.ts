@@ -286,42 +286,13 @@ export const FAKE_USER: UserProfile = {
     { provider: 'OPENAI', api_key: 'sk-xxxxxx' },
     { provider: 'GOOGLE', api_key: 'AIzaSyxxxxxx' },
   ],
-  transactionHistory: [
-    // 2022
-    { amount: 120.00, timestamp: new Date('2022-03-15T14:23:00Z').toISOString() },
-    { amount: -40.00, timestamp: new Date('2022-03-21T11:05:00Z').toISOString() },
-    { amount: -10.00, timestamp: new Date('2022-06-22T16:00:00Z').toISOString() },
-
-    // 2023 (multiple in Feb, May)
-    { amount: 200.00, timestamp: new Date('2023-01-10T09:00:00Z').toISOString() },
-    { amount: -25.00, timestamp: new Date('2023-02-02T10:10:00Z').toISOString() },
-    { amount: -15.00, timestamp: new Date('2023-02-14T13:30:00Z').toISOString() },
-    { amount: -60.00, timestamp: new Date('2023-05-05T08:20:00Z').toISOString() },
-    { amount: -30.00, timestamp: new Date('2023-05-15T18:45:00Z').toISOString() },
-    { amount: 80.00, timestamp: new Date('2023-07-19T11:45:00Z').toISOString() },
-    { amount: -35.00, timestamp: new Date('2023-09-12T15:10:00Z').toISOString() },
-    { amount: 100.00, timestamp: new Date('2023-11-01T12:00:00Z').toISOString() },
-
-    // 2024 (multiple in Mar)
-    { amount: -50.00, timestamp: new Date('2024-01-05T17:25:00Z').toISOString() },
-    { amount: 90.00, timestamp: new Date('2024-03-10T09:00:00Z').toISOString() },
-    { amount: 60.00, timestamp: new Date('2024-03-18T14:40:00Z').toISOString() },
-    { amount: -75.00, timestamp: new Date('2024-05-10T09:45:00Z').toISOString() },
-
-    // 2025 (multiple in April, July)
-    { amount: 90.00, timestamp: new Date('2025-01-03T08:00:00Z').toISOString() },
-    { amount: -30.00, timestamp: new Date('2025-04-10T13:00:00Z').toISOString() },
-    { amount: -15.00, timestamp: new Date('2025-04-20T13:30:00Z').toISOString() },
-    { amount: -20.00, timestamp: new Date('2025-06-15T19:30:00Z').toISOString() },
-    { amount: 40.00, timestamp: new Date('2025-07-09T10:15:00Z').toISOString() },
-    { amount: 30.00, timestamp: new Date('2025-07-10T18:45:00Z').toISOString() }, // yesterday
-    ],
   starredProjects: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
 
 import { ProjectSummary } from '@/types/project';
+import { Transaction, TransactionStatus, TransactionType } from '@/types/transactions';
 
 const baseModels = {
   utility: [{ provider: 'openai', model: 'gpt-3.5-turbo' } as Model],
@@ -588,5 +559,123 @@ export const FAKE_CARDS: SavedCard[] = [
     expiryMonth: 1,
     expiryYear: 2028,
     isDefault: false,
+  },
+];
+
+export const FAKE_TRANSACTIONS: Transaction[] = [
+  // 2022
+  {
+    _id: 'txn_2022_01',
+    userId: 'test-user-id',
+    type: TransactionType.CREDIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: 120.00,
+    description: 'Initial account funding',
+    stripeChargeId: 'ch_2022_01',
+    createdAt: new Date('2022-03-10T10:00:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2022_02',
+    userId: 'test-user-id',
+    type: TransactionType.DEBIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: -40.00,
+    description: 'Project: AI Writer',
+    relatedProjectId: 'proj_x1',
+    createdAt: new Date('2022-06-21T15:00:00Z').toISOString(),
+  },
+
+  // 2023
+  {
+    _id: 'txn_2023_01',
+    userId: 'test-user-id',
+    type: TransactionType.CREDIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: 200.00,
+    description: 'Annual top-up',
+    stripeChargeId: 'ch_2023_01',
+    createdAt: new Date('2023-01-05T09:30:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2023_02',
+    userId: 'test-user-id',
+    type: TransactionType.DEBIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: -25.00,
+    description: 'Project: Resume Parser',
+    relatedProjectId: 'proj_4',
+    createdAt: new Date('2023-02-02T10:10:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2023_03',
+    userId: 'test-user-id',
+    type: TransactionType.DEBIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: -60.00,
+    description: 'Project: Podcast Summarizer',
+    relatedProjectId: 'proj_11',
+    createdAt: new Date('2023-05-05T08:20:00Z').toISOString(),
+  },
+
+  // 2024
+  {
+    _id: 'txn_2024_01',
+    userId: 'test-user-id',
+    type: TransactionType.CREDIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: 90.00,
+    description: 'Referral reward',
+    createdAt: new Date('2024-03-10T09:00:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2024_02',
+    userId: 'test-user-id',
+    type: TransactionType.DEBIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: -75.00,
+    description: 'Project: Smart Meeting Notes',
+    relatedProjectId: 'proj_2',
+    createdAt: new Date('2024-05-10T09:45:00Z').toISOString(),
+  },
+
+  // 2025
+  {
+    _id: 'txn_2025_01',
+    userId: 'test-user-id',
+    type: TransactionType.CREDIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: 40.00,
+    description: 'Balance top-up',
+    createdAt: new Date('2025-07-09T10:15:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2025_02',
+    userId: 'test-user-id',
+    type: TransactionType.DEBIT,
+    status: TransactionStatus.PENDING,
+    amount: -45.00,
+    description: 'Project: Video Transcoder',
+    relatedProjectId: 'proj_3',
+    createdAt: new Date('2025-07-10T08:00:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2025_03',
+    userId: 'test-user-id',
+    type: TransactionType.DEBIT,
+    status: TransactionStatus.FAILED,
+    amount: -10.00,
+    description: 'Project: HR Metrics Dashboard',
+    relatedProjectId: 'proj_5',
+    createdAt: new Date('2025-07-12T18:00:00Z').toISOString(),
+  },
+  {
+    _id: 'txn_2025_04',
+    userId: 'test-user-id',
+    type: TransactionType.CREDIT,
+    status: TransactionStatus.SUCCEEDED,
+    amount: 30.00,
+    description: 'Stripe refund',
+    stripeChargeId: 'ch_refund_001',
+    createdAt: new Date('2025-07-15T10:00:00Z').toISOString(),
   },
 ];

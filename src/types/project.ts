@@ -35,10 +35,13 @@ export interface ProjectFormData {
   githubRepositories: GithubRepository[];
   advancedOptions: {
     aiModels: Models;
-    installations: { ecosystem: string, name: string }[];
+    installations: { name: string }[];
     jiraLinked: boolean;
+    jiraProjectKey?: string;
   };
 }
+
+export type Template = "android_studio" | "xcode" | "unity" | "godot" | "unreal_engine";
 
 /**
  * Represents a single GitHub repository linked to a project.
@@ -49,6 +52,8 @@ export interface GithubRepository {
   isPrivate?: boolean; // For 'new'
   url?: string; // For 'existing'
   organization?: string;
+  forkUrl?: string;
+  template?: Template;
 }
 
 export interface Model {
@@ -87,6 +92,8 @@ export interface Project {
   pendingSensitiveRequest?: any; // Define this more strictly if you know the structure
   // Add other fields from your backend model as needed
   cost: number;
+  useJira?: boolean;
+  jiraProjectKey?: string;
   elapsedTime: number;
   completeIssues: number;
   incompleteIssues: number;
@@ -226,8 +233,19 @@ export const formSchema = z.object({
   maxBudget: z.number().min(0.01, { message: 'Must be a positive number.' }),
   githubRepositories: z.array(
     z.union([
-      z.object({ type: z.literal('new'), name: z.string().min(1, 'Name is required.'), isPrivate: z.boolean(), organization: z.string().optional() }),
-      z.object({ type: z.literal('existing'), url: z.string().url('Invalid URL.').min(1, 'URL is required.') }),
+      z.object({ 
+        type: z.literal('new'), 
+        name: z.string().min(1, 'Name is required.'), 
+        isPrivate: z.boolean(), 
+        organization: z.string().optional(),
+        forkUrl: z.string().optional(),
+        template: z.enum(["android_studio", "xcode", "unity", "godot", "unreal_engine"]).optional(),
+      }),
+      z.object({ 
+        type: z.literal('existing'), 
+        url: z.string().url('Invalid URL.').min(1, 'URL is required.'),
+        __justAdded: z.boolean().optional()
+      }),
     ]),
   ),
   advancedOptions: z.object({
@@ -243,5 +261,6 @@ export const formSchema = z.object({
       z.object({ ecosystem: z.string().min(1), name: z.string().min(1) })
     ).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
     jiraLinked: z.boolean(),
+    jiraProjectKey: z.string().optional(),
   }),
 });

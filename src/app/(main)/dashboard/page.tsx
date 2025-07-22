@@ -6,15 +6,17 @@ import ActiveProjectsSummary from './components/ActiveProjectsSummary';
 import { getInitialAuthData } from '@/lib/data/user'; // Server-side auth check
 import { fetchUserProjects } from '@/lib/data/projects'; // Server-side data fetching
 import { Project, Status } from '@/types/project';
+import { fetchUserTransactions } from '@/lib/data/transactions';
 
 // Define which statuses are considered "active" for the summary component
 const ACTIVE_STATUSES: Status[] = ['in_progress', 'starting', 'stopping'];
 
 export default async function DashboardPage() {
-  // 1. Fetch user data and projects in parallel on the server.
-  const [{ user }, allProjects] = await Promise.all([
+  // 1. Fetch user, projects, and transactions in parallel.
+  const [{ user }, allProjects, transactions] = await Promise.all([
     getInitialAuthData(),
     fetchUserProjects(),
+    fetchUserTransactions(),
   ]);
 
   // 2. If not authenticated, redirect to the login page immediately.
@@ -22,6 +24,11 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login');
   }
+
+  const userWithTransactions = {
+    ...user,
+    transactionHistory: transactions,
+  };
 
   // 3. Filter the projects on the server to get only the active ones.
   // This prevents sending unnecessary data to the client.
@@ -37,7 +44,7 @@ export default async function DashboardPage() {
         <h1 className="text-4xl sm:text-5xl font-bold mb-8">Welcome, {user.name}!</h1>
         
         {/* Pass the full user object to the usage section */}
-        <AccountUsageSection initialUser={user} />
+        <AccountUsageSection initialUser={userWithTransactions} />
 
         <section className="w-full max-w-5xl mb-12">
           <div className="flex justify-between items-center mb-6">

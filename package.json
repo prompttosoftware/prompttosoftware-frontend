@@ -64,6 +64,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^2",
     "@playwright/test": "^1.53.2",
+    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4.1.11",
     "@tanstack/react-query-devtools": "^5.81.5",
     "@testing-library/jest-dom": "^6.6.3",

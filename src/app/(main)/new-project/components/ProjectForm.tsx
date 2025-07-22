@@ -29,7 +29,8 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         githubRepositories: project.repositories,
         advancedOptions: {
             installations: project.installations,
-            jiraLinked: false, // You might need to fetch this from the project data if it exists there
+            jiraLinked: project.useJira ?? false,
+            jiraProjectKey: project.jiraProjectKey,
             aiModels: {
                 utility: project.models.utility,
                 low: project.models.low,
@@ -120,9 +121,9 @@ export default function ProjectForm({ user, initialProjectData }: ProjectFormPro
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
             <ProjectDescription />
-            <RepositoryManagement />
+            <RepositoryManagement isEditing={isEditMode} />
             <BudgetAndRuntime />
-            <AdvancedOptions isJiraGloballyLinked={isJiraGloballyLinked} />
+            <AdvancedOptions isEditing={isEditMode} isJiraGloballyLinked={isJiraGloballyLinked} />
 
             <div className="pt-4">
               {/* Change button text and style based on the mode */}

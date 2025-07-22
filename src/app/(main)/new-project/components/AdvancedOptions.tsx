@@ -7,10 +7,11 @@ import InstallationManager from './InstallationsManager';
 import JiraIntegration from './JiraIntegration';
 
 interface AdvancedOptionsProps {
+  isEditing: boolean;
   isJiraGloballyLinked: boolean;
 }
 
-export default function AdvancedOptions({ isJiraGloballyLinked }: AdvancedOptionsProps) {
+export default function AdvancedOptions({ isEditing, isJiraGloballyLinked }: AdvancedOptionsProps) {
   const [show, setShow] = useState(false);
 
   if (!show) {
