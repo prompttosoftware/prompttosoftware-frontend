@@ -132,9 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
       if (response.token && response.user) {
         logger.info('AuthProvider: GitHub login successful, setting token and refetching profile');
         setAuthToken(response.token);
-        // Invalidate the query. This will cause useUserProfileQuery to refetch
-        // and update the 'user' state automatically.
-        await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        queryClient.setQueryData(['auth', 'me'], response.user);
         return response;
       } else {
         throw new Error('GitHub authentication failed: Invalid response from server.');
