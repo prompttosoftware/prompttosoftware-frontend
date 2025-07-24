@@ -1,10 +1,9 @@
-import 'server-only'; // This directive ensures this code never ends up in a client bundle.
+import 'server-only';
 
 import { UserProfile } from '../../types/auth';
 import { FAKE_USER } from '../dev/fakeData';
 import { serverFetch } from '../server-api';
 
-// This is the function we will call from our RootLayout
 export async function getInitialAuthData(): Promise<{ user: UserProfile | null }> {
 
   if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true')

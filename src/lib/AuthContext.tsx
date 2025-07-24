@@ -11,6 +11,7 @@ import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
 import { toast } from 'sonner';
+import { removeAuthToken, setAuthToken } from '@/utils/auth';
 
 // 1. Define the shape of the AuthContext value
 interface AuthContextType {
@@ -60,6 +61,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
   const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
   const [showTutorial, setShowTutorial] = useState<boolean>(false); // State to control tutorial visibility
 
+  // VVV ADD THIS DIAGNOSTIC LOG VVV
+  useEffect(() => {
+    console.log('--- AuthProvider MOUNTED ---');
+    
+    // You can even add a cleanup function to be 100% sure
+    return () => {
+      console.log('--- AuthProvider WILL UNMOUNT ---');
+    };
+  }, []); // The empty array is crucial
+
   useEffect(() => {
     // Setup interceptors when the component mounts or router changes
     setupHttpClientInterceptors(router);
@@ -73,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
   const isAuthenticated = !!user && !isLoading;
 
   const login = (token: string, userData: UserProfile) => {
-    localStorage.setItem('jwtToken', token);
+    setAuthToken(token);
     // After login, invalidate and refetch the auth query to get the latest user profile
     queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     logger.info('AuthProvider: User logged in and token stored. User profile will be refetched.');
@@ -95,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
       // Continue with client-side logout even if API call fails
       // as the token might be invalid or the backend session already expired.
     }
-    localStorage.removeItem('jwtToken'); // Clear the token
+    removeAuthToken();
     queryClient.removeQueries({ queryKey: ['auth', 'me'] }); // Completely remove user data from cache
     setBalance(0); // Reset balance on logout
     // The useUserProfileQuery hook will automatically reflect the cleared state
@@ -120,7 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
 
       if (response.token && response.user) {
         logger.info('AuthProvider: GitHub login successful, setting token and refetching profile');
-        localStorage.setItem('jwtToken', response.token);
+        setAuthToken(response.token);
         // Invalidate the query. This will cause useUserProfileQuery to refetch
         // and update the 'user' state automatically.
         await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });

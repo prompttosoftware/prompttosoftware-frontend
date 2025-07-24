@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'; // Import AxiosInstance and AxiosError
-import { getAuthToken } from '../utils/auth'; // Utility to get the token
+import { getAuthToken, removeAuthToken } from '../utils/auth'; // Utility to get the token
 import { setGlobalError } from '../store/globalErrorStore'; // For global error handling
 import { logger } from '../utils/logger'; // For logging
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; // For router type
@@ -68,7 +68,7 @@ export const setupHttpClientInterceptors = (router: AppRouterInstance) => {
                 '401 Unauthorized with an existing token. Session likely expired. Clearing token and redirecting to login.',
               );
               try {
-                localStorage.removeItem('jwtToken');
+                removeAuthToken();
                 logger.info('JWT token cleared from localStorage.');
               } catch (clearErr) {
                 logger.error('Failed to clear JWT token from localStorage:', clearErr as Error);

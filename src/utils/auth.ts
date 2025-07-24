@@ -1,15 +1,23 @@
+const TOKEN_KEY = 'jwtToken';
+
 export function getAuthToken(): string | null {
-  // In a real application, this would retrieve the token from localStorage,
-  // sessionStorage, or a secure cookie.
-  // For now, we'll return a placeholder or null.
-  // Replace this with actual token retrieval logic from your authentication epic.
-  return localStorage.getItem('authToken'); // Example: retrieving from localStorage
+  // Check for window to ensure it's running on the client side
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setAuthToken(token: string): void {
-  localStorage.setItem('authToken', token);
+  if (typeof window === 'undefined') {
+    return;
+  }
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function removeAuthToken(): void {
-  localStorage.removeItem('authToken');
+  if (typeof window === 'undefined') {
+    return;
+  }
+  localStorage.removeItem(TOKEN_KEY);
 }

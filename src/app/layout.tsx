@@ -12,30 +12,16 @@ export const metadata = {
   description: 'An AI-powered software development platform designed to bring your ideas to life.',
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Conditionally render MSW only in development
-  if (process.env.NEXT_PUBLIC_API_MOCKING === 'enabled') {
-    const { MswProvider } = require('../components/MswProvider');
-    return (
-      <html lang="en" dir="ltr" className="h-full">
-        <body className={`${inter.className} h-full bg-gray-100`}>
-          <ErrorBoundary>
-            <MswProvider>
-              <Providers>{children}</Providers>
-            </MswProvider>
-          </ErrorBoundary>
-        </body>
-      </html>
-    );
-  }
-
-  const initialAuthData = await getInitialAuthData();
-
+// src/app/layout.tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr" className="h-full">
       <body className={`${inter.className} h-full bg-gray-100`}>
         <ErrorBoundary>
-          <Providers initialAuthData={initialAuthData}>{children}</Providers>
+          {/* We pass NO initial data here. The client will be unauthenticated by default. */}
+          <Providers initialAuthData={{ user: null }}>
+            {children}
+          </Providers>
         </ErrorBoundary>
       </body>
     </html>
