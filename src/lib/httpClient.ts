@@ -55,19 +55,34 @@ export const setupHttpClientInterceptors = (router: AppRouterInstance) => {
             errorMessage = (data as any).message || 'Bad Request: The request was invalid.';
             break;
           case 401:
-            logger.warn(
-              '401 Unauthorized response received. Clearing JWT and redirecting to login.',
-            );
-            try {
-              localStorage.removeItem('jwtToken'); // Clear the invalid or expired JWT
-              logger.info('JWT token cleared from localStorage.');
-            } catch (clearErr) {
-              logger.error('Failed to clear JWT token from localStorage:', clearErr as Error);
+            errorMessage = (data as any).message || 'Unauthorized: Authentication is required or has failed.';
+            
+            // Check if a token was present. This differentiates an expired session
+            // from a user who is simply not logged in.
+            const token = getAuthToken();
+
+            if (token) {
+              // If a token was present, it's invalid or expired.
+              // This is a true "session expired" scenario.
+              logger.warn(
+                '401 Unauthorized with an existing token. Session likely expired. Clearing token and redirecting to login.',
+              );
+              try {
+                localStorage.removeItem('jwtToken');
+                logger.info('JWT token cleared from localStorage.');
+              } catch (clearErr) {
+                logger.error('Failed to clear JWT token from localStorage:', clearErr as Error);
+              }
+              // Only redirect if a token was present and failed
+              router.push('/login?sessionExpired=true');
+            } else {
+              // If no token was present, this is an expected 401 for an unauthenticated user.
+              // Do not redirect. Just let the calling code handle the error.
+              logger.info('401 Unauthorized on a request with no token. This is expected. Not redirecting.');
             }
-            router.push('/login?sessionExpired=true');
-            errorMessage =
-              (data as any).message || 'Unauthorized: Authentication is required or has failed.';
-            return Promise.reject(error); // Reject to stop further processing for 401
+
+            // Reject the promise so the calling code (e.g., a useQuery hook) knows the request failed.
+            return Promise.reject(error);
           case 403:
             errorMessage =
               (data as any).message || 'Forbidden: You do not have permission to access this resource.';
