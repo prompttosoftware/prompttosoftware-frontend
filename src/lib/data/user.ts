@@ -5,17 +5,27 @@ import { FAKE_USER } from '../dev/fakeData';
 import { serverFetch } from '../server-api';
 
 export async function getInitialAuthData(): Promise<{ user: UserProfile | null }> {
+  console.debug('[getInitialAuthData] Called.');
 
-  if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true')
+  if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') {
+    console.debug('[getInitialAuthData] Using FAKE_USER due to NEXT_PUBLIC_FAKE_AUTH=true');
     return { user: FAKE_USER };
+  }
 
   try {
     const res = await serverFetch('/users/me');
-    if (!res.ok) return { user: null };
+    console.debug('[getInitialAuthData] /users/me response status:', res.status);
+
+    if (!res.ok) {
+      console.warn('[getInitialAuthData] /users/me responded with non-OK status:', res.status);
+      return { user: null };
+    }
+
     const user = (await res.json()) as UserProfile;
+    console.debug('[getInitialAuthData] Parsed user:', user);
     return { user };
   } catch (e) {
-    console.error(e);
+    console.error('[getInitialAuthData] Error fetching user:', e);
     return { user: null };
   }
 }
