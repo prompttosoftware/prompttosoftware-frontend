@@ -10,7 +10,7 @@ export async function getInitialAuthData(): Promise<{ user: UserProfile | null }
     return { user: FAKE_USER };
 
   try {
-    const res = await serverFetch('/api/me');
+    const res = await serverFetch('/users/me');
     if (!res.ok) return { user: null };
     const user = (await res.json()) as UserProfile;
     return { user };

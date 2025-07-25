@@ -20,7 +20,6 @@ interface AuthContextType {
   isLoading: boolean;
   isError: boolean; // Add this
   error: Error | null; // Add this, adjust type if needed
-  login: (token: string, user: UserProfile) => void;
   logout: () => void;
   updateProfile: (newUserProfile: UserProfile) => void;
   showTutorial: boolean;
@@ -36,7 +35,6 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
   isLoading: true, // will be overridden by the actual loading state from useUserProfileQuery
-  login: () => {}, // Placeholder
   logout: () => {}, // Placeholder
   updateProfile: () => {}, // Placeholder
   showTutorial: false,
@@ -83,19 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
   // The user is authenticated if user data is present and not loading.
   const isAuthenticated = !!user && !isLoading;
 
-  const login = (token: string, userData: UserProfile) => {
-    setAuthToken(token);
-    // After login, invalidate and refetch the auth query to get the latest user profile
-    queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-    logger.info('AuthProvider: User logged in and token stored. User profile will be refetched.');
-
-    // Set show_tutorial flag if it's a new user
-    if (userData?.isNewUser) {
-      localStorage.removeItem(TUTORIAL_COMPLETED_KEY); // If it's a new user, remove the tutorial completion flag to force the tutorial to show
-      logger.info('AuthProvider: New user detected, tutorial completion flag removed.');
-    }
-  };
-
   const logout = async () => {
     // Marked as async
     try {
@@ -130,7 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
       const response = await api.loginWithGithub(code);
 
       if (response.token && response.data?.user) {
-        logger.info('AuthProvider: GitHub login successful, setting token and refetching profile');
+        logger.info('AuthProvider: GitHub login successful, setting token.');
         setAuthToken(response.token);
         queryClient.setQueryData(['auth', 'me'], response.data.user);
         return response;
@@ -182,7 +167,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
     isLoading, // The ONE source of truth for loading state
     isError, // Pass this down too
     error,   // And the error object
-    login, // Your old login function
     logout,
     updateProfile,
     // Add the new methods to the context value
