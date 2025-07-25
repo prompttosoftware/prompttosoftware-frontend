@@ -8,6 +8,7 @@ import { APIErrorResponse, InternalServerErrorMessage } from '../types/common'; 
 export const axiosInstance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' ? '' : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://host.docker.internal:8080/api'), // Adjust baseURL for mocking
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

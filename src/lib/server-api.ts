@@ -70,6 +70,7 @@ export async function serverFetch(
   return fetch(url, {
     ...init,
     headers,
+    credentials: 'include',
     // Default cache for server components
     cache: init.cache ?? 'no-store',
   });
