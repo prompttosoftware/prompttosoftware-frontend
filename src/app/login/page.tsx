@@ -20,14 +20,20 @@ function LoginContent() {
 
   // 3. This function now manages its own loading and error state.
   const handleGithubCallback = useCallback(async (code: string) => {
+    console.log('Handling GitHub callback...');
+    if (code) {
+      console.log(`Code is valid in github callback.`);
+    }
     setIsLoggingIn(true);
     setError(null); // Clear previous errors before trying
     try {
       await loginWithGithub(code);
+      console.log(`Login with github success, should navigate to dashboard.`);
       // On success, redirect to dashboard. Clear any lingering success messages first.
       useSuccessMessageStore.getState().clearMessage();
       router.replace('/dashboard');
     } catch (err: any) {
+      console.log(`Error while logging in: ${err}`);
       // If login fails, set the local error state to display to the user.
       setError(err.message || 'An unknown error occurred during login.');
     } finally {
@@ -37,16 +43,19 @@ function LoginContent() {
 
   // 4. The main effect is now simpler and focuses on URL params.
   useEffect(() => {
+    console.log('Auth provider use effect...');
     // Clear any success messages from other pages (e.g., after registration)
     useSuccessMessageStore.getState().clearMessage();
 
     const code = searchParams.get('code');
     const urlError = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
-
+    console.log(`error description: ${errorDescription}`);
     if (code) {
+      console.log('Code found.');
       handleGithubCallback(code);
     } else if (urlError) {
+      console.log(`Url error: ${urlError}`);
       const message = errorDescription
         ? decodeURIComponent(errorDescription).replace(/\+/g, ' ')
         : 'Access to your GitHub account was denied.';

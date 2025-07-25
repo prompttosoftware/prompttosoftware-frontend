@@ -60,7 +60,9 @@ export interface UserProfile {
  */
 export interface AuthResponse {
   token: string;
-  user: UserProfile;
+  data: {
+    user: UserProfile;
+  }
 }
 
 /**

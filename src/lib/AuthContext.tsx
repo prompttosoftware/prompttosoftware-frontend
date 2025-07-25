@@ -129,10 +129,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
     try {
       const response = await api.loginWithGithub(code);
 
-      if (response.token && response.user) {
+      if (response.token && response.data?.user) {
         logger.info('AuthProvider: GitHub login successful, setting token and refetching profile');
         setAuthToken(response.token);
-        queryClient.setQueryData(['auth', 'me'], response.user);
+        queryClient.setQueryData(['auth', 'me'], response.data.user);
         return response;
       } else {
         throw new Error('GitHub authentication failed: Invalid response from server.');
