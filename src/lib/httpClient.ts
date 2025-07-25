@@ -13,6 +13,12 @@ export const axiosInstance: AxiosInstance = axios.create({
   },
 });
 
+// A list of routes that do NOT require an auth token
+const publicRoutes = [
+  '/auth/github',
+  '/projects/explore'
+];
+
 // Temporarily log the baseURL to debug
 console.log('Axios instance initialized with base URL:', axiosInstance.defaults.baseURL, 'NEXT_PUBLIC_API_MOCKING:', process.env.NEXT_PUBLIC_API_MOCKING);
 logger.info('Axios instance initialized with base URL:', axiosInstance.defaults.baseURL);
@@ -23,10 +29,16 @@ export const setupHttpClientInterceptors = (router: AppRouterInstance) => {
   axiosInstance.interceptors.request.use(
     (config) => {
       try {
-        const token = getAuthToken(); // Function to retrieve the JWT token
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-          logger.info('JWT token attached to request headers.');
+        // Check if the request URL is for a public route
+        const isPublicRoute = publicRoutes.some(path => config.url?.startsWith(path));
+
+        // If it's not a public route, add the token
+        if (!isPublicRoute) {
+          const token = getAuthToken(); // Function to retrieve the JWT token
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+            logger.info('JWT token attached to request headers.');
+          }
         }
       } catch (error) {
         logger.error('Failed to attach JWT token to request:', error as Error);
@@ -73,8 +85,12 @@ export const setupHttpClientInterceptors = (router: AppRouterInstance) => {
               } catch (clearErr) {
                 logger.error('Failed to clear JWT token from localStorage:', clearErr as Error);
               }
-              // Only redirect if a token was present and failed
-              router.push('/login?sessionExpired=true');
+              // Only redirect if a token was present, failed, and not public
+              const isPublicRoute = publicRoutes.some(path => error.config?.url?.startsWith(path));
+        
+              if (!isPublicRoute) {
+                router.push('/login?sessionExpired=true');
+              }
             } else {
               // If no token was present, this is an expected 401 for an unauthenticated user.
               // Do not redirect. Just let the calling code handle the error.
