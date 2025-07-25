@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, Suspense, useCallback } from 'react';
+import React, { useEffect, useState, Suspense, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
@@ -8,51 +8,45 @@ import { useSuccessMessageStore } from '@/store/successMessageStore';
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // 1. We only need the `loginWithGithub` function from the auth context.
   const { loginWithGithub } = useAuth();
   
-  // 2. Use local state for the login action's loading and error states.
+  // Use ref to track if we've already processed the callback
+  const callbackProcessed = useRef(false);
+  
+  // Local state for the login action's loading and error states
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const sessionExpired = searchParams.get('sessionExpired') === 'true';
 
-  // 3. This function now manages its own loading and error state.
-  const handleGithubCallback = useCallback(async (code: string) => {
-    console.log('Handling GitHub callback...');
-    if (code) {
-      console.log(`Code is valid in github callback.`);
-    }
-    setIsLoggingIn(true);
-    setError(null); // Clear previous errors before trying
-    try {
-      await loginWithGithub(code);
-      console.log(`Login with github success, should navigate to dashboard.`);
-      // On success, redirect to dashboard. Clear any lingering success messages first.
-      useSuccessMessageStore.getState().clearMessage();
-      router.replace('/dashboard');
-    } catch (err: any) {
-      console.log(`Error while logging in: ${err}`);
-      // If login fails, set the local error state to display to the user.
-      setError(err.message || 'An unknown error occurred during login.');
-    } finally {
-      setIsLoggingIn(false);
-    }
-  }, [loginWithGithub, router]);
-
-  // 4. The main effect is now simpler and focuses on URL params.
+  // Simplified effect that doesn't depend on the callback function
   useEffect(() => {
     console.log('Auth provider use effect...');
-    // Clear any success messages from other pages (e.g., after registration)
+    
+    // Prevent processing the same callback multiple times
+    if (callbackProcessed.current) {
+      return;
+    }
+
+    // Clear any success messages from other pages
     useSuccessMessageStore.getState().clearMessage();
 
     const code = searchParams.get('code');
     const urlError = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
+    
     console.log(`error description: ${errorDescription}`);
+    
     if (code) {
-      console.log('Code found.');
+      console.log('Code found, processing callback...');
+      callbackProcessed.current = true; // Mark as processed
+      
+      // Clear URL parameters immediately to prevent re-processing
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('code');
+      newUrl.searchParams.delete('state');
+      window.history.replaceState({}, '', newUrl.toString());
+      
       handleGithubCallback(code);
     } else if (urlError) {
       console.log(`Url error: ${urlError}`);
@@ -61,7 +55,35 @@ function LoginContent() {
         : 'Access to your GitHub account was denied.';
       setError(`Authentication Failed: ${message}`);
     }
-  }, [searchParams, handleGithubCallback]);
+  }, [searchParams]); // Remove handleGithubCallback from dependencies
+
+  const handleGithubCallback = async (code: string) => {
+    console.log('Handling GitHub callback...');
+    if (code) {
+      console.log(`Code is valid in github callback.`);
+    }
+    
+    setIsLoggingIn(true);
+    setError(null); // Clear previous errors before trying
+    
+    try {
+      await loginWithGithub(code);
+      console.log(`Login with github success, should navigate to dashboard.`);
+      
+      // Clear success messages and navigate
+      useSuccessMessageStore.getState().clearMessage();
+      
+      // Replace the current URL to remove the code parameter and navigate
+      router.replace('/dashboard');
+      
+    } catch (err: any) {
+      console.log(`Error while logging in: ${err}`);
+      callbackProcessed.current = false; // Reset on error so user can try again
+      setError(err.message || 'An unknown error occurred during login.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   const handleGitHubLogin = () => {
     const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
