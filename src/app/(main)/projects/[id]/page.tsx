@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { fetchProjectById } from '@/lib/data/projects';
-import ProjectDetailClient from './components/ProjectDetailClient';
+import ProjectDetailClient from '@/app/(main)/projects/[id]/components/ProjectDetailClient';
 
 interface ProjectDetailPageProps {
   params: { id: string };

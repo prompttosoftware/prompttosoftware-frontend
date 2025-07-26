@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Banner } from '../types/banner';
+import { Banner } from '@/types/banner';
 
 interface BannerStore {
     activeBanner: Banner | null;

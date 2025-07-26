@@ -3,7 +3,7 @@
 
 import React, { useEffect, useContext, useState } from 'react';
 
-import SideNavBar from './SideNavBar';
+import SideNavBar from '@/app/(main)/components/SideNavBar';
 import { useAuth } from '@/hooks/useAuth';
 import { StripeWrapper } from '@/components/StripeWrapper';
 import { AuthContext } from '@/lib/AuthContext';
@@ -11,14 +11,14 @@ import useBannerStore from '@/store/bannerStore';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useRouter } from 'next/navigation';
 import { toast, Toaster } from 'sonner';
-import BannerDisplay from './BannerDisplay';
-import ConfirmationDialog from './ConfirmationDialog';
-import { PaymentModal } from './PaymentModal';
-import SuccessToast from './SuccessToast';
-import TutorialOverlay from './TutorialOverlay';
-import WelcomeModal from './WelcomeModal';
+import BannerDisplay from '@/app/(main)/components/BannerDisplay';
+import ConfirmationDialog from '@/app/(main)/components/ConfirmationDialog';
+import { PaymentModal } from '@/app/(main)/components/PaymentModal';
+import SuccessToast from '@/app/(main)/components/SuccessToast';
+import TutorialOverlay from '@/app/(main)/components/TutorialOverlay';
+import WelcomeModal from '@/app/(main)/components/WelcomeModal';
 import { Banner } from '@/types/banner';
-import AppHeader from './AppHeader';
+import AppHeader from '@/app/(main)/components/AppHeader';
 
 export default function MainUI({ children }: { children: React.ReactNode }) {
   // All state and hooks that were in the layout now live here.

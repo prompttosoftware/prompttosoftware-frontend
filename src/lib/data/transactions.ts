@@ -1,7 +1,6 @@
 import { Transaction } from '@/types/transactions';
-import 'server-only'; // Ensures this code only runs on the server
-import { serverFetch } from '../server-api';
-import { FAKE_TRANSACTIONS } from '../dev/fakeData';
+import { serverFetch } from '@/lib/server-api';
+import { FAKE_TRANSACTIONS } from '@/lib/dev/fakeData';
 
 export async function fetchUserTransactions(): Promise<Transaction[]> {
     if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') return FAKE_TRANSACTIONS;

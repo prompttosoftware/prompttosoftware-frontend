@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { UserProfile } from '@/types/auth';
-import { ApiKeyManager } from '../../components/ApiKeyManager';
-import DeleteAccountButton from '../../components/DeleteAccountButton';
-import { SavedCardsList } from '../../components/SavedCardsList';
+import { ApiKeyManager } from '@/app/(main)/components/ApiKeyManager';
+import DeleteAccountButton from '@/app/(main)/components/DeleteAccountButton';
+import { SavedCardsList } from '@/app/(main)/components/SavedCardsList';
 import { AuthProvider } from '@/lib/AuthContext';
 
 type SettingsClientProps = {

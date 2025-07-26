@@ -1,13 +1,13 @@
 'use client'; // This component needs to be client-side due to hooks like useEffect, useState, useAuth.
 
 import React, { useState, useEffect } from 'react';
-import { SavedCardsList } from '../../../../components/payments/SavedCardsList/SavedCardsList';
+import { SavedCardsList } from '@/components/payments/SavedCardsList/SavedCardsList';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import EmptyState from '@/app/(main)/components/EmptyState'; // Make sure EmptyState is imported
-import { useAuth } from '../../../../hooks/useAuth';
-import { useGlobalError } from '../../../../hooks/useGlobalError';
-import { httpClient } from '../../../../lib/httpClient';
-import { SavedCard } from '../../../../types/payments'; // Assuming SavedCard is defined here
+import { useAuth } from '@/hooks/useAuth';
+import { useGlobalError } from '@/hooks/useGlobalError';
+import { httpClient } from '@/lib/httpClient';
+import { SavedCard } from '@/types/payments'; // Assuming SavedCard is defined here
 import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function PaymentsPage() {

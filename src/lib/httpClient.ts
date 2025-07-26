@@ -1,9 +1,9 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'; // Import AxiosInstance and AxiosError
-import { getAuthToken, removeAuthToken } from '../utils/auth'; // Utility to get the token
-import { setGlobalError } from '../store/globalErrorStore'; // For global error handling
-import { logger } from '../utils/logger'; // For logging
+import { getAuthToken, removeAuthToken } from '@/utils/auth'; // Utility to get the token
+import { setGlobalError } from '@/store/globalErrorStore'; // For global error handling
+import { logger } from '@/utils/logger'; // For logging
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; // For router type
-import { APIErrorResponse, InternalServerErrorMessage } from '../types/common'; // For error types
+import { APIErrorResponse, InternalServerErrorMessage } from '@/types/common'; // For error types
 
 export const axiosInstance: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' ? '' : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://host.docker.internal:8080/api'), // Adjust baseURL for mocking

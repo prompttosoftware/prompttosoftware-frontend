@@ -2,7 +2,7 @@
 
 import React from 'react';
 import EmptyState from '@/app/(main)/components/EmptyState';
-import ProjectSummaryCard from './ProjectSummaryCard';
+import ProjectSummaryCard from '@/app/(main)/dashboard/components/ProjectSummaryCard';
 import { Project } from '@/types/project';
 
 interface ActiveProjectsSummaryProps {

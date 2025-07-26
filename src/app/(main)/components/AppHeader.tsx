@@ -3,13 +3,13 @@
 
 import { usePathname } from 'next/navigation';
 import { Bars3Icon } from '@heroicons/react/24/outline';
-import ProfileButton from './ProfileButton';
-import AddPaymentButton from './AddPaymentButton';
-import BalanceDisplay from './BalanceDisplay';
-import LinkJiraButton from './LinkJiraButton';
+import ProfileButton from '@/app/(main)/components/ProfileButton';
+import AddPaymentButton from '@/app/(main)/components/AddPaymentButton';
+import BalanceDisplay from '@/app/(main)/components/BalanceDisplay';
+import LinkJiraButton from '@/app/(main)/components/LinkJiraButton';
 import { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import JiraCallbackHandler from './JiraCallbackHandler';
+import JiraCallbackHandler from '@/app/(main)/components/JiraCallbackHandler';
 
 const formatPathToTitle = (path: string) => {
     if (path === '/') return 'Dashboard';

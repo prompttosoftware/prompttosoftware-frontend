@@ -1,6 +1,6 @@
-import { httpClient } from '../lib/httpClient'; // Using the pre-configured axios instance
-import { logger } from '../utils/logger';
-import { setGlobalError } from '../store/globalErrorStore';
+import { httpClient } from '@/lib/httpClient'; // Using the pre-configured axios instance
+import { logger } from '@/utils/logger';
+import { setGlobalError } from '@/store/globalErrorStore';
 import { AxiosError } from 'axios';
 import { DeleteSavedCardResponse, CreatePaymentIntentRequest, CreatePaymentIntentResponse, AddAdCreditRequest, AddAdCreditResponse, GetSavedCardsResponse } from '../types/payments';
 

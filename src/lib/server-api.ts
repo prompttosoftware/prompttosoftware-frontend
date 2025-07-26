@@ -6,6 +6,15 @@ const IN_CLUSTER_URL = process.env.MANAGEMENT_API_URL;
 const EXTERNAL_URL = process.env.API_BASE_URL;
 const SA_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token';
 
+let fs: any = null;
+try {
+  if (typeof window === 'undefined') {
+    fs = require('fs');
+  }
+} catch (err) {
+  // fs not available
+}
+
 function getServiceAccountToken(): string | null {
   console.debug('[getServiceAccountToken] typeof window:', typeof window);
   if (typeof window !== 'undefined') {
@@ -13,7 +22,6 @@ function getServiceAccountToken(): string | null {
     return null;
   }
   try {
-    const fs = require('fs');
     const token = fs.readFileSync(SA_TOKEN_PATH, 'utf-8').trim();
     console.debug('[serverFetch] Using Kubernetes service account token.');
     return token;

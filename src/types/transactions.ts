@@ -1,4 +1,4 @@
-import { UserProfile } from "./auth";
+import { UserProfile } from "@/types/auth";
 
 export enum TransactionType {
   CREDIT = 'credit',

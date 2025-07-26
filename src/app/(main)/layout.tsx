@@ -1,13 +1,19 @@
 // src/app/(main)/layout.tsx
-import MainUI from "./components/MainUI";
+'use client';
 
-export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  
+import MainUI from "@/app/(main)/components/MainUI";
+import { AuthProvider } from "@/lib/AuthContext";
+
+// This is the client-side layout for your authenticated section.
+export default function MainLayout({ children }: { children: React.ReactNode }) {
+  // Since we can't fetch server data here, we provide the AuthProvider
+  // without initial data. The first render will be in a loading state.
+  // This is a trade-off for having a complex, auth-aware UI shell.
   return (
-    <>
-    <MainUI>
-      {children}
-    </MainUI>
-    </>
+    <AuthProvider initialData={null}>
+      <MainUI>
+        {children}
+      </MainUI>
+    </AuthProvider>
   );
 }

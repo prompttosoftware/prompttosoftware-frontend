@@ -1,12 +1,11 @@
-import 'server-only';
 import {
   Project,
   ProjectSummary,
   ExploreProjectsParams,
   PaginatedResponse,
 } from '@/types/project'; // Assuming your types are correctly exported
-import { FAKE_EXPLORE_PROJECTS, FAKE_PROJECTS } from '../dev/fakeData';
-import { serverFetch } from '../server-api';
+import { FAKE_EXPLORE_PROJECTS, FAKE_PROJECTS } from '@/lib/dev/fakeData';
+import { serverFetch } from '@/lib/server-api';
 
 /**
  * SERVER-SIDE FETCH: Fetches the list of projects for the logged-in user.

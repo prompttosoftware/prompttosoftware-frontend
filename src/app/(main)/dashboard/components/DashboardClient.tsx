@@ -6,8 +6,8 @@ import { Project } from '@/types/project';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { AuthProvider } from '@/lib/AuthContext';
-import AccountUsageSection from './AccountUsageSection';
-import ActiveProjectsSummary from './ActiveProjectsSummary';
+import AccountUsageSection from '@/app/(main)/dashboard/components/AccountUsageSection';
+import ActiveProjectsSummary from '@/app/(main)/dashboard/components/ActiveProjectsSummary';
 
 type DashboardClientProps = {
   user: UserProfile;

@@ -1,8 +1,8 @@
 // src/app/layout.tsx
 import './globals.css';
 import { Inter } from 'next/font/google';
-import { Providers } from '../components/Providers';
-import ErrorBoundary from '../components/ErrorBoundary';
+import { Providers } from '@/components/Providers';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,8 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" dir="ltr" className="h-full">
       <body className={`${inter.className} h-full bg-gray-100`}>
         <ErrorBoundary>
-          {/* We pass NO initial data here. The client will be unauthenticated by default. */}
-          <Providers initialAuthData={{ user: null }}>
+          <Providers >
             {children}
           </Providers>
         </ErrorBoundary>

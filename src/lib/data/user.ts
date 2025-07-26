@@ -1,11 +1,10 @@
-import 'server-only';
-
-import { UserProfile } from '../../types/auth';
-import { FAKE_USER } from '../dev/fakeData';
-import { serverFetch } from '../server-api';
+import { UserProfile } from '@/types/auth';
+import { serverFetch } from '@/lib/server-api';
+import { FAKE_USER } from '@/lib/dev/fakeData';
 
 export async function getInitialAuthData(): Promise<{ user: UserProfile | null }> {
   console.debug('[getInitialAuthData] Called.');
+  console.debug('[getInitialAuthData] typeof window:', typeof window);
 
   if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') {
     console.debug('[getInitialAuthData] Using FAKE_USER due to NEXT_PUBLIC_FAKE_AUTH=true');

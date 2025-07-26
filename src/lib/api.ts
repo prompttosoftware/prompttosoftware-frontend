@@ -1,6 +1,5 @@
-import { httpClient } from './httpClient';
-import { setupHttpClientInterceptors } from './httpClient';
-import { paymentsService } from '../services/paymentsService';
+import { setupHttpClientInterceptors, httpClient } from '@/lib/httpClient';
+import { paymentsService } from '@/services/paymentsService';
 
 // Auth Types
 import { UserProfile, AuthResponse, SavedCard } from '@/types/auth';

@@ -1,6 +1,6 @@
 import { fetchExploreProjects } from '@/lib/data/projects';
 import { ExploreProjectsParams } from '@/types/project';
-import ExploreClient from './components/ExploreClient';
+import ExploreClient from '@/app/(main)/explore/components/ExploreClient';
 
 /**
  * This is the main Server Component for the /explore route.

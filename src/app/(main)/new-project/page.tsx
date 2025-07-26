@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getInitialAuthData } from '@/lib/data/user';
-import ProjectClient from './components/ProjectClient';
+import ProjectClient from '@/app/(main)/new-project/components/ProjectClient';
 
 /**
  * This is the main Server Component for the /new-project route.

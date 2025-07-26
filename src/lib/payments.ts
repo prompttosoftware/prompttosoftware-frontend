@@ -1,7 +1,7 @@
 // lib/payments.ts
 import { CreatePaymentIntentRequest, CreatePaymentIntentResponse, SavedCard } from '@/types/payments';
-import { httpClient } from './httpClient';
-import { FAKE_CARDS } from './dev/fakeData';
+import { httpClient } from '@/lib/httpClient';
+import { FAKE_CARDS } from '@/lib/dev/fakeData';
 
 export async function createPaymentIntent(
   payload: CreatePaymentIntentRequest
