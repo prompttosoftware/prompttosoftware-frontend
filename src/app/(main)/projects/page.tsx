@@ -17,7 +17,7 @@ import { PlusCircle } from 'lucide-react';
 const ProjectsPage = async () => {
   // Check for the auth token on the server to determine login status.
   const cookieStore = cookies();
-  const isAuthenticated = true;//(await cookieStore).has('jwtToken');
+  const isAuthenticated = (await cookieStore).has('jwtToken');
 
   // Fetch projects on the server. The fetch function handles auth internally
   // and will return an empty array if the user is not logged in or an error occurs.

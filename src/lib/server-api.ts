@@ -4,12 +4,14 @@ import { cookies } from 'next/headers';
 
 const IN_CLUSTER_URL = process.env.MANAGEMENT_API_URL;
 const EXTERNAL_URL = process.env.API_BASE_URL;
-
 const SA_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token';
 
 function getServiceAccountToken(): string | null {
-  if (typeof window !== 'undefined') return null;
-
+  console.debug('[getServiceAccountToken] typeof window:', typeof window);
+  if (typeof window !== 'undefined') {
+    console.error('[getServiceAccountToken] ERROR: Running in browser context!');
+    return null;
+  }
   try {
     const fs = require('fs');
     const token = fs.readFileSync(SA_TOKEN_PATH, 'utf-8').trim();
@@ -22,8 +24,18 @@ function getServiceAccountToken(): string | null {
 }
 
 async function getJwtFromCookie(): Promise<string | null> {
+  console.debug('[getJwtFromCookie] typeof window:', typeof window);
+  if (typeof window !== 'undefined') {
+    console.error('[getJwtFromCookie] ERROR: Running in browser context!');
+    return null;
+  }
+  
   try {
-    const jwtCookie = (await cookies()).get('jwtToken');
+    console.debug('[getJwtFromCookie] About to call cookies()');
+    const cookieStore = await cookies();
+    console.debug('[getJwtFromCookie] cookies() called successfully');
+    
+    const jwtCookie = cookieStore.get('jwtToken');
     if (jwtCookie?.value) {
       console.debug('[serverFetch] Found JWT cookie.');
       return jwtCookie.value;
@@ -45,10 +57,21 @@ export async function serverFetch(
   endpoint: string,
   { needsAuth = true, ...init }: FetchOptions = {}
 ) {
+  console.debug('[serverFetch] Starting serverFetch call');
+  console.debug('[serverFetch] typeof window:', typeof window);
+  console.debug('[serverFetch] process.env.NODE_ENV:', process.env.NODE_ENV);
+  
+  if (typeof window !== 'undefined') {
+    console.error('[serverFetch] CRITICAL ERROR: serverFetch called in browser context!');
+    throw new Error('serverFetch called in browser context');
+  }
+
   const isInCluster = !!getServiceAccountToken();
   const baseURL = isInCluster ? IN_CLUSTER_URL : EXTERNAL_URL;
-
+  
   console.debug('[serverFetch] isInCluster:', isInCluster);
+  console.debug('[serverFetch] IN_CLUSTER_URL:', IN_CLUSTER_URL);
+  console.debug('[serverFetch] EXTERNAL_URL:', EXTERNAL_URL);
   console.debug('[serverFetch] Base URL:', baseURL);
   console.debug('[serverFetch] Endpoint:', endpoint);
 
@@ -57,7 +80,6 @@ export async function serverFetch(
   }
 
   const url = `${baseURL}${endpoint}`;
-
   const headers: HeadersInit = {
     ...(init.headers as HeadersInit),
   };
@@ -66,24 +88,25 @@ export async function serverFetch(
     const token = isInCluster
       ? getServiceAccountToken()
       : await getJwtFromCookie();
-
+      
     if (!token) {
       console.warn('[serverFetch] No authentication token available.');
       throw new Error('No authentication token available');
     }
-
+    
     (headers as Record<string, string>).Authorization = `Bearer ${token}`;
     console.debug('[serverFetch] Authorization header set.');
   }
 
   try {
+    console.debug('[serverFetch] About to make fetch request to:', url);
     const response = await fetch(url, {
       ...init,
       headers,
       credentials: 'include',
       cache: init.cache ?? 'no-store',
     });
-
+    
     console.debug(`[serverFetch] Request to ${url} responded with status ${response.status}`);
     return response;
   } catch (err) {
