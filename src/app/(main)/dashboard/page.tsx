@@ -5,6 +5,7 @@ import DashboardClient from '@/app/(main)/dashboard/components/DashboardClient';
 import { logger } from '@/lib/logger';
 import { getInitialAuthData } from '@/lib/data/user';
 import { redirect } from 'next/navigation';
+export const dynamic = 'force-dynamic';
 
 // Define which statuses are considered "active" for the summary component
 const ACTIVE_STATUSES: Status[] = ['in_progress', 'starting', 'stopping'];
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
     fetchUserProjects(),
     fetchUserTransactions(),
   ]);
-  
+
   // 1. Check authentication first - don't fetch other data for unauthenticated users
   const { user } = await getInitialAuthData();
   

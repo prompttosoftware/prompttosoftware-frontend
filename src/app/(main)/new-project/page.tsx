@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getInitialAuthData } from '@/lib/data/user';
 import ProjectClient from '@/app/(main)/new-project/components/ProjectClient';
-
+export const dynamic = 'force-dynamic';
 /**
  * This is the main Server Component for the /new-project route.
  * 1. It protects the route by checking for an authenticated user on the server.
