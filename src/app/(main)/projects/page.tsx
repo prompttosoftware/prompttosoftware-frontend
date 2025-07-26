@@ -50,6 +50,15 @@ const ProjectsPage = async () => {
       );
     }
 
+    if (!Array.isArray(projects)) {
+      return (
+        <EmptyState
+          title="Error Loading Projects"
+          description="We couldn't load your projects at this time. Please try again later."
+        />
+      );
+    }
+
     // If we have projects, map over them and render the ProjectCard for each.
     // The data is passed as a prop to the client component `ProjectCard`.
     return (

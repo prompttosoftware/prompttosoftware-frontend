@@ -21,7 +21,8 @@ export async function fetchUserProjects(): Promise<Project[]> {
       console.error('fetchUserProjects:', res.statusText);
       return [];
     }
-    return res.json();
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : [];
   } catch (e) {
     console.error(e);
     return [];
