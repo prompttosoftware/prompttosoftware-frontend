@@ -7,6 +7,7 @@ import ProjectCard from '@/app/(main)/components/ProjectCard';
 import EmptyState from '@/app/(main)/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
+import { getInitialAuthData } from '@/lib/data/user';
 
 /**
  * This is now a React Server Component (RSC).
@@ -21,6 +22,7 @@ const ProjectsPage = async () => {
 
   // Fetch projects on the server. The fetch function handles auth internally
   // and will return an empty array if the user is not logged in or an error occurs.
+  await getInitialAuthData();
   const projects = await fetchUserProjects();
 
   const renderContent = () => {
