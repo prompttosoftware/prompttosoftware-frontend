@@ -3,7 +3,6 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import { Providers } from '../components/Providers';
 import ErrorBoundary from '../components/ErrorBoundary';
-import { getInitialAuthData } from '@/lib/data/user';
 
 const inter = Inter({ subsets: ['latin'] });
 

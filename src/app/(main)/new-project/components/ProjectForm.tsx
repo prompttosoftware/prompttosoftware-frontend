@@ -1,4 +1,4 @@
-// src/app/new-project/components/ProjectForm.tsx (after renaming)
+// src/app/new-project/components/ProjectForm.tsx
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -7,8 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import { Project, ProjectFormData, formSchema } from '@/types/project'; // Make sure Project is imported
-import { UserProfile } from '@/types/auth';
+import { Project, ProjectFormData, formSchema } from '@/types/project';
 
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
@@ -17,6 +16,7 @@ import BudgetAndRuntime from './BudgetAndRuntime';
 import ProjectDescription from './ProjectDescription';
 import RepositoryManagement from './RepositoryManagement';
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 // Helper to convert Project data to ProjectFormData
 // You may need to adjust this based on the exact differences in your models
@@ -45,13 +45,23 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
 
 
 interface ProjectFormProps {
-  user: UserProfile;
-  initialProjectData?: Project; // Make this prop optional
+  initialProjectData?: Project;
 }
 
-export default function ProjectForm({ user, initialProjectData }: ProjectFormProps) {
+export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, isLoading } = useAuth();
+
+  // Handle the case where auth is still resolving or has failed post-load
+  if (isLoading) {
+    return <div className="p-8 text-center"><LoadingSpinner /></div>;
+  }
+
+  if (!user) {
+    // This is a robust fallback if the session expires while on the page
+    return <div className="p-8 text-center">Your session has expired. Please refresh.</div>;
+  }
   
   // Determine if we are in "edit" mode
   const isEditMode = !!initialProjectData;

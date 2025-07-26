@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getInitialAuthData } from '@/lib/data/user';
-import ProjectForm from './components/ProjectForm';
+import ProjectClient from './components/ProjectClient';
 
 /**
  * This is the main Server Component for the /new-project route.
@@ -17,7 +17,6 @@ export default async function NewProjectPage() {
     redirect('/login?from=/new-project');
   }
 
-  // Render the client component, which will handle all form logic and interactivity.
-  // We pass the user object so the client doesn't need to re-fetch it.
-  return <ProjectForm user={user} />;
+  // Pass the user data to the client wrapper for hydration.
+  return <ProjectClient user={user} />;
 }

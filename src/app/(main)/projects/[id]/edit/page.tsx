@@ -3,7 +3,7 @@
 import { redirect, notFound } from 'next/navigation';
 import { getInitialAuthData } from '@/lib/data/user';
 import { fetchProjectById } from '@/lib/data/projects';
-import ProjectForm from '@/app/(main)/new-project/components/ProjectForm';
+import ProjectClient from '@/app/(main)/new-project/components/ProjectClient';
 
 /**
  * Server Component for the Project Edit Page.
@@ -30,7 +30,7 @@ export default async function EditProjectPage({ params }: {
 
   // 3. Render the form component, passing initial data to activate "edit" mode
   return (
-    <ProjectForm 
+    <ProjectClient 
       user={user} 
       initialProjectData={projectToEdit} 
     />
