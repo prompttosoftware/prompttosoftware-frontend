@@ -60,7 +60,7 @@ export async function serverFetch(
   console.debug('[serverFetch] Starting serverFetch call');
   console.debug('[serverFetch] typeof window:', typeof window);
   console.debug('[serverFetch] process.env.NODE_ENV:', process.env.NODE_ENV);
-  
+ 
   if (typeof window !== 'undefined') {
     console.error('[serverFetch] CRITICAL ERROR: serverFetch called in browser context!');
     throw new Error('serverFetch called in browser context');
@@ -68,10 +68,8 @@ export async function serverFetch(
 
   const isInCluster = !!getServiceAccountToken();
   const baseURL = isInCluster ? IN_CLUSTER_URL : EXTERNAL_URL;
-  
+ 
   console.debug('[serverFetch] isInCluster:', isInCluster);
-  console.debug('[serverFetch] IN_CLUSTER_URL:', IN_CLUSTER_URL);
-  console.debug('[serverFetch] EXTERNAL_URL:', EXTERNAL_URL);
   console.debug('[serverFetch] Base URL:', baseURL);
   console.debug('[serverFetch] Endpoint:', endpoint);
 
@@ -85,17 +83,39 @@ export async function serverFetch(
   };
 
   if (needsAuth) {
-    const token = isInCluster
-      ? getServiceAccountToken()
-      : await getJwtFromCookie();
+    if (isInCluster) {
+      // When in cluster, use ServiceAccount token for authorization
+      // and JWT token for user identification
+      const saToken = getServiceAccountToken();
+      const jwtToken = await getJwtFromCookie();
       
-    if (!token) {
-      console.warn('[serverFetch] No authentication token available.');
-      throw new Error('No authentication token available');
+      if (!saToken) {
+        console.warn('[serverFetch] No ServiceAccount token available.');
+        throw new Error('No ServiceAccount token available');
+      }
+      
+      // Use SA token for main authorization
+      (headers as Record<string, string>).Authorization = `Bearer ${saToken}`;
+      
+      // Include JWT token in custom header for user identification
+      if (jwtToken) {
+        (headers as Record<string, string>)['X-User-Token'] = jwtToken;
+        console.debug('[serverFetch] Both SA and JWT tokens set.');
+      } else {
+        console.debug('[serverFetch] Only SA token set (no user context).');
+      }
+    } else {
+      // When external, use JWT token as before
+      const jwtToken = await getJwtFromCookie();
+      
+      if (!jwtToken) {
+        console.warn('[serverFetch] No JWT token available.');
+        throw new Error('No JWT token available');
+      }
+      
+      (headers as Record<string, string>).Authorization = `Bearer ${jwtToken}`;
+      console.debug('[serverFetch] JWT Authorization header set.');
     }
-    
-    (headers as Record<string, string>).Authorization = `Bearer ${token}`;
-    console.debug('[serverFetch] Authorization header set.');
   }
 
   try {
@@ -106,7 +126,7 @@ export async function serverFetch(
       credentials: 'include',
       cache: init.cache ?? 'no-store',
     });
-    
+   
     console.debug(`[serverFetch] Request to ${url} responded with status ${response.status}`);
     return response;
   } catch (err) {
