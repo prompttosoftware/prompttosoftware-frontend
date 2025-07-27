@@ -1,15 +1,15 @@
 'use client';
 
 // src/lib/AuthContext.tsx
-import { AuthResponse, UserProfile } from '../types/auth';
+import { AuthResponse, UserProfile } from '@/types/auth';
 
 import React, { createContext, useEffect, ReactNode, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, setupInterceptors as setupHttpClientInterceptors } from '../lib/api'; // Import api and setupInterceptors from the new api.ts
-import { logger } from '../utils/logger'; // Import logger
-import { useUserProfileQuery } from '../hooks/useUserProfileQuery';
+import { api, setupInterceptors as setupHttpClientInterceptors } from '@/lib/api'; // Import api and setupInterceptors from the new api.ts
+import { logger } from '@/utils/logger'; // Import logger
+import { useUserProfileQuery } from '@/hooks/useUserProfileQuery';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBalanceStore } from '../store/balanceStore'; // Import useBalanceStore
+import { useBalanceStore } from '@/store/balanceStore'; // Import useBalanceStore
 import { toast } from 'sonner';
 import { removeAuthToken, setAuthToken } from '@/utils/auth';
 

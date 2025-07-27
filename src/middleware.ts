@@ -3,34 +3,43 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Check for the auth cookie
-  const authCookie = request.cookies.get('test-access');
-  const isAuthenticated = authCookie?.value === 'allowed';
+  const { pathname } = request.nextUrl;
   
-  // If not authenticated and not already on coming-soon page
-  if (!isAuthenticated && !request.nextUrl.pathname.startsWith('/coming-soon')) {
-    // Redirect to coming soon page
-    return NextResponse.redirect(new URL('/coming-soon', request.url));
+  // Skip middleware for certain paths that might cause issues
+  const skipPaths = [
+    '/_next',
+    '/api',
+    '/favicon.ico',
+    '/coming-soon'
+  ];
+  
+  if (skipPaths.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
   }
   
-  // If authenticated and trying to access coming-soon, redirect to home
-  if (isAuthenticated && request.nextUrl.pathname.startsWith('/coming-soon')) {
-    return NextResponse.redirect(new URL('/', request.url));
+  try {
+    // Check for the auth cookie
+    const authCookie = request.cookies.get('test-access');
+    const isAuthenticated = authCookie?.value === 'allowed';
+    
+    // Only redirect if not authenticated
+    if (!isAuthenticated) {
+      // Preserve the original URL for redirect after auth
+      const comingSoonUrl = new URL('/coming-soon', request.url);
+      comingSoonUrl.searchParams.set('returnTo', pathname);
+      return NextResponse.redirect(comingSoonUrl);
+    }
+    
+    return NextResponse.next();
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return NextResponse.next();
   }
-  
-  return NextResponse.next();
 }
 
 export const config = {
-  // Apply middleware to all routes except static files and API routes
+  // Simpler matcher that's less likely to cause issues
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next|api|favicon.ico).*)'
   ],
 };

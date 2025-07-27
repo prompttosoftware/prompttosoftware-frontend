@@ -42,11 +42,11 @@ export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => 
         <div className="text-2xl font-semibold text-gray-800">{pageTitle}</div>
       </div>
       <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
+        <Suspense fallback={null}>
+          <JiraCallbackHandler />
+        </Suspense>
         {isAuthenticated && (
           <>
-            <Suspense fallback={null}>
-              <JiraCallbackHandler />
-            </Suspense>
             <LinkJiraButton />
             <AddPaymentButton />
             <BalanceDisplay />
