@@ -23,9 +23,14 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     // This prevents a refetch on initial load.
     initialData: initialProject,
   });
- 
-  const { startProject, stopProject, deleteProject, sendMessage } = useProjectActions(project!._id);
+
+  // Use initialProject._id as fallback to prevent undefined errors
+  const projectId = project?._id || initialProject._id;
+  const { startProject, stopProject, deleteProject, sendMessage } = useProjectActions(projectId);
   const { showConfirmation, hideConfirmation } = useGlobalErrorStore();
+
+  // Use the current project or fallback to initialProject
+  const currentProject = project || initialProject;
 
   const handleDeleteConfirm = () => {
     deleteProject.mutate(undefined, {
@@ -38,41 +43,40 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
       },
     });
   };
- 
+
   // --- HANDLERS ---
   const handleDeleteClick = () => {
     showConfirmation(
-        "Delete Project",
-        `Are you sure you want to delete "${project!.name}"? This action cannot be undone.`,
-        handleDeleteConfirm
+      "Delete Project",
+      `Are you sure you want to delete "${currentProject.name}"? This action cannot be undone.`,
+      handleDeleteConfirm
     );
   };
 
-  // The project data from useProject will always be available due to initialData,
-  // so we can safely use the non-null assertion `!`.
+  // Always use currentProject to ensure we have valid data
   return (
     <>
       <div className="container mx-auto p-4">
         {/* --- Top Panel --- */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
           <ProjectHeader
-            projectId={project!._id}
-            name={project!.name}
+            projectId={currentProject._id}
+            name={currentProject.name}
             onDeleteClick={handleDeleteClick}
           />
           <ProjectStatus
-            status={project!.status}
-            lastError={project!.lastError ?? null}
+            status={currentProject.status}
+            lastError={currentProject.lastError ?? null}
           />
           <ProjectActions
-            projectStatus={project!.status}
+            projectStatus={currentProject.status}
             startProject={startProject}
             stopProject={stopProject}
           />
         </div>
         {/* --- History/Chat Panel --- */}
         <div className="flex flex-col h-[60vh] bg-white shadow rounded-lg">
-          <ProjectHistory history={project!.history} />
+          <ProjectHistory history={currentProject.history} />
           <MessageInput sendMessage={sendMessage} />
         </div>
       </div>
