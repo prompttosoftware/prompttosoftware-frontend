@@ -31,7 +31,7 @@ interface ProjectCardProps {
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
     // The entire card is a link to the project's detail page.
-    <Link href={`/projects/${project.id}`} className="block h-full no-underline">
+    <Link href={`/projects/${project._id}`} className="block h-full no-underline">
       <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border-blue-500 hover:shadow-xl">
         <CardHeader>
           <div className="flex justify-between items-start gap-4">

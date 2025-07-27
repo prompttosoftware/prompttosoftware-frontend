@@ -59,7 +59,7 @@ export async function fetchExploreProjects(
 export async function fetchProjectById(projectId: string): Promise<Project | null> {
   if (!projectId) return null;
   if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true')
-    return FAKE_PROJECTS.find(p => p.id === projectId) ?? null;
+    return FAKE_PROJECTS.find(p => p._id === projectId) ?? null;
 
   try {
     const res = await serverFetch(`/projects/${projectId}`);

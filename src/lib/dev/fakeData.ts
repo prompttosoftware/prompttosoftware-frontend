@@ -15,7 +15,7 @@ const commonModels = {
 // You can add more variety here to test different UI states.
 export const FAKE_PROJECTS: Project[] = [
   {
-    id: 'proj_1',
+    _id: 'proj_1',
     name: 'E-commerce AI Assistant',
     status: 'running',
     desiredStatus: 'stopped',
@@ -67,7 +67,7 @@ export const FAKE_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 'proj_2',
+    _id: 'proj_2',
     name: 'Slack Finance Bot',
     status: 'starting',
     desiredStatus: 'running',
@@ -111,7 +111,7 @@ export const FAKE_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 'proj_3',
+    _id: 'proj_3',
     name: 'Video Transcoder',
     status: 'stopping',
     desiredStatus: 'stopped',
@@ -152,7 +152,7 @@ export const FAKE_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 'proj_4',
+    _id: 'proj_4',
     name: 'Resume Parser API',
     status: 'stopped',
     desiredStatus: 'stopped',
@@ -196,7 +196,7 @@ export const FAKE_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 'proj_5',
+    _id: 'proj_5',
     name: 'HR Metrics Dashboard',
     status: 'error',
     desiredStatus: 'stopped',
@@ -237,7 +237,7 @@ export const FAKE_PROJECTS: Project[] = [
     ],
   },
   {
-    id: 'proj_6',
+    _id: 'proj_6',
     name: 'DevOps Onboarding Agent',
     status: 'pending',
     desiredStatus: 'running',
@@ -305,7 +305,7 @@ const baseModels = {
 
 export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
-    id: 'explore_proj_1',
+    _id: 'explore_proj_1',
     name: 'AI Marketing Assistant',
     status: 'stopped',
     stars: 144,
@@ -319,7 +319,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     models: baseModels,
   },
   {
-    id: 'explore_proj_2',
+    _id: 'explore_proj_2',
     name: 'Smart Meeting Notes',
     status: 'running',
     stars: 67,
@@ -345,7 +345,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     },
   },
   {
-    id: 'explore_proj_3',
+    _id: 'explore_proj_3',
     name: 'Code Review Agent',
     status: 'running',
     stars: 93,
@@ -362,7 +362,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     },
   },
   {
-    id: 'explore_proj_4',
+    _id: 'explore_proj_4',
     name: 'Personalized Learning Agent',
     status: 'running',
     stars: 0,
@@ -376,7 +376,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     models: baseModels,
   },
   {
-    id: 'explore_proj_5',
+    _id: 'explore_proj_5',
     name: 'Resume Screener',
     status: 'stopped',
     stars: 112,
@@ -393,7 +393,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     },
   },
   {
-    id: 'explore_proj_6',
+    _id: 'explore_proj_6',
     name: 'Video Summarization Tool',
     status: 'error',
     stars: 7,
@@ -407,7 +407,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     models: baseModels,
   },
   {
-    id: 'explore_proj_7',
+    _id: 'explore_proj_7',
     name: 'Crypto Market Tracker',
     status: 'stopped',
     stars: 0,
@@ -429,7 +429,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     },
   },
   {
-    id: 'explore_proj_8',
+    _id: 'explore_proj_8',
     name: 'Legal Document Analyzer',
     status: 'stopped',
     stars: 58,
@@ -443,7 +443,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     models: baseModels,
   },
   {
-    id: 'explore_proj_9',
+    _id: 'explore_proj_9',
     name: 'Onboarding Buddy',
     status: 'starting',
     stars: 0,
@@ -460,7 +460,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     },
   },
   {
-    id: 'explore_proj_10',
+    _id: 'explore_proj_10',
     name: 'Fitness Goal Tracker',
     status: 'running',
     stars: 2,
@@ -474,7 +474,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     models: baseModels,
   },
   {
-    id: 'explore_proj_11',
+    _id: 'explore_proj_11',
     name: 'Podcast Summarizer',
     status: 'stopped',
     stars: 18,
@@ -495,7 +495,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     },
   },
   {
-    id: 'explore_proj_12',
+    _id: 'explore_proj_12',
     name: 'Travel Recommendation Engine',
     status: 'running',
     stars: 0,
@@ -509,7 +509,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
     models: baseModels,
   },
   {
-    id: 'explore_proj_13',
+    _id: 'explore_proj_13',
     name: 'AI Cooking Assistant',
     status: 'running',
     stars: 35,

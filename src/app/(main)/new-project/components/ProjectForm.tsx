@@ -65,7 +65,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   
   // Determine if we are in "edit" mode
   const isEditMode = !!initialProjectData;
-  const projectId = initialProjectData?.id;
+  const projectId = initialProjectData?._id;
 
   const isJiraGloballyLinked = user.integrations?.jira?.isLinked ?? false;
 
@@ -103,14 +103,14 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
               // Use the new updateProject function
               const updatedProject = await api.updateProject(projectId, data);
               toast.success('Project updated successfully!');
-              router.push(`/projects/${updatedProject.id}`);
+              router.push(`/projects/${updatedProject._id}`);
               router.refresh(); // Good for invalidating server component cache
           } else {
               // --- CREATE LOGIC ---
               // Use the modified createProject function
               const createdProject = await api.createProject(data);
               toast.success('Project created successfully!');
-              router.push(`/projects/${createdProject.id}`);
+              router.push(`/projects/${createdProject._id}`);
           }
       } catch (error) {
           console.error('Project submission failed:', error);

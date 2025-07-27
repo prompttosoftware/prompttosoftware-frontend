@@ -80,7 +80,7 @@ export type Provider = "google" | "openrouter" | "openai" | "groq" | "anthropic"
  * Represents the full details of a project.
  */
 export interface Project {
-  id: string; // MongoDB ObjectId
+  _id: string; // MongoDB ObjectId
   name: string;
   status: Status;
   desiredStatus?: Status;
@@ -114,7 +114,7 @@ export interface ProjectCreator {
 // A summary version of the project for list views
 export type ProjectSummary = Pick<
   Project,
-  | 'id' // Make sure to use _id if you're using MongoDB/Mongoose
+  | '_id' // Make sure to use _id if you're using MongoDB/Mongoose
   | 'name'
   | 'status'
   | 'stars'

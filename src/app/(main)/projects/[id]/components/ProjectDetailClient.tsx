@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { useProject } from '@/hooks/useProject';
 import { useProjectActions } from '@/hooks/useProjectActions';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
@@ -18,13 +18,13 @@ interface ProjectDetailClientProps {
 
 export default function ProjectDetailClient({ initialProject }: ProjectDetailClientProps) {
   // --- HOOKS ---
-  const { data: project } = useProject(initialProject.id, {
+  const { data: project } = useProject(initialProject._id, {
     // Seed react-query with the server-fetched data.
     // This prevents a refetch on initial load.
     initialData: initialProject,
   });
  
-  const { startProject, stopProject, deleteProject, sendMessage } = useProjectActions(project!.id);
+  const { startProject, stopProject, deleteProject, sendMessage } = useProjectActions(project!._id);
   const { showConfirmation, hideConfirmation } = useGlobalErrorStore();
 
   const handleDeleteConfirm = () => {
@@ -56,7 +56,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         {/* --- Top Panel --- */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
           <ProjectHeader
-            projectId={project!.id}
+            projectId={project!._id}
             name={project!.name}
             onDeleteClick={handleDeleteClick}
           />

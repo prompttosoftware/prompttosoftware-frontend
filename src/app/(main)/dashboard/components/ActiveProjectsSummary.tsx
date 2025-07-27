@@ -25,7 +25,7 @@ const ActiveProjectsSummary: React.FC<ActiveProjectsSummaryProps> = ({ initialPr
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {initialProjects.map((project: Project) => (
-        <ProjectSummaryCard key={project.id} project={project} />
+        <ProjectSummaryCard key={project._id} project={project} />
       ))}
     </div>
   );

@@ -35,7 +35,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
   const progress = totalIssues > 0 ? ((project.completeIssues ?? 0) / totalIssues) * 100 : 0;
 
   return (
-    <Link href={`/projects/${project.id}`} className="block h-full no-underline">
+    <Link href={`/projects/${project._id}`} className="block h-full no-underline">
       <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border-blue-500 hover:shadow-xl">
         <CardHeader>
           <div className="flex justify-between items-start gap-4">
