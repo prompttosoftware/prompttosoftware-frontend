@@ -1,14 +1,11 @@
 // src/app/(main)/settings/page.tsx
 import { redirect } from 'next/navigation';
 import SettingsClient from '@/app/(main)/settings/components/SettingsClient';
-import { fetchUserProjects } from '@/lib/data/projects';
-import { FAKE_USER } from '@/lib/dev/fakeData';
+import { getInitialAuthData } from '@/lib/data/user';
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  await fetchUserProjects();
-  // const { user } = await getInitialAuthData();
-  const user = FAKE_USER;
+  const { user } = await getInitialAuthData();
 
   if (!user) {
     redirect('/login');

@@ -14,7 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
  */
 const StatusIndicator = ({ status }: { status: Status }) => {
 
-  const config = statusConfig[status] || statusConfig.completed;
+  const config = statusConfig[status] || statusConfig.stopped;
 
   return (
     <div className="flex items-center gap-2" title={`Status: ${config.label}`}>

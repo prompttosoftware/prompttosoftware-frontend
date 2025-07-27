@@ -1,28 +1,38 @@
 import { UserProfile } from '@/types/auth';
 import { serverFetch } from '@/lib/server-api';
 import { FAKE_USER } from '@/lib/dev/fakeData';
+import { cookies } from 'next/headers';
+import { unstable_cache } from 'next/cache';
 
 export async function getInitialAuthData(): Promise<{ user: UserProfile | null }> {
-  console.debug('[getInitialAuthData] Called.');
-  console.debug('[getInitialAuthData] typeof window:', typeof window);
-
   if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') {
     console.debug('[getInitialAuthData] Using FAKE_USER due to NEXT_PUBLIC_FAKE_AUTH=true');
     return { user: FAKE_USER };
   }
 
   try {
-    const res = await serverFetch('/users/me');
-    console.debug('[getInitialAuthData] /users/me response status:', res.status);
+    const cookieStore = await cookies();
+    const jwt = cookieStore.get('jwtToken')?.value;
 
-    if (!res.ok) {
-      console.warn('[getInitialAuthData] /users/me responded with non-OK status:', res.status);
-      return { user: null };
-    }
+    // Build a cache key that is unique per user
+    const cacheKey = `user-${jwt?.slice(-8) ?? 'none'}`;
 
-    const user = (await res.json()) as UserProfile;
-    console.debug('[getInitialAuthData] Parsed user:', user);
-    return { user };
+    // next.js in-memory cache helper (stable in 14+)
+    const cached = await unstable_cache(
+      async () => {
+        console.log('[getInitialAuthData] MISS – calling backend');
+        const res = await serverFetch('/users/me');
+        if (!res.ok) return null;
+        return res.json() as Promise<UserProfile>;
+      },
+      [cacheKey],        // cache key parts
+      {
+        revalidate: 60,  // seconds
+        tags: [`user-${jwt?.slice(-8) ?? 'none'}`],
+      }
+    )();
+
+    return { user: cached };
   } catch (e) {
     console.error('[getInitialAuthData] Error fetching user:', e);
     return { user: null };

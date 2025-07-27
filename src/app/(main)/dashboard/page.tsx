@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 // Define which statuses are considered "active" for the summary component
-const ACTIVE_STATUSES: Status[] = ['in_progress', 'starting', 'stopping'];
+const ACTIVE_STATUSES: Status[] = ['running', 'starting', 'stopping', 'pending'];
 
 export default async function DashboardPage() {
   console.debug('[DashboardPage] Starting render');
@@ -19,12 +19,6 @@ export default async function DashboardPage() {
     console.error('[DashboardPage] CRITICAL ERROR: Server component running in browser!');
   }
 
-  // 3. Now fetch projects and transactions in parallel since we know user is authenticated
-  const [allProjects, transactions] = await Promise.all([
-    fetchUserProjects(),
-    fetchUserTransactions(),
-  ]);
-
   // 1. Check authentication first - don't fetch other data for unauthenticated users
   const { user } = await getInitialAuthData();
   
@@ -33,7 +27,12 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/login');
   }
-
+  
+  // 3. Now fetch projects and transactions in parallel since we know user is authenticated
+  const [allProjects, transactions] = await Promise.all([
+    fetchUserProjects(),
+    fetchUserTransactions(),
+  ]);
 
   // 4. Prepare user data with transactions
   const userWithTransactions = {

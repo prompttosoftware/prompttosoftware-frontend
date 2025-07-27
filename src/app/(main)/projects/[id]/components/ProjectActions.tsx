@@ -12,9 +12,9 @@ interface ProjectActionsProps {
 }
 
 const ProjectActions = ({ projectStatus, startProject, stopProject }: ProjectActionsProps) => {
-  const isStarting = projectStatus === 'starting';
+  const isStarting = projectStatus === 'starting' || projectStatus === 'pending';
   const isStopping = projectStatus === 'stopping';
-  const isRunning = projectStatus === 'in_progress';
+  const isRunning = projectStatus === 'running';
   
   return (
     <div className="mt-6 pt-6 border-t flex justify-start gap-4">
@@ -28,7 +28,7 @@ const ProjectActions = ({ projectStatus, startProject, stopProject }: ProjectAct
       </Button>
       <Button
         onClick={() => stopProject.mutate()}
-        disabled={stopProject.isPending || isStopping || projectStatus === 'completed'}
+        disabled={stopProject.isPending || isStopping || projectStatus === 'stopped'}
         className="bg-red-500 hover:bg-red-600"
       >
         {stopProject.isPending || isStopping ? <LoadingSpinner size='small' className="mr-2" /> : null}

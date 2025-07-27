@@ -1,7 +1,6 @@
 import { fetchExploreProjects } from '@/lib/data/projects';
 import { ExploreProjectsParams } from '@/types/project';
 import ExploreClient from '@/app/(main)/explore/components/ExploreClient';
-import { getInitialAuthData } from '@/lib/data/user';
 
 /**
  * This is the main Server Component for the /explore route.
@@ -37,8 +36,6 @@ export default async function ExplorePage({
     page: typeof sParams.page === 'string' ? parseInt(sParams.page, 10) : 1,
     limit: typeof sParams.limit === 'string' ? parseInt(sParams.limit, 10) : 12,
   };
-
-  await getInitialAuthData();
 
   // Fetch the initial data on the server.
   // This happens before the page is rendered and sent to the browser.

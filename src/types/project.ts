@@ -13,8 +13,7 @@ export interface ProjectMessage {
   timestamp: string;
 }
 
-export type Status = 'pending' | 'in_progress' | 'completed' | 'failed' | 'starting' | 'stopping';
-
+export type Status = 'pending' | 'running' | 'stopped' | 'error' | 'starting' | 'stopping';
 export interface ProjectStatus {
   id: string;
   projectId: string;
@@ -217,12 +216,12 @@ export interface ProjectActionResponse {
 }
 
 export const statusConfig = {
-  in_progress: { className: 'bg-green-500', label: 'Running' },
+  running: { className: 'bg-green-500', label: 'Running' },
   pending: { className: 'bg-yellow-500 animate-pulse', label: 'Pending' },
   starting: { className: 'bg-yellow-500 animate-pulse', label: 'Starting' },
   stopping: { className: 'bg-orange-500 animate-pulse', label: 'Stopping' },
-  completed: { className: 'bg-gray-500', label: 'Completed'},
-  failed: { className: 'bg-red-500', label: 'Error' },
+  stopped: { className: 'bg-gray-500', label: 'Stopped'},
+  error: { className: 'bg-red-500', label: 'Error' },
 };
 
 const MAX_INSTALLATIONS = 20;
