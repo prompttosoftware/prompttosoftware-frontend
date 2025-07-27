@@ -3,7 +3,7 @@ import { fetchProjectById } from '@/lib/data/projects';
 import ProjectDetailClient from '@/app/(main)/projects/[id]/components/ProjectDetailClient';
 
 interface ProjectDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -12,18 +12,18 @@ interface ProjectDetailPageProps {
  * 2. If the project is not found (or user lacks permission), it triggers a 404 page.
  * 3. It passes the initial, server-fetched data to the interactive client component.
  */
-const ProjectDetailPage = async ({ params }: { params: { id: string } }) => {
-  const { id } = params;
-  
+const ProjectDetailPage = async ({ params }: ProjectDetailPageProps) => {
+  const { id } = await params;
+ 
   // Fetch the project on the server.
   const initialProject = await fetchProjectById(id);
-
+  
   // If fetchProjectById returns null (not found, auth error, etc.),
   // this will render the nearest not-found.tsx file.
   if (!initialProject) {
     notFound();
   }
-
+  
   // The server has done its job. Now, render the client component
   // which will handle all user interactions, state, and mutations.
   return <ProjectDetailClient initialProject={initialProject} />;
