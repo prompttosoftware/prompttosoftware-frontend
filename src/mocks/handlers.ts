@@ -89,7 +89,7 @@ export const handlers = [
     const mockStatus: ProjectStatus = {
       id: `status-${id}`,
       projectId: id as string,
-      status: 'in_progress',
+      status: 'running',
       progress: Math.floor(Math.random() * 100), // Random progress
       message: 'Project is running smoothly.',
       updatedAt: new Date().toISOString(),

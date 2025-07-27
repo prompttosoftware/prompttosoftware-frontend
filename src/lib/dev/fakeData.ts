@@ -17,8 +17,8 @@ export const FAKE_PROJECTS: Project[] = [
   {
     id: 'proj_1',
     name: 'E-commerce AI Assistant',
-    status: 'in_progress',
-    desiredStatus: 'completed',
+    status: 'running',
+    desiredStatus: 'stopped',
     ownerId: 'user_1',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
@@ -70,7 +70,7 @@ export const FAKE_PROJECTS: Project[] = [
     id: 'proj_2',
     name: 'Slack Finance Bot',
     status: 'starting',
-    desiredStatus: 'in_progress',
+    desiredStatus: 'running',
     ownerId: 'user_2',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
@@ -114,7 +114,7 @@ export const FAKE_PROJECTS: Project[] = [
     id: 'proj_3',
     name: 'Video Transcoder',
     status: 'stopping',
-    desiredStatus: 'completed',
+    desiredStatus: 'stopped',
     ownerId: 'user_3',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
@@ -134,7 +134,7 @@ export const FAKE_PROJECTS: Project[] = [
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
         sender: 'user',
         type: 'message',
-        content: 'Run completed. Preparing to stop.',
+        content: 'Run stopped. Preparing to stop.',
       },
       {
         id: 'hist_7',
@@ -154,8 +154,8 @@ export const FAKE_PROJECTS: Project[] = [
   {
     id: 'proj_4',
     name: 'Resume Parser API',
-    status: 'completed',
-    desiredStatus: 'completed',
+    status: 'stopped',
+    desiredStatus: 'stopped',
     ownerId: 'user_4',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
@@ -175,7 +175,7 @@ export const FAKE_PROJECTS: Project[] = [
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 29).toISOString(),
         sender: 'user',
         type: 'message',
-        content: 'Completed QA testing.',
+        content: 'stopped QA testing.',
       },
       {
         id: 'hist_9',
@@ -183,7 +183,7 @@ export const FAKE_PROJECTS: Project[] = [
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
         sender: 'system',
         type: 'status_update',
-        content: 'Marked project as completed.',
+        content: 'Marked project as stopped.',
       },
     ],
     models: {
@@ -198,8 +198,8 @@ export const FAKE_PROJECTS: Project[] = [
   {
     id: 'proj_5',
     name: 'HR Metrics Dashboard',
-    status: 'failed',
-    desiredStatus: 'completed',
+    status: 'error',
+    desiredStatus: 'stopped',
     ownerId: 'user_5',
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
@@ -240,7 +240,7 @@ export const FAKE_PROJECTS: Project[] = [
     id: 'proj_6',
     name: 'DevOps Onboarding Agent',
     status: 'pending',
-    desiredStatus: 'in_progress',
+    desiredStatus: 'running',
     ownerId: 'user_6',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -307,7 +307,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_1',
     name: 'AI Marketing Assistant',
-    status: 'completed',
+    status: 'stopped',
     stars: 144,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 40).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
@@ -321,7 +321,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_2',
     name: 'Smart Meeting Notes',
-    status: 'in_progress',
+    status: 'running',
     stars: 67,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
@@ -347,7 +347,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_3',
     name: 'Code Review Agent',
-    status: 'in_progress',
+    status: 'running',
     stars: 93,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
@@ -364,7 +364,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_4',
     name: 'Personalized Learning Agent',
-    status: 'in_progress',
+    status: 'running',
     stars: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // recent
     updatedAt: new Date().toISOString(),
@@ -378,7 +378,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_5',
     name: 'Resume Screener',
-    status: 'completed',
+    status: 'stopped',
     stars: 112,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
@@ -395,7 +395,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_6',
     name: 'Video Summarization Tool',
-    status: 'failed',
+    status: 'error',
     stars: 7,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
@@ -409,7 +409,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_7',
     name: 'Crypto Market Tracker',
-    status: 'completed',
+    status: 'stopped',
     stars: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // recent
     updatedAt: new Date().toISOString(),
@@ -431,7 +431,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_8',
     name: 'Legal Document Analyzer',
-    status: 'completed',
+    status: 'stopped',
     stars: 58,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
@@ -462,7 +462,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_10',
     name: 'Fitness Goal Tracker',
-    status: 'in_progress',
+    status: 'running',
     stars: 2,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
     updatedAt: new Date().toISOString(),
@@ -476,7 +476,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_11',
     name: 'Podcast Summarizer',
-    status: 'completed',
+    status: 'stopped',
     stars: 18,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
@@ -497,7 +497,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_12',
     name: 'Travel Recommendation Engine',
-    status: 'in_progress',
+    status: 'running',
     stars: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(), // recent
     updatedAt: new Date().toISOString(),
@@ -511,7 +511,7 @@ export const FAKE_EXPLORE_PROJECTS: ProjectSummary[] = [
   {
     id: 'explore_proj_13',
     name: 'AI Cooking Assistant',
-    status: 'in_progress',
+    status: 'running',
     stars: 35,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
     updatedAt: new Date().toISOString(),
