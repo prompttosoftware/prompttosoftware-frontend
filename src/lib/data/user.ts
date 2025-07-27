@@ -19,9 +19,10 @@ export async function getInitialAuthData(): Promise<{ user: UserProfile | null }
 
     // next.js in-memory cache helper (stable in 14+)
     const cached = await unstable_cache(
-      async () => {
+      async (token: string | undefined) => {
         console.log('[getInitialAuthData] MISS – calling backend');
-        const res = await serverFetch('/users/me');
+        if (!token) return null;
+        const res = await serverFetch('/users/me', jwt);
         if (!res.ok) return null;
         return res.json() as Promise<UserProfile>;
       },
@@ -30,7 +31,7 @@ export async function getInitialAuthData(): Promise<{ user: UserProfile | null }
         revalidate: 60,  // seconds
         tags: [`user-${jwt?.slice(-8) ?? 'none'}`],
       }
-    )();
+    )(jwt);
 
     return { user: cached };
   } catch (e) {

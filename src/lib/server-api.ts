@@ -63,6 +63,7 @@ type FetchOptions = RequestInit & {
 
 export async function serverFetch(
   endpoint: string,
+  jwt?: string,
   { needsAuth = true, ...init }: FetchOptions = {}
 ) {
   console.debug('[serverFetch] Starting serverFetch call');
@@ -95,7 +96,7 @@ export async function serverFetch(
       // When in cluster, use ServiceAccount token for authorization
       // and JWT token for user identification
       const saToken = getServiceAccountToken();
-      const jwtToken = await getJwtFromCookie();
+      const jwtToken = jwt || await getJwtFromCookie();
       
       if (!saToken) {
         console.warn('[serverFetch] No ServiceAccount token available.');
@@ -114,7 +115,7 @@ export async function serverFetch(
       }
     } else {
       // When external, use JWT token as before
-      const jwtToken = await getJwtFromCookie();
+      const jwtToken = jwt || await getJwtFromCookie();
       
       if (!jwtToken) {
         console.warn('[serverFetch] No JWT token available.');

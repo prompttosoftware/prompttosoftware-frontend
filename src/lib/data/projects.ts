@@ -37,7 +37,9 @@ export async function fetchExploreProjects(
 ): Promise<PaginatedResponse<ProjectSummary>> {
   if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') return { data: FAKE_EXPLORE_PROJECTS, page: 1, limit: 10, total: 0, totalPages: 0 };
   const qs = new URLSearchParams(params as any).toString();
-  const res = await serverFetch(`/projects/explore?${qs}`, {
+  const res = await serverFetch(`/projects/explore?${qs}`,
+    undefined,
+    {
     needsAuth: false,
     cache: 'force-cache',
     next: { revalidate: 300 },
