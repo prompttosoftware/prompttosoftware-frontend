@@ -13,9 +13,7 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   
   // Ensure proper handling of dynamic routes
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
+  serverExternalPackages: [],
   
   webpack(config) {
     config.module.rules.push({
