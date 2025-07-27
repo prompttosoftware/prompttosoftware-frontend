@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
   
   // Ensure proper handling of dynamic routes
   serverExternalPackages: [],
+  experimental: {
+    dynamicIO: false
+  },
+
+  async generateBuildId() {
+    return 'build-' + Date.now();
+  },
   
   webpack(config) {
     config.module.rules.push({
