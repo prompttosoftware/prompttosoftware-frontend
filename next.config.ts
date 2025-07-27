@@ -7,6 +7,16 @@ const bundleAnalyzerConfig = withBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@mdx-js/react'],
+  
+  // Add these for Kubernetes deployment
+  output: 'standalone',
+  trailingSlash: false,
+  
+  // Ensure proper handling of dynamic routes
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
+  
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
