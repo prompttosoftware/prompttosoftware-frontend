@@ -23,7 +23,7 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
   const handleToggle = () => {
     setIsStarred(prev => !prev);
     setStars(prev => (isStarred ? prev - 1 : prev + 1));
-    toggleStar(project.id, isStarred);
+    toggleStar(project._id, isStarred);
   };
 
   return (

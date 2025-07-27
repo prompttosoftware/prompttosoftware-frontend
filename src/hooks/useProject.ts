@@ -18,7 +18,7 @@ export const useProject = (projectId?: string, options?: ProjectQueryOptions) =>
     const isDevFakeMode = process.env.NEXT_PUBLIC_FAKE_AUTH === 'true';
     
     if (isDevFakeMode) {
-      const project = FAKE_PROJECTS.find(p => p.id === projectId) || null;
+      const project = FAKE_PROJECTS.find(p => p._id === projectId) || null;
       return {
         data: project,
         isLoading: false,
