@@ -272,7 +272,7 @@ export const api = {
     // The backend will exchange this code for an access token and save it.
     // It should return the updated user profile, which includes a flag
     // indicating the Jira account is now linked.
-    const response = await httpClient.post<UserProfileResponse>("/jira/callback", { code });
+    const response = await httpClient.post<UserProfileResponse>("/integrations/jira/callback", { code });
     return response.data.data.user;
   },
 
