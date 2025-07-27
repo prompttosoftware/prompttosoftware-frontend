@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
+# Set build-time environment variables
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_GITHUB_CLIENT_ID
 ARG NEXT_PUBLIC_API_BASE_URL
@@ -20,29 +21,38 @@ ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_JIRA_CLIENT_ID=$NEXT_PUBLIC_JIRA_CLIENT_ID
 ENV NEXT_PUBLIC_JIRA_REDIRECT_URI=$NEXT_PUBLIC_JIRA_REDIRECT_URI
 
-# Copy the full app (Next.js expects /src/app/ layout to remain intact)
+# Copy the full app
 COPY . .
 
 # Optional: prevent Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build for production (Next.js looks inside src/)
+# Build for production with standalone output
 RUN npm run build
 
-# Stage 2: Run the app with only what’s needed
+# Stage 2: Run the app with standalone output
 FROM registry.digitalocean.com/pts-registry/node:22-alpine AS runner
 
-ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy only required output + runtime deps
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Port the app listens on
+# Create nextjs user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy the standalone output from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
+
 EXPOSE 3000
 
-# Start app in production mode
-CMD ["npm", "start"]
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Use the standalone server
+CMD ["node", "server.js"]
