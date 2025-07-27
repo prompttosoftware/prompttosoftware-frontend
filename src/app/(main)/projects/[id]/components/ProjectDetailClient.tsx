@@ -19,8 +19,6 @@ interface ProjectDetailClientProps {
 export default function ProjectDetailClient({ initialProject }: ProjectDetailClientProps) {
   // --- HOOKS ---
   const { data: project } = useProject(initialProject._id, {
-    // Seed react-query with the server-fetched data.
-    // This prevents a refetch on initial load.
     initialData: initialProject,
   });
 

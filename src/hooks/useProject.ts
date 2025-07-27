@@ -16,7 +16,7 @@ type ProjectQueryOptions = Omit<
  */
 export const useProject = (projectId?: string, options?: ProjectQueryOptions) => {
     const isDevFakeMode = process.env.NEXT_PUBLIC_FAKE_AUTH === 'true';
-    
+   
     if (isDevFakeMode) {
       const project = FAKE_PROJECTS.find(p => p._id === projectId) || null;
       return {
@@ -26,11 +26,17 @@ export const useProject = (projectId?: string, options?: ProjectQueryOptions) =>
         error: project ? null : new Error('Project not found'),
       };
     }
-
+    
     return useQuery<Project, Error>({
       queryKey: ['project', projectId],
-      queryFn: () => api.getProjectById(projectId!),
-      enabled: !!projectId,
+      queryFn: () => {
+        // Add proper validation before calling the API
+        if (!projectId) {
+          throw new Error('Project ID is required');
+        }
+        return api.getProjectById(projectId);
+      },
+      enabled: !!projectId, // This should prevent the query from running if projectId is undefined
       staleTime: 5 * 60 * 1000, // 5 minutes
       // Spread any additional options like `initialData`
       ...options,
