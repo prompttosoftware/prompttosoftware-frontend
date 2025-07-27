@@ -12,10 +12,8 @@ interface ProjectDetailPageProps {
  * 2. If the project is not found (or user lacks permission), it triggers a 404 page.
  * 3. It passes the initial, server-fetched data to the interactive client component.
  */
-const ProjectDetailPage = async ({ params }: {
-  params: Promise<{ id: string }>;
-}) => {
-  const { id } = await params;
+const ProjectDetailPage = async ({ params }: { params: { id: string } }) => {
+  const { id } = params;
   
   // Fetch the project on the server.
   const initialProject = await fetchProjectById(id);
