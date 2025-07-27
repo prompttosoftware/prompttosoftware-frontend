@@ -5,6 +5,8 @@ import { getInitialAuthData } from '@/lib/data/user';
 import { fetchProjectById } from '@/lib/data/projects';
 import ProjectClient from '@/app/(main)/new-project/components/ProjectClient';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Server Component for the Project Edit Page.
  * 1. Protects the route by checking for an authenticated user.
