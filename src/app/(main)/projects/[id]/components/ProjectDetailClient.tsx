@@ -23,7 +23,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   });
 
   // Use initialProject._id as fallback to prevent undefined errors
-  const projectId = project?._id || initialProject._id;
+  const projectId = project?._id !== undefined ? project._id : initialProject._id;
   const { startProject, stopProject, deleteProject, sendMessage } = useProjectActions(projectId);
   const { showConfirmation, hideConfirmation } = useGlobalErrorStore();
 
