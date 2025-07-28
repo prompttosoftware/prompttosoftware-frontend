@@ -47,9 +47,6 @@ const ProfileButton = () => {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user?.email || 'user@example.com'}
-            </p>
             {user?.balance !== undefined && (
               <p className="text-xs leading-none text-muted-foreground">
                 Balance: {user.balance} credits

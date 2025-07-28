@@ -89,11 +89,11 @@ export interface Project {
   updatedAt: string; // ISO Date string
   lastError?: string;
   pendingSensitiveRequest?: any; // Define this more strictly if you know the structure
-  // Add other fields from your backend model as needed
-  cost: number;
+  maxRuntime: number | null;
+  maxCost: number;
   useJira?: boolean;
   jiraProjectKey?: string;
-  elapsedTime: number;
+  runtime: number;
   completeIssues: number;
   incompleteIssues: number;
   description: string;

@@ -27,7 +27,7 @@ const formatPathToTitle = (path: string) => {
 export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => void; }) {
   const pathname = usePathname();
   const pageTitle = formatPathToTitle(pathname);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <header className="sticky top-0 h-16 bg-white shadow-md flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0">
@@ -47,7 +47,7 @@ export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => 
         </Suspense>
         {isAuthenticated && (
           <>
-            <LinkJiraButton />
+            {user?.integrations.jira.isLinked === false && <LinkJiraButton />}
             <AddPaymentButton />
             <BalanceDisplay />
           </>
