@@ -68,7 +68,8 @@ export async function fetchProjectById(projectId: string): Promise<Project | nul
       console.error('fetchProjectById:', res.statusText);
       return null;
     }
-    return res.json();
+    const json = await res.json();
+    return json.data;
   } catch (e) {
     console.error(e);
     return null;
