@@ -54,7 +54,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   // Always use currentProject to ensure we have valid data
   return (
     <>
-      <div className="container mx-auto p-4">
+      {currentProject._id && <div className="container mx-auto p-4">
         {/* --- Top Panel --- */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
           <ProjectHeader
@@ -77,7 +77,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
           <ProjectHistory history={currentProject.history} />
           <MessageInput sendMessage={sendMessage} />
         </div>
-      </div>
+      </div>}
       {/* --- Confirmation Dialog --- */}
       <ConfirmationDialog />
     </>
