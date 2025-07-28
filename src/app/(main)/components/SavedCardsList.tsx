@@ -1,34 +1,37 @@
-'use client';
-
 import React, { useCallback } from 'react';
-import { useGlobalErrorStore } from '@/store/globalErrorStore';
-import { Button } from '@/components/ui/button';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
-import * as FaIcons from 'react-icons/fa';
-import { logger } from '@/lib/logger';
-import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
-import EmptyState from '@/app/(main)/components/EmptyState';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getSavedCards, deleteSavedCard } from '@/lib/payments';
 import { SavedCard } from '@/types/payments';
-import { deleteSavedCard, getSavedCards } from '@/lib/payments';
+import { Label } from '@/components/ui/label';
+import { CardSelectionItem } from './CardSelectionItem';
+import { AddNewCardButton } from './AddNewCardButton';
+import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
-// This is the component that will display in the settings page.
-export function SavedCardsList() {
+interface SavedCardsListProps {
+  selectedCardId: string;
+  onCardSelect: (cardId: string) => void;
+}
+
+export function SavedCardsList({ selectedCardId, onCardSelect }: SavedCardsListProps) {
   const queryClient = useQueryClient();
   const { setError, showConfirmation } = useGlobalErrorStore();
-
-  const { data: savedCards, isLoading, isError } = useQuery<SavedCard[]>({
-    queryKey: ['savedCards'], // Unique key for this query
+  
+  const { data: savedCards, isLoading: isLoadingCards, error } = useQuery<SavedCard[]>({
+    queryKey: ['savedCards'],
     queryFn: () => getSavedCards(),
   });
 
-  // UPDATED: Use useMutation for deleting cards to handle state changes and optimistic updates.
+  // Mutation for deleting cards
   const { mutate: deleteCard, isPending: isDeleting } = useMutation({
     mutationFn: (cardId: string) => deleteSavedCard(cardId),
     onSuccess: (data, cardId) => {
       toast.success(data.message || 'Card removed successfully.');
-      // Invalidate the query to refetch the list of cards from the server.
+      // If the deleted card was selected, switch to new card
+      if (selectedCardId === cardId) {
+        onCardSelect('new_card');
+      }
       queryClient.invalidateQueries({ queryKey: ['savedCards'] });
       logger.info(`Successfully deleted card ${cardId}`);
     },
@@ -39,7 +42,8 @@ export function SavedCardsList() {
   });
 
   const handleDeleteCard = useCallback(
-    (cardId: string) => {
+    (cardId: string, event: React.MouseEvent) => {
+      event.stopPropagation(); // Prevent card selection when clicking delete
       showConfirmation(
         'Remove Saved Card',
         'Are you sure you want to remove this card?',
@@ -49,62 +53,46 @@ export function SavedCardsList() {
     [showConfirmation, deleteCard],
   );
 
-  const getCardIcon = (brand: string): React.ReactElement => {
-        switch (brand.toLowerCase()) {
-      case 'visa':
-        return <FaIcons.FaCcVisa className="text-blue-600 w-8 h-8" />;
-      case 'mastercard':
-        return <FaIcons.FaCcMastercard className="text-orange-500 w-8 h-8" />;
-      default:
-        return <FaIcons.FaRegCreditCard className="text-gray-500 w-8 h-8" />;
-    }
-  };
-
-  if (isLoading) {
+  if (error) {
     return (
-      <div className="space-y-4">
-        <SkeletonLoader count={2} className="h-24" />
+      <div className="grid gap-2 py-4">
+        <Label className="text-gray-700">Payment Method</Label>
+        <div className="p-4 border border-red-200 rounded-md bg-red-50">
+          <p className="text-sm text-red-600">Failed to load saved cards. You can still add a new card.</p>
+          <div className="mt-2">
+            <AddNewCardButton
+              isSelected={selectedCardId === 'new_card'}
+              onClick={() => onCardSelect('new_card')}
+            />
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (isError) {
-    return <EmptyState title="Error" description="Could not load payment methods. Please try again later." />;
-  }
-
-  if (!savedCards || savedCards.length === 0) {
-    return <EmptyState title="No Saved Cards" description="Add a payment method during your next transaction." />;
-  }
-
   return (
-    <div className="space-y-4">
-      {savedCards.map((card) => (
-        <Card key={card.id} className="flex items-center justify-between p-4 shadow-sm">
-          <div className="flex items-center space-x-4">
-            {getCardIcon(card.brand)}
-            <div>
-              <CardTitle className="text-lg font-semibold capitalize">
-                {card.brand} ending in {card.last4}
-              </CardTitle>
-              <CardDescription>
-                Expires {String(card.expiryMonth).padStart(2, '0')}/{card.expiryYear % 100}
-              </CardDescription>
-              {card.isDefault && (
-                <span className="text-xs font-medium bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">
-                  Default
-                </span>
-              )}
-            </div>
-          </div>
-          <Button
-            variant="destructive"
-            onClick={() => handleDeleteCard(card.id)}
-            disabled={isDeleting}
-          >
-            Delete
-          </Button>
-        </Card>
-      ))}
+    <div className="grid gap-2 py-4">
+      <Label className="text-gray-700">Payment Method</Label>
+      
+      <div className="max-h-60 overflow-y-auto pr-2 space-y-2">
+        {isLoadingCards && <p className="text-sm text-gray-500">Loading cards…</p>}
+
+        {savedCards?.map((card) => (
+          <CardSelectionItem
+            key={card.id}
+            card={card}
+            isSelected={selectedCardId === card.id}
+            onClick={() => onCardSelect(card.id)}
+            onDelete={handleDeleteCard}
+            isDeleting={isDeleting}
+          />
+        ))}
+
+        <AddNewCardButton
+          isSelected={selectedCardId === 'new_card'}
+          onClick={() => onCardSelect('new_card')}
+        />
+      </div>
     </div>
   );
 }

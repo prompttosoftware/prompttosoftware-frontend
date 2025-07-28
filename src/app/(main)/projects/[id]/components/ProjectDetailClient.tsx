@@ -11,6 +11,7 @@ import ProjectActions from '@/app/(main)/projects/[id]/components/ProjectActions
 import ProjectHeader from '@/app/(main)/projects/[id]/components/ProjectHeader';
 import ProjectHistory from '@/app/(main)/projects/[id]/components/ProjectHistory';
 import ProjectStatus from '@/app/(main)/projects/[id]/components/ProjectStatus';
+import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 
 interface ProjectDetailClientProps {
   initialProject: Project;
@@ -20,6 +21,8 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   // --- HOOKS ---
   const { data: project } = useProject(initialProject._id, {
     initialData: initialProject,
+    retry: 2,                    // optional: still retry a couple of times
+    refetchOnWindowFocus: false,  // optional: reduce noise
   });
 
   // Use initialProject._id as fallback to prevent undefined errors
@@ -28,7 +31,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   const { showConfirmation, hideConfirmation } = useGlobalErrorStore();
 
   // Use the current project or fallback to initialProject
-  const currentProject = project || initialProject;
+  const currentProject = project ?? initialProject;
 
   const handleDeleteConfirm = () => {
     deleteProject.mutate(undefined, {
@@ -51,10 +54,14 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     );
   };
 
+  if (!currentProject._id) {
+    return <LoadingSpinner></LoadingSpinner>;
+  }
+
   // Always use currentProject to ensure we have valid data
   return (
     <>
-      {currentProject._id && <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4">
         {/* --- Top Panel --- */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
           <ProjectHeader
@@ -77,7 +84,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
           <ProjectHistory history={currentProject.history} />
           <MessageInput sendMessage={sendMessage} />
         </div>
-      </div>}
+      </div>
       {/* --- Confirmation Dialog --- */}
       <ConfirmationDialog />
     </>

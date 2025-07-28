@@ -45,6 +45,8 @@ export default async function DashboardPage() {
     ACTIVE_STATUSES.includes(project.status)
   );
 
+  console.debug(`[DashboardPage] Initial user:`, user);
+
   // 6. Render the page with pre-fetched data
   return <DashboardClient user={userWithTransactions} activeProjects={activeProjects} />;
 }

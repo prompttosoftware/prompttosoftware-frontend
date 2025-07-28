@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { UserProfile } from '@/types/auth';
 import { ApiKeyManager } from '@/app/(main)/components/ApiKeyManager';
 import DeleteAccountButton from '@/app/(main)/components/DeleteAccountButton';
 import { SavedCardsList } from '@/app/(main)/components/SavedCardsList';
 import { AuthProvider } from '@/lib/AuthContext';
+import { logger } from '@/lib/logger';
 
 type SettingsClientProps = {
   user: UserProfile;
@@ -14,6 +15,11 @@ type SettingsClientProps = {
 // This component takes the server-fetched user and provides it to its
 // children via the context they expect.
 export default function SettingsClient({ user }: SettingsClientProps) {
+
+  const handleCardSelection = useCallback((cardId: string) => {
+    logger.debug(`Card selected: ${cardId}`);
+  }, []);
+    
   return (
     // The AuthProvider now gets its initial state from the props passed
     // by the server page.
@@ -33,7 +39,7 @@ export default function SettingsClient({ user }: SettingsClientProps) {
             Manage your saved payment cards for quicker transactions.
           </p>
           {/* This now works, because it's inside the AuthProvider! */}
-          <SavedCardsList />
+          <SavedCardsList selectedCardId={''} onCardSelect={handleCardSelection} />
         </section>
 
         <section className="bg-white p-6 rounded-lg shadow-md mb-8">
