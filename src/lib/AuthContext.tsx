@@ -59,16 +59,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
   const setBalance = useBalanceStore((state) => state.setBalance); // Access setBalance from store
   const [showTutorial, setShowTutorial] = useState<boolean>(false); // State to control tutorial visibility
 
-  // VVV ADD THIS DIAGNOSTIC LOG VVV
-  useEffect(() => {
-    console.log('--- AuthProvider MOUNTED ---');
-    
-    // You can even add a cleanup function to be 100% sure
-    return () => {
-      console.log('--- AuthProvider WILL UNMOUNT ---');
-    };
-  }, []); // The empty array is crucial
-
   useEffect(() => {
     // Setup interceptors when the component mounts or router changes
     setupHttpClientInterceptors(router);

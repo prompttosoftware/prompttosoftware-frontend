@@ -40,7 +40,7 @@ export interface ProjectFormData {
   };
 }
 
-export type Template = "android_studio" | "xcode" | "unity" | "godot" | "unreal_engine";
+export type Template = "android-empty-activity-compose" | "ios-multiplatform";
 
 /**
  * Represents a single GitHub repository linked to a project.
@@ -238,7 +238,7 @@ export const formSchema = z.object({
         isPrivate: z.boolean(), 
         organization: z.string().optional(),
         forkUrl: z.string().optional(),
-        template: z.enum(["android_studio", "xcode", "unity", "godot", "unreal_engine"]).optional(),
+        template: z.enum(["android-empty-activity-compose", "ios-multiplatform"]).optional(),
       }),
       z.object({ 
         type: z.literal('existing'), 

@@ -281,7 +281,7 @@ export function PaymentModal() {
           </>
         )}
 
-        {step === 'confirm_card' && (
+        {step === 'confirm_card' && !isLoadingPaymentIntent && (
           <StripeWrapper>
             {clientSecret ? (
               selectedCardId === 'new_card' ? (

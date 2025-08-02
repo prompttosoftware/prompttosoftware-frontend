@@ -14,11 +14,8 @@ import {
 
 // Define template options for the dropdown for better maintainability
 const TEMPLATE_OPTIONS = [
-  { value: 'android_studio', label: 'Android Studio' },
-  { value: 'xcode', label: 'Xcode' },
-  { value: 'unity', label: 'Unity' },
-  { value: 'godot', label: 'Godot' },
-  { value: 'unreal_engine', label: 'Unreal Engine' },
+  { value: 'android-empty-activity-compose', label: 'Android Studio - Empty Compose Activity' },
+  { value: 'ios-multiplatform', label: 'Xcode - Multiplatform' },
 ];
 
 interface NewRepositoryFieldsProps {
