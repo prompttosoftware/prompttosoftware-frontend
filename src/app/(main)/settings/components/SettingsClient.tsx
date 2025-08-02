@@ -9,23 +9,26 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { logger } from '@/lib/logger';
 import UnlinkJiraButton from '../../components/UnlinkJiraButton';
 import LinkJiraButton from '../../components/LinkJiraButton';
+import { useAuth } from '@/hooks/useAuth';
 
 type SettingsClientProps = {
-  user: UserProfile;
+  initialUser: UserProfile;
 };
 
 // This component takes the server-fetched user and provides it to its
 // children via the context they expect.
-export default function SettingsClient({ user }: SettingsClientProps) {
+export default function SettingsClient({ initialUser }: SettingsClientProps) {
 
   const handleCardSelection = useCallback((cardId: string) => {
     logger.debug(`Card selected: ${cardId}`);
   }, []);
+
+  const { user } = useAuth();
     
   return (
     // The AuthProvider now gets its initial state from the props passed
     // by the server page.
-    <AuthProvider initialData={user}>
+    <AuthProvider initialData={initialUser}>
       <div className="container mx-auto p-8">
         <section className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h2 className="text-2xl font-semibold mb-4">Account Management</h2>
@@ -60,7 +63,7 @@ export default function SettingsClient({ user }: SettingsClientProps) {
 
           {/* Conditionally render the appropriate button */}
           <div className="flex items-center gap-4">
-            {user.integrations?.jira?.isLinked ? (
+            {user?.integrations.jira.isLinked ? (
               <>
                 <span className="text-green-600 font-medium">Jira is linked.</span>
                 <UnlinkJiraButton />

@@ -20,14 +20,27 @@ export const useProject = (projectId?: string, options?: ProjectQueryOptions) =>
     return useQuery<Project, Error>({
       queryKey: ['project', projectId],
       queryFn: async () => {
+        console.log('useProject queryFn called for ID:', projectId);
+        
         if (isDevFakeMode) {
           if (!projectId) throw new Error('Project ID is required');
           const project = FAKE_PROJECTS.find(p => p._id === projectId);
           if (!project) throw new Error('Project not found');
+          console.log('Fake project found:', project);
           return project;
         }
+        
         if (!projectId) throw new Error('Project ID is required');
-        return api.getProjectById(projectId);
+        
+        console.log('Calling api.getProjectById...');
+        try {
+          const result = await api.getProjectById(projectId);
+          console.log('API call successful:', result);
+          return result;
+        } catch (error) {
+          console.error('API call failed:', error);
+          throw error;
+        }
       },
       enabled: !!projectId,
       staleTime: 5 * 60 * 1000,

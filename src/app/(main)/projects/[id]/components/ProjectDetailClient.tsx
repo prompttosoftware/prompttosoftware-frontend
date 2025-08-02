@@ -11,7 +11,6 @@ import ProjectActions from '@/app/(main)/projects/[id]/components/ProjectActions
 import ProjectHeader from '@/app/(main)/projects/[id]/components/ProjectHeader';
 import ProjectHistory from '@/app/(main)/projects/[id]/components/ProjectHistory';
 import ProjectStatus from '@/app/(main)/projects/[id]/components/ProjectStatus';
-import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
 
 interface ProjectDetailClientProps {
@@ -20,13 +19,15 @@ interface ProjectDetailClientProps {
 
 export default function ProjectDetailClient({ initialProject }: ProjectDetailClientProps) {
   // --- HOOKS ---
-  const { data: project } = useProject(initialProject._id, {
+  const { data: project, isLoading, isFetching, error } = useProject(initialProject._id, {
     initialData: initialProject,
     retry: 2,
     refetchOnWindowFocus: false,
     refetchInterval: 5000,
     refetchIntervalInBackground: false,
   });
+
+  console.log('Query state:', { isLoading, isFetching, hasData: !!project, error });
 
   // Use initialProject._id as fallback to prevent undefined errors
   const projectId = project?._id !== undefined ? project._id : initialProject._id;

@@ -11,5 +11,5 @@ export default async function SettingsPage() {
     redirect('/login');
   }
 
-  return <SettingsClient user={user} />;
+  return <SettingsClient initialUser={user} />;
 }
