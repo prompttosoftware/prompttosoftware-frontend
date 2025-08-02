@@ -176,10 +176,10 @@ export default function InstallationManager() {
                 Add Tools
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white w-80 max-h-96 overflow-y-auto">
+            <DropdownMenuContent>
               {Object.entries(OPTIONAL_TOOLS).map(([category, tools]) => (
                 <div key={category}>
-                  <DropdownMenuLabel className="text-xs font-semibold text-gray-500 uppercase">
+                  <DropdownMenuLabel>
                     {category}
                   </DropdownMenuLabel>
                   {tools.map((tool) => (

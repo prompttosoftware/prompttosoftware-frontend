@@ -54,7 +54,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
     <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
       <h4 className="text-md font-semibold text-gray-700 mb-3">
         New Repository #{index + 1}
-        {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm" className="ml-2">
+        {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm">
           Delete
         </Button>}
       </h4>

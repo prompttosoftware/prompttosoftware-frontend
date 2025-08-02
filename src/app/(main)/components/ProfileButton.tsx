@@ -43,8 +43,8 @@ const ProfileButton = () => {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="relative z-[60] max-h-96 min-w-[8rem] rounded-md border bg-gray-700 text-white shadow-md">
-        <DropdownMenuLabel className="font-normal">
+      <DropdownMenuContent className="relative z-[60]">
+        <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
             {user?.balance !== undefined && (

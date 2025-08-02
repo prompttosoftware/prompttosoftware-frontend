@@ -1,0 +1,41 @@
+'use client';
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/lib/api';
+import { JiraLogoIcon } from '@/components/icons/JiraLogoIcon';
+
+const UnlinkJiraButton = () => {
+  const { user, isLoading, updateProfile } = useAuth();
+
+  const handleUnlinkJira = async () => {
+    try {
+      const updatedUser = await api.unlinkJiraAccount();
+      updateProfile(updatedUser);
+
+      toast.success('Jira account unlinked successfully.');
+    } catch (error) {
+      console.error('Failed to unlink Jira account:', error);
+      toast.error('Failed to unlink Jira account. Please try again.');
+    }
+  };
+
+  const isJiraLinked = user?.integrations?.jira?.isLinked ?? false;
+
+  return (
+    <Button
+      type="button"
+      onClick={handleUnlinkJira}
+      className="bg-destructive hover:bg-destructive/90 text-white font-semibold flex items-center"
+      disabled={isLoading || !isJiraLinked}
+      aria-label="Unlink your Jira account"
+    >
+      <JiraLogoIcon className="text-white mr-2" />
+      Unlink Jira
+    </Button>
+  );
+};
+
+export default UnlinkJiraButton;

@@ -34,7 +34,6 @@ const ProjectHeader = ({ name, projectId, onDeleteClick }: ProjectHeaderProps) =
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
             <DropdownMenuItem
-            className="text-red-600 focus:bg-red-50 focus:text-red-600"
             onClick={onDeleteClick}
             >
             Delete Project

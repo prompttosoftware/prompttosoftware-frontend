@@ -12,6 +12,7 @@ import ProjectHeader from '@/app/(main)/projects/[id]/components/ProjectHeader';
 import ProjectHistory from '@/app/(main)/projects/[id]/components/ProjectHistory';
 import ProjectStatus from '@/app/(main)/projects/[id]/components/ProjectStatus';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
+import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
 
 interface ProjectDetailClientProps {
   initialProject: Project;
@@ -21,8 +22,10 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   // --- HOOKS ---
   const { data: project } = useProject(initialProject._id, {
     initialData: initialProject,
-    retry: 2,                    // optional: still retry a couple of times
-    refetchOnWindowFocus: false,  // optional: reduce noise
+    retry: 2,
+    refetchOnWindowFocus: false,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
   });
 
   // Use initialProject._id as fallback to prevent undefined errors
@@ -55,7 +58,25 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
   };
 
   if (!currentProject._id) {
-    return <LoadingSpinner></LoadingSpinner>;
+    return (
+      <div className="container mx-auto p-4 space-y-6">
+        {/* Header Skeleton */}
+        <div className="bg-white shadow rounded-lg p-6 space-y-4">
+          <SkeletonLoader width="w-1/3" height="h-8" /> {/* Project name */}
+          <SkeletonLoader width="w-1/6" height="h-6" /> {/* Status */}
+          <div className="flex space-x-4">
+            <SkeletonLoader width="w-20" height="h-10" />
+            <SkeletonLoader width="w-20" height="h-10" />
+          </div>
+        </div>
+
+        {/* History/Chat Skeleton */}
+        <div className="flex flex-col h-[60vh] bg-white shadow rounded-lg p-6 space-y-4">
+          <SkeletonLoader height="h-48" /> {/* History area */}
+          <SkeletonLoader height="h-12" /> {/* Input area */}
+        </div>
+      </div>
+    );
   }
 
   // Always use currentProject to ensure we have valid data

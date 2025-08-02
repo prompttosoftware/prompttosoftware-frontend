@@ -277,6 +277,16 @@ export const api = {
   },
 
   /**
+   * Unlinks the user's Jira account.
+   * Sends a DELETE request to the backend to remove Jira integration.
+   * DELETE /integrations/jira/unlink
+   */
+  unlinkJiraAccount: async (): Promise<UserProfile> => {
+    const response = await httpClient.delete<UserProfileResponse>("/integrations/jira/unlink");
+    return response.data.data.user;
+  },
+
+  /**
    * Save or update a saved card.
    * POST /me/card
    */
