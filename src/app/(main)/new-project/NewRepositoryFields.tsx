@@ -41,6 +41,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
   const { field: templateField } = useController({
     name: `githubRepositories.${index}.template`,
     control,
+    defaultValue: undefined,
   });
 
   // Type assertion for githubRepositories errors for easier access
@@ -98,7 +99,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
         </div>}
         <div>
           <Label htmlFor={`template-${index}`}>Template (Optional)</Label>
-          <Select disabled={disableInputs} {...templateField}>
+          <Select disabled={disableInputs} value={templateField.value} onValueChange={templateField.onChange}>
             <SelectTrigger id={`template-${index}`}>
               <SelectValue placeholder="Select a template" />
             </SelectTrigger>
