@@ -98,7 +98,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
         </div>}
         <div>
           <Label htmlFor={`template-${index}`}>Template (Optional)</Label>
-          <Select onValueChange={templateField.onChange} value={templateField.value} disabled={disableInputs}>
+          <Select disabled={disableInputs} {...templateField}>
             <SelectTrigger id={`template-${index}`}>
               <SelectValue placeholder="Select a template" />
             </SelectTrigger>
