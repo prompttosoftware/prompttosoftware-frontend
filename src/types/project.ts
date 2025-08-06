@@ -40,7 +40,7 @@ export interface ProjectFormData {
   };
 }
 
-export type Template = "android-empty-activity-compose" | "ios-multiplatform" | "";;
+export type Template = "android-empty-activity-compose" | "ios-multiplatform";
 
 /**
  * Represents a single GitHub repository linked to a project.
@@ -238,10 +238,7 @@ export const formSchema = z.object({
         isPrivate: z.boolean(), 
         organization: z.string().optional(),
         forkUrl: z.string().optional(),
-        template: z.union([
-          z.enum(["android-empty-activity-compose", "ios-multiplatform"]), 
-          z.literal("")
-        ]).optional(),
+        template: z.enum(["android-empty-activity-compose", "ios-multiplatform"]).optional(),
       }),
       z.object({ 
         type: z.literal('existing'), 

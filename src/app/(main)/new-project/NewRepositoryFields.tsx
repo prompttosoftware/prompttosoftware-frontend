@@ -41,7 +41,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
   const { field: templateField } = useController({
     name: `githubRepositories.${index}.template`,
     control,
-    defaultValue: '',
+    defaultValue: undefined,
   });
 
   // Type assertion for githubRepositories errors for easier access
