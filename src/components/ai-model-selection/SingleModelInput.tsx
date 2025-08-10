@@ -21,12 +21,12 @@ interface SingleModelInputProps {
 }
 
 const AI_PROVIDERS = [
-  { label: 'OpenAI', value: 'OPENAI' },
-  { label: 'Anthropic', value: 'ANTHROPIC' },
-  { label: 'Google', value: 'GOOGLE' },
-  { label: 'Groq', value: 'GROQ' },
-  { label: 'DeepSeek', value: 'DEEPSEEK' },
-  { label: 'OpenRouter', value: 'OPENROUTER' },
+  { label: 'OpenAI', value: 'openai' },
+  { label: 'Anthropic', value: 'anthropic' },
+  { label: 'Google', value: 'google' },
+  { label: 'Groq', value: 'groq' },
+  { label: 'DeepSeek', value: 'deepseek' },
+  { label: 'OpenRouter', value: 'openrouter' },
 ];
 
 export const SingleModelInput: React.FC<SingleModelInputProps> = ({
@@ -45,7 +45,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
 
   const basePath = `advancedOptions.aiModels.${level}.${index}`;
   const providerFieldName = `${basePath}.provider`;
-  const modelNameFieldName = `${basePath}.modelName`;
+  const modelNameFieldName = `${basePath}.model`;
   const apiKeyFieldName = `${basePath}.apiKey`;
 
   // Watch the selected provider to show/hide API key button
@@ -83,7 +83,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
               <SelectTrigger id={`${providerFieldName}`} className="w-full">
                 <SelectValue placeholder="Select a provider" />
               </SelectTrigger>
-              <SelectContent className="relative z-[60] max-h-96 min-w-[8rem] rounded-md border bg-white text-gray-900 shadow-md">
+              <SelectContent className="relative z-[60] max-h-96 min-w-[8rem]">
                 {AI_PROVIDERS.map((provider) => {
                   const isAvailable = hasApiKey(provider.value);
                   return (

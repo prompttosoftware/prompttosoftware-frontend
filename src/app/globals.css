@@ -3,46 +3,52 @@
 
 @layer base {
   :root {
-    /* Brand / light theme */
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;
+    /* Light theme */
+    --background: 0 0% 100%;            /* white */
+    --foreground: 0 0% 0%;              /* black */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%;                  /* white */
+    --card-foreground: 0 0% 0%;         /* black */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 100%;               /* white */
+    --popover-foreground: 0 0% 0%;      /* black */
 
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 0%;                 /* black */
+    --primary-foreground: 0 0% 100%;    /* white */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 90%;                  /* light gray */
+    --muted-foreground: 0 0% 20%;       /* dark gray */
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 0 0% 80%;                 /* medium gray */
+    --input: 0 0% 80%;                  /* medium gray */
+    --ring: 0 0% 0%;                    /* black */
     --radius: 0.5rem;
   }
 
+  .bg-popover {
+    background-color: hsl(var(--popover) / 1) !important;
+  }
+
+
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    /* Dark theme */
+    --background: 0 0% 0%;              /* black */
+    --foreground: 0 0% 100%;            /* white */
 
-    --card: 224 71% 4%;
-    --card-foreground: 213 31% 91%;
+    --card: 0 0% 0%;                    /* black */
+    --card-foreground: 0 0% 100%;       /* white */
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 0 0% 0%;                 /* black */
+    --popover-foreground: 0 0% 100%;    /* white */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 0% 100%;               /* white */
+    --primary-foreground: 0 0% 0%;      /* black */
 
-    --muted: 223 47% 11%;
-    --muted-foreground: 215.8 20.2% 65.1%;
+    --muted: 0 0% 20%;                  /* dark gray */
+    --muted-foreground: 0 0% 80%;       /* light gray */
 
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --ring: 216 34% 17%;
+    --border: 0 0% 40%;                 /* medium gray */
+    --input: 0 0% 40%;                  /* medium gray */
+    --ring: 0 0% 100%;                  /* white */
   }
 }

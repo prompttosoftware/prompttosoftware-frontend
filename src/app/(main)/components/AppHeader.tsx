@@ -26,7 +26,6 @@ const formatPathToTitle = (path: string) => {
 
 export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => void; }) {
   const pathname = usePathname();
-  const pageTitle = formatPathToTitle(pathname);
   const { isAuthenticated, user } = useAuth();
 
   return (
@@ -39,7 +38,6 @@ export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => 
         >
           <Bars3Icon className="h-6 w-6 text-gray-700" />
         </button>
-        <div className="text-2xl font-semibold text-gray-800">{pageTitle}</div>
       </div>
       <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">
         <Suspense fallback={null}>

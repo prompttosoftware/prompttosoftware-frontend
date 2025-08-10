@@ -28,7 +28,7 @@ export default function MainUI({ children }: { children: React.ReactNode }) {
   
   // All useEffects and logic that were in the layout now live here.
   const { showTutorial, setShowTutorial } = useContext(AuthContext);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const initBanners = useBannerStore((state) => state.initBanners);
   const { error, clearError } = useGlobalErrorStore();
@@ -74,10 +74,10 @@ export default function MainUI({ children }: { children: React.ReactNode }) {
   }, []); // Empty dependency array to run only once
 
   useEffect(() => {
-    if (!isAuthenticated && !sessionStorage.getItem('welcome_dismissed')) {
+    if (!isAuthenticated && !isLoading && !sessionStorage.getItem('welcome_dismissed')) {
       setShowWelcome(true);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   const handleTutorialComplete = () => {
     setShowTutorial(false);

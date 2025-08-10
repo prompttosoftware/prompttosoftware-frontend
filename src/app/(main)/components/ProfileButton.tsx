@@ -43,7 +43,7 @@ const ProfileButton = () => {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="relative z-[60]">
+      <DropdownMenuContent>
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
