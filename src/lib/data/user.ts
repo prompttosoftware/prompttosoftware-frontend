@@ -25,7 +25,7 @@ export async function getInitialAuthData(): Promise<{ user: UserProfile | null }
         const res = await serverFetch('/users/me', jwt);
         if (!res.ok) return null;
         const json = await res.json();
-        return json.data;
+        return json.data.user;
       },
       [cacheKey],        // cache key parts
       {

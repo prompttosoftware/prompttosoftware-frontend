@@ -27,6 +27,7 @@ export const useProject = (projectId?: string, options?: ProjectQueryOptions) =>
           const project = FAKE_PROJECTS.find(p => p._id === projectId);
           if (!project) throw new Error('Project not found');
           console.log('Fake project found:', project);
+          // This path already returns the correct shape
           return project;
         }
         
@@ -34,12 +35,15 @@ export const useProject = (projectId?: string, options?: ProjectQueryOptions) =>
         
         console.log('Calling api.getProjectById...');
         try {
-          const result = await api.getProjectById(projectId);
-          console.log('API call successful:', result);
-          return result;
+          // The API response is a wrapper object like { success: true, data: Project }
+          const response = await api.getProjectById(projectId);
+          console.log('API call successful:', response);
+
+          return response; 
+
         } catch (error) {
           console.error('API call failed:', error);
-          throw error;
+          throw error; // Let React Query handle the error state
         }
       },
       enabled: !!projectId,

@@ -188,8 +188,12 @@ export const api = {
    * @param projectId - The ID of the project to fetch.
    */
   getProjectById: async (projectId: string): Promise<Project> => {
-    const response = await httpClient.get<Project>(`/projects/${projectId}`);
-    return response.data;
+    // 1. Tell httpClient the TRUE shape of the response data using the wrapper type.
+    const response = await httpClient.get<GetProjectResponse>(`/projects/${projectId}`);
+
+    // 2. Unwrap the response to return only the project data,
+    //    fulfilling the Promise<Project> signature.
+    return response.data.data;
   },
 
   /**
