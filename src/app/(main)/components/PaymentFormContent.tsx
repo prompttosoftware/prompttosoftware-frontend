@@ -5,24 +5,25 @@ import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useBalanceStore } from '@/store/balanceStore';
-
 import { Label } from '@/components/ui/label';
 import { logger } from '@/lib/logger';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner'; // 1. Import toast from sonner
 
 interface PaymentFormContentProps {
   clientSecret: string;
   amount: number;
   setClientSecret: (secret: string | null) => void;
-  closeModal: () => void; // Still needed for closing the *entire* modal on success
+  closeModal: () => void;
   clearStoreState: () => void;
-  resetAddFundsStep: () => void; // New prop to reset the step in PaymentModal
-  clearGlobalError: () => void;
-  setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
+  resetAddFundsStep: () => void;
   setSuccessMessageStore: (message: string | null) => void;
   showSaveCardOption: boolean;
   saveCardForFuture: boolean;
   setSaveCardForFuture: (value: boolean) => void;
+  // 2. Remove global error props
+  // clearGlobalError: () => void; 
+  // setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
 }
 
 const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
@@ -32,18 +33,16 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   closeModal,
   clearStoreState,
   resetAddFundsStep,
-  clearGlobalError,
-  setGlobalError,
   setSuccessMessageStore,
   showSaveCardOption,
   saveCardForFuture,
   setSaveCardForFuture,
+  // 2. Remove from destructuring
 }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const updateBalance = useBalanceStore((state) => state.updateBalance); // Use updateBalance
-  
-  // Log the state of Stripe, Elements, and Client Secret when component renders or dependencies change
+  const updateBalance = useBalanceStore((state) => state.updateBalance);
+
   logger.debug(`PaymentFormContent rendered. clientSecret: ${!!clientSecret}, stripe: ${!!stripe}, elements: ${!!elements}`);
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -80,24 +79,20 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
 
   const handleStripeConfirmation = useCallback(async () => {
     if (!stripe || !elements || !clientSecret) {
-      setGlobalError({
-        message: 'Stripe.js has not loaded or client secret is missing.',
-        type: 'error',
-      });
-      logger.error(
-        'Stripe.js not loaded or clientSecret missing for confirmation in PaymentFormContent.',
-      );
+      // 3. Replace setGlobalError with toast.error
+      toast.error('Stripe.js has not loaded or client secret is missing.');
+      logger.error('Stripe.js not loaded or clientSecret missing for confirmation in PaymentFormContent.');
       return;
     }
 
     setIsProcessing(true);
-    clearGlobalError();
+    // No longer need to clear global error
 
     try {
       const cardElement = elements.getElement(CardElement);
 
       if (!cardElement) {
-        setGlobalError({ message: 'Card details not found. Please re-enter.', type: 'error' });
+        toast.error('Card details not found. Please re-enter.');
         logger.error('CardElement not found in PaymentFormContent.');
         setIsProcessing(false);
         return;
@@ -113,15 +108,9 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       logger.info('Confirm card payment.', `Intent: ${JSON.stringify(paymentIntent)}`);
 
       if (error) {
-        logger.error(
-          'Payment failed in PaymentFormContent',
-          `Code: ${error.code}, Type: ${error.type}, Message: ${error.message}`,
-        );
-        setGlobalError({
-          message: error.message || 'Payment failed. Please try again.',
-          type: 'error',
-        });
-        resetAddFundsStep(); // Reset the add funds step on error
+        logger.error('Payment failed in PaymentFormContent', `Code: ${error.code}, Type: ${error.type}, Message: ${error.message}`);
+        toast.error(error.message || 'Payment failed. Please try again.');
+        resetAddFundsStep();
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         logger.info('Funds added successfully in PaymentFormContent!');
         
@@ -131,34 +120,21 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         logger.info(`Balance updated in store by: $${addedAmount.toFixed(2)}`);
 
         if (paymentIntent.amount && Math.round(addedAmount * 100) !== paymentIntent.amount) {
-          logger.warn(
-            `Amount mismatch detected! UI Amount: ${addedAmount}, Stripe Amount: ${paymentIntent.amount / 100}`,
-          );
+          logger.warn(`Amount mismatch detected! UI Amount: ${addedAmount}, Stripe Amount: ${paymentIntent.amount / 100}`);
         }
         
-        resetAddFundsStep(); // Reset the add funds step if payment succeeded
-        closeModal(); // Still close the modal on successful payment
-        clearStoreState(); // Clear all payment modal related state
+        resetAddFundsStep();
+        closeModal();
+        clearStoreState();
       } else {
-        logger.warn(
-          `Payment not successful in PaymentFormContent: status ${paymentIntent?.status}`,
-        );
-        setGlobalError({
-          message: `Payment could not be completed. Status: ${paymentIntent?.status}. Please try again.`,
-          type: 'error',
-        });
-        resetAddFundsStep(); // Reset the add funds step on non-success status
+        logger.warn(`Payment not successful in PaymentFormContent: status ${paymentIntent?.status}`);
+        toast.error(`Payment could not be completed. Status: ${paymentIntent?.status}. Please try again.`);
+        resetAddFundsStep();
       }
     } catch (error) {
-      logger.error(
-        'An unexpected error occurred during payment confirmation in PaymentFormContent',
-        error,
-      );
-      setGlobalError({
-        message: 'An unexpected error occurred during payment. Please try again.',
-        type: 'error',
-      });
-      resetAddFundsStep(); // Reset the add funds step on error
+      logger.error('An unexpected error occurred during payment confirmation in PaymentFormContent', error);
+      toast.error('An unexpected error occurred during payment. Please try again.');
+      resetAddFundsStep();
     } finally {
       setIsProcessing(false);
     }
@@ -170,10 +146,9 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
     amount,
     clearStoreState,
     resetAddFundsStep,
-    clearGlobalError,
-    setGlobalError,
     setSuccessMessageStore,
     updateBalance,
+    saveCardForFuture, // Add saveCardForFuture to dependency array
   ]);
 
   return (
@@ -185,19 +160,18 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         <CardElement options={cardElementOptions} onChange={handleCardChange} />
         {cardError && <div className="text-red-500 text-sm mt-2">{cardError}</div>}
       </div>
-      {/* --- NEW: "Save Card" Checkbox --- */}
-        {showSaveCardOption && (
-            <div className="flex items-center space-x-2 my-4">
-                <Checkbox
-                    id="save-card"
-                    checked={saveCardForFuture}
-                    onCheckedChange={(checked) => setSaveCardForFuture(Boolean(checked))}
-                />
-                <label htmlFor="save-card" className="text-sm font-medium leading-none">
-                    Save this card for future use
-                </label>
-            </div>
-        )}
+      {showSaveCardOption && (
+        <div className="flex items-center space-x-2 my-4">
+          <Checkbox
+            id="save-card"
+            checked={saveCardForFuture}
+            onCheckedChange={(checked) => setSaveCardForFuture(Boolean(checked))}
+          />
+          <label htmlFor="save-card" className="text-sm font-medium leading-none">
+            Save this card for future use
+          </label>
+        </div>
+      )}
       <DialogFooter className="mt-4">
         <Button onClick={closeModal} variant="outline" disabled={isProcessing}>
           Cancel

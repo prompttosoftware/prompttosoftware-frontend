@@ -15,7 +15,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PaymentFormContent from './PaymentFormContent';
-import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { isAxiosError } from 'axios';
 import { logger } from '@/lib/logger';
 import { StripeWrapper } from '@/components/StripeWrapper';
@@ -23,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { createPaymentIntent } from '@/lib/payments';
 import { SavedCardsList } from './SavedCardsList';
 import { SavedCardConfirmation } from './SavedCardConfirmation';
+import { toast } from 'sonner'; // 1. Import sonner toast
 
 export function PaymentModal() {
   // Store state
@@ -37,10 +37,9 @@ export function PaymentModal() {
   const clearState = usePaymentModalStore((state) => state.clearState);
   const onClose = usePaymentModalStore((state) => state.onClose);
 
-  // Error handling
-  const { setError, clearError } = useGlobalErrorStore();
+  // Success message store
   const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
-  const globalError = useGlobalErrorStore((state) => state.error);
+
 
   // Local state
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'paypal'>('card');
@@ -60,7 +59,6 @@ export function PaymentModal() {
       setSelectedPaymentMethod('card');
       setIsLoadingPaymentIntent(false);
       clearState();
-      clearError();
       setSuccessMessageStore(null);
       if (onClose) {
         onClose();
@@ -68,90 +66,66 @@ export function PaymentModal() {
     }
 
     prevIsOpenRef.current = isOpen;
-  }, [isOpen, clearState, clearError, setSuccessMessageStore, onClose]);
+  }, [isOpen, clearState, setSuccessMessageStore, onClose]);
 
-  // Amount validation
-  const validateAmount = useCallback(
-    (amountStr: string): boolean => {
-      clearError();
+  // Amount validation (now uses toasts)
+  const validateAmount = useCallback((amountStr: string): boolean => {
+    if (!amountStr || parseFloat(amountStr) === 0) {
+      toast.error('Amount is required.');
+      return false;
+    }
 
-      if (!amountStr) {
-        setError({ message: 'Amount is required.', type: 'error' });
-        return false;
-      }
+    const amountNum = parseFloat(amountStr);
 
-      const amount = parseFloat(amountStr);
+    if (isNaN(amountNum)) {
+      toast.error('Amount must be a number.');
+      return false;
+    }
+    if (amountNum <= 0) {
+      toast.error('Amount must be positive.');
+      return false;
+    }
+    if (amountNum < 0.5) {
+      toast.error('Minimum amount is $0.50.');
+      return false;
+    }
+    if (amountNum > 10000) {
+      toast.error('Maximum amount is $10,000.00.');
+      return false;
+    }
+    return true;
+  }, []);
 
-      if (isNaN(amount)) {
-        setError({ message: 'Amount must be a number.', type: 'error' });
-        return false;
-      }
-
-      if (amount <= 0) {
-        setError({ message: 'Amount must be positive.', type: 'error' });
-        return false;
-      }
-
-      if (amount < 0.5) {
-        setError({ message: 'Minimum amount is $0.50.', type: 'error' });
-        return false;
-      }
-
-      if (amount > 10000) {
-        setError({ message: 'Maximum amount is $10,000.00.', type: 'error' });
-        return false;
-      }
-
-      return true;
-    },
-    [clearError, setError],
-  );
-
+  // Simplified amount change handler
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
-      let cleanedValue = rawValue;
-
-      if (rawValue && rawValue !== '-') {
-        validateAmount(rawValue);
-      } else {
-        clearError();
-      }
-
-      const hasLeadingMinus = cleanedValue.startsWith('-');
-      cleanedValue = cleanedValue.replace(/[^0-9.]/g, '');
-
-      const parts = cleanedValue.split('.');
-      if (parts.length > 2) {
-        cleanedValue = `${parts[0]}.${parts[1]}`;
-      }
-
-      if (hasLeadingMinus && cleanedValue !== '') {
-        cleanedValue = '-' + cleanedValue;
-      }
-      if (e.target.value === '-') {
-        cleanedValue = '-';
-      }
-
+      // Allow only numbers and a single decimal point
+      const cleanedValue = rawValue.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
       setAmount(parseFloat(cleanedValue) || 0);
     },
-    [validateAmount, clearError, setAmount],
+    [setAmount],
   );
 
   const handleInitiatePaymentProcess = useCallback(async () => {
     logger.debug(`handleInitiatePaymentProcess called. amount: ${amount}, selectedCardId: ${selectedCardId}`);
     
+    // 2. Add validation for payment method selection
+    if (!selectedCardId) {
+      toast.error('Please select a payment method.');
+      return;
+    }
+
     if (!validateAmount(amount.toString())) {
       logger.debug('Amount validation failed.');
-      return;
+      return; // The toast is shown inside validateAmount
     }
 
     if (selectedPaymentMethod === 'card') {
       setIsLoadingPaymentIntent(true);
-      clearError();
 
       if (!isAuthenticated) {
-        setError({ message: 'Authentication required. Please log in again.', type: 'error' });
+        toast.error('Authentication required. Please log in again.');
         logger.error('No JWT token found for payment intent creation.');
         setIsLoadingPaymentIntent(false);
         return;
@@ -168,21 +142,15 @@ export function PaymentModal() {
         logger.error('Failed to create Payment Intent.', error);
 
         if (isAxiosError(error) && error.response) {
-          setError({
-            message: error.response.data?.message || 'Failed to create intent due to server error',
-            type: 'error',
-          });
+          toast.error(error.response.data?.message || 'Failed to create intent due to server error');
         } else {
-          setError({
-            message: 'An unexpected error occurred while creating payment intent.',
-            type: 'error',
-          });
+          toast.error('An unexpected error occurred while creating payment intent.');
         }
       } finally {
         setIsLoadingPaymentIntent(false);
       }
     } else if (selectedPaymentMethod === 'paypal') {
-      setError({ message: 'PayPal integration is not yet implemented.', type: 'info' });
+      toast.info('PayPal integration is not yet implemented.');
     }
   }, [
     amount,
@@ -191,10 +159,7 @@ export function PaymentModal() {
     validateAmount,
     setClientSecret,
     setStep,
-    clearError,
-    setError,
-    isLoadingPaymentIntent,
-    isAuthenticated
+    isAuthenticated,
   ]);
 
   const resetToAmountStep = useCallback(() => {
@@ -231,6 +196,7 @@ export function PaymentModal() {
                   <Input
                     id="amount"
                     type="text"
+                    inputMode="decimal"
                     placeholder="e.g., 50.00"
                     value={amount === 0 ? '' : amount.toString()}
                     onChange={handleAmountChange}
@@ -258,7 +224,6 @@ export function PaymentModal() {
               </div>
             </div>
 
-            {/* Saved Cards List Component */}
             <SavedCardsList
               selectedCardId={selectedCardId}
               onCardSelect={handleCardSelection}
@@ -294,8 +259,9 @@ export function PaymentModal() {
                   setClientSecret={setClientSecret}
                   closeModal={storeCloseModal}
                   clearStoreState={clearState}
-                  clearGlobalError={clearError}
-                  setGlobalError={setError}
+                  // 3. Remove props related to global error.
+                  // Your PaymentFormContent should be updated to import and use `toast` directly
+                  // for its own error handling, instead of relying on these props.
                   setSuccessMessageStore={setSuccessMessageStore}
                   resetAddFundsStep={resetToAmountStep}
                 />
