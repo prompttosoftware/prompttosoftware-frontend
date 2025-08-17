@@ -41,10 +41,11 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     deleteProject.mutate(undefined, {
       onSuccess: () => {
         toast.success('Project deletion initiated.');
-        // The hook already handles redirection.
+        hideConfirmation();
       },
       onError: (err) => {
         toast.error(`Failed to delete: ${err.message}`);
+        hideConfirmation();
       },
     });
   };

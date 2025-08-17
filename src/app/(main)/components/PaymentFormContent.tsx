@@ -21,9 +21,6 @@ interface PaymentFormContentProps {
   showSaveCardOption: boolean;
   saveCardForFuture: boolean;
   setSaveCardForFuture: (value: boolean) => void;
-  // 2. Remove global error props
-  // clearGlobalError: () => void; 
-  // setGlobalError: (error: { message: string; type?: 'error' | 'info' | 'warning' }) => void;
 }
 
 const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
@@ -37,7 +34,6 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   showSaveCardOption,
   saveCardForFuture,
   setSaveCardForFuture,
-  // 2. Remove from destructuring
 }) => {
   const stripe = useStripe();
   const elements = useElements();

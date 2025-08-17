@@ -1,98 +1,72 @@
-import React, { useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSavedCards, deleteSavedCard } from '@/lib/payments';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getSavedCards } from '@/lib/payments';
 import { SavedCard } from '@/types/payments';
 import { Label } from '@/components/ui/label';
-import { CardSelectionItem } from './CardSelectionItem';
-import { AddNewCardButton } from './AddNewCardButton';
-import { useGlobalErrorStore } from '@/store/globalErrorStore';
-import { toast } from 'sonner';
-import { logger } from '@/lib/logger';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CreditCard, PlusCircle } from 'lucide-react';
 
 interface SavedCardsListProps {
   selectedCardId: string;
   onCardSelect: (cardId: string) => void;
 }
 
+// A small component to render the card details nicely
+const CardDisplay = ({ card }: { card: SavedCard }) => (
+  <div className="flex items-center gap-4">
+    <CreditCard className="h-6 w-6 text-muted-foreground" />
+    <div className="flex flex-col">
+      <span className="font-medium">
+        {card.brand.charAt(0).toUpperCase() + card.brand.slice(1)} •••• {card.last4}
+      </span>
+      <span className="text-sm text-muted-foreground">
+        Expires {String(card.expiryMonth).padStart(2, '0')}/{card.expiryYear}
+      </span>
+    </div>
+  </div>
+);
+
 export function SavedCardsList({ selectedCardId, onCardSelect }: SavedCardsListProps) {
-  const queryClient = useQueryClient();
-  const { setError, showConfirmation } = useGlobalErrorStore();
-  
-  const { data: savedCards, isLoading: isLoadingCards, error } = useQuery<SavedCard[]>({
+  const { data: savedCards, isLoading: isLoadingCards } = useQuery<SavedCard[]>({
     queryKey: ['savedCards'],
-    queryFn: () => getSavedCards(),
+    queryFn: getSavedCards,
+    // It's good practice to keep data fresh but not refetch aggressively on window focus for this
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
-
-  // Mutation for deleting cards
-  const { mutate: deleteCard, isPending: isDeleting } = useMutation({
-    mutationFn: (cardId: string) => deleteSavedCard(cardId),
-    onSuccess: (data, cardId) => {
-      toast.success(data.message || 'Card removed successfully.');
-      // If the deleted card was selected, switch to new card
-      if (selectedCardId === cardId) {
-        onCardSelect('new_card');
-      }
-      queryClient.invalidateQueries({ queryKey: ['savedCards'] });
-      logger.info(`Successfully deleted card ${cardId}`);
-    },
-    onError: (error: any) => {
-      logger.error('Failed to delete card:', error);
-      setError({ message: error.message || 'Error deleting card.', type: 'error' });
-    },
-  });
-
-  const handleDeleteCard = useCallback(
-    (cardId: string, event: React.MouseEvent) => {
-      event.stopPropagation(); // Prevent card selection when clicking delete
-      showConfirmation(
-        'Remove Saved Card',
-        'Are you sure you want to remove this card?',
-        () => deleteCard(cardId),
-      );
-    },
-    [showConfirmation, deleteCard],
-  );
-
-  if (error) {
-    return (
-      <div className="grid gap-2 py-4">
-        <Label className="text-gray-700">Payment Method</Label>
-        <div className="p-4 border border-red-200 rounded-md bg-red-50">
-          <p className="text-sm text-red-600">Failed to load saved cards. You can still add a new card.</p>
-          <div className="mt-2">
-            <AddNewCardButton
-              isSelected={selectedCardId === 'new_card'}
-              onClick={() => onCardSelect('new_card')}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="grid gap-2 py-4">
-      <Label className="text-gray-700">Payment Method</Label>
-      
-      <div className="max-h-60 overflow-y-auto pr-2 space-y-2">
-        {isLoadingCards && <p className="text-sm text-gray-500">Loading cards…</p>}
+    <div className="grid gap-2">
+      <Label>Payment Method</Label>
+      {isLoadingCards ? (
+        <div className="p-4 border rounded-md text-sm text-muted-foreground">Loading cards…</div>
+      ) : (
+        <RadioGroup
+          value={selectedCardId}
+          onValueChange={onCardSelect}
+          className="grid gap-2"
+        >
+          {savedCards?.map((card) => (
+            <Label
+              key={card.id}
+              htmlFor={card.id}
+              className="flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-accent has-[:checked]:border-primary"
+            >
+              <CardDisplay card={card} />
+              <RadioGroupItem value={card.id} id={card.id} />
+            </Label>
+          ))}
 
-        {savedCards?.map((card) => (
-          <CardSelectionItem
-            key={card.id}
-            card={card}
-            isSelected={selectedCardId === card.id}
-            onClick={() => onCardSelect(card.id)}
-            onDelete={handleDeleteCard}
-            isDeleting={isDeleting}
-          />
-        ))}
-
-        <AddNewCardButton
-          isSelected={selectedCardId === 'new_card'}
-          onClick={() => onCardSelect('new_card')}
-        />
-      </div>
+          <Label
+            htmlFor="new_card"
+            className="flex items-center gap-4 p-4 border rounded-md cursor-pointer hover:bg-accent has-[:checked]:border-primary"
+          >
+            <PlusCircle className="h-6 w-6 text-muted-foreground" />
+            <span className="font-medium">Add a new card</span>
+            <RadioGroupItem value="new_card" id="new_card" className="ml-auto" />
+          </Label>
+        </RadioGroup>
+      )}
     </div>
   );
 }

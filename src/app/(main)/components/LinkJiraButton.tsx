@@ -94,12 +94,12 @@ const LinkJiraButton = () => {
     <Button
       type="button"
       onClick={handleLinkJira}
-      // Using arbitrary value for Jira's brand blue
-      className="bg-[#0052CC] hover:bg-[#0052cc]/90 text-white font-semibold flex items-center"
+      className="bg-background hover:bg-background/90 text-primary font-semibold flex items-center"
       disabled={isLoading || isJiraLinked}
       aria-label={isJiraLinked ? 'Jira account is linked' : 'Link your Jira account'}
     >
-      <JiraLogoIcon className="text-white"/>
+      <JiraLogoIcon className="w-4 h-4 mr-2" />
+      {isJiraLinked ? 'Jira Linked' : 'Link Jira'}
     </Button>
   );
 };

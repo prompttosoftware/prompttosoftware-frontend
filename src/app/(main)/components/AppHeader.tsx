@@ -29,14 +29,14 @@ export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => 
   const { isAuthenticated, user } = useAuth();
 
   return (
-    <header className="sticky top-0 h-16 bg-white shadow-md flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0">
+    <header className="sticky top-0 h-16 bg-background shadow-md flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0">
       <div className="flex items-center">
         <button
           className="md:hidden p-2 mr-2"
           onClick={onMobileNavOpen}
           aria-label="Open navigation"
         >
-          <Bars3Icon className="h-6 w-6 text-gray-700" />
+          <Bars3Icon className="h-6 w-6 text-primary" />
         </button>
       </div>
       <div className="flex flex-wrap items-center justify-end space-x-2 md:space-x-4">

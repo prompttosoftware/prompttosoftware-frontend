@@ -101,7 +101,7 @@ export default function MainUI({ children }: { children: React.ReactNode }) {
         />
       )}
       
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-background text-foreground">
         <SideNavBar
           isExpanded={isNavExpanded}
           setIsExpanded={setIsNavExpanded}

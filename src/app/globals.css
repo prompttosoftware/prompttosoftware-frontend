@@ -1,5 +1,7 @@
 /* Add any minimal, necessary global base styles or CSS resets below */
-@import "tailwindcss";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 @layer base {
   :root {
@@ -50,5 +52,21 @@
     --border: 0 0% 40%;                 /* medium gray */
     --input: 0 0% 40%;                  /* medium gray */
     --ring: 0 0% 100%;                  /* white */
+  }
+
+  .debug {
+    --background: 300 100% 80%;
+    --foreground: 120 100% 25%;
+    --card: 200 100% 70%;
+    --card-foreground: 0 0% 0%;
+    --popover: 50 100% 70%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 0 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 280 100% 90%;
+    --muted-foreground: 280 100% 20%;
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 120 100% 40%;
   }
 }
