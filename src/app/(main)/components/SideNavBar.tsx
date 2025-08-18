@@ -46,7 +46,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
       {/* Mobile overlay */}
       {isMobileNavOpen && (
         <div
-          className="fixed inset-0 bg-foreground z-40 md:hidden"
+          className="fixed inset-0 bg-popover z-40 md:hidden"
           onClick={() => setIsMobileNavOpen(false)}
           aria-hidden="true"
         ></div>
@@ -54,7 +54,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
 
       {/* Side Navigation Bar */}
       <div
-        className={`flex-col h-full bg-background text-primary transition-all duration-300 ease-in-out fixed left-0 top-0 bottom-0 z-50 shadow-lg side-navbar
+        className={`flex-col h-full bg-background text-foreground transition-all duration-300 ease-in-out fixed left-0 top-0 bottom-0 z-50 shadow-lg side-navbar
           ${isExpanded ? 'w-64' : 'w-20'}
           ${isMobileNavOpen ? 'flex w-64' : 'hidden'}
           md:flex`}
@@ -64,21 +64,21 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
         <div className="flex items-center justify-end h-16 px-4">
           <button
             onClick={toggleExpansion}
-            className="p-2 rounded-full hover:bg-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 hidden md:flex"
+            className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground focus:outline-none focus:ring hidden md:flex"
             aria-label={isExpanded ? 'Collapse navigation' : 'Expand navigation'}
           >
             {isExpanded ? (
-              <ChevronLeftIcon className="h-6 w-6 text-primary" />
+              <ChevronLeftIcon className="h-6 w-6 text-foreground" />
             ) : (
-              <ChevronRightIcon className="h-6 w-6 text-primary" />
+              <ChevronRightIcon className="h-6 w-6 text-foreground" />
             )}
           </button>
           <button
             onClick={() => setIsMobileNavOpen(false)}
-            className="p-2 rounded-full hover:bg-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 flex md:hidden ml-auto"
+            className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground focus:outline-none focus:ring flex md:hidden ml-auto"
             aria-label="Close navigation"
           >
-            <ChevronLeftIcon className="h-6 w-6 text-primary" />
+            <ChevronLeftIcon className="h-6 w-6 text-foreground" />
           </button>
         </div>
 
@@ -89,7 +89,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
               <Link
                 key={item.name}
                 href={item.href}
-                className="flex items-center p-3 rounded-lg text-sm font-medium justify-start text-primary hover:bg-foreground hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex items-center p-3 rounded-lg text-sm font-medium justify-start text-foreground hover:text-muted-foreground hover:bg-muted transition-colors duration-200 focus:outline-none focus:ring"
                 aria-label={item.name}
                 {...(
                   item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
@@ -107,7 +107,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 <Tooltip.Trigger asChild>
                   <Link
                     href={item.href}
-                    className="flex items-center p-3 rounded-lg text-sm font-medium justify-center text-primary hover:bg-foreground hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center p-3 rounded-lg text-sm font-medium justify-center text-foreground hover:bg-muted hover:text-muted-foreground transition-colors duration-200 focus:outline-none focus:ring"
                     aria-label={item.name}
                     {...(
                       item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
@@ -121,11 +121,11 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    className="bg-gray-700 text-white text-xs px-2 py-1 rounded-md shadow-lg z-[60]"
+                    className="bg-popover text-popover-foreground text-xs px-2 py-1 rounded-md shadow-lg z-[60]"
                     sideOffset={5}
                   >
                     {item.name}
-                    <Tooltip.Arrow className="fill-current text-gray-700" />
+                    <Tooltip.Arrow className="fill-current text-popover" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip.Root>
@@ -133,7 +133,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
           )}
         </nav>
 
-        <div className="mt-auto p-4 border-t border-gray-700">
+        <div className="mt-auto p-4 border-t border-border">
           {/* Future bottom navigation items or user info */}
         </div>
       </div>

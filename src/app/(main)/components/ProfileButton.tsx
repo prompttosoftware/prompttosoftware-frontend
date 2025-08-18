@@ -22,7 +22,7 @@ const ProfileButton = () => {
     return (
       <Button
         onClick={() => router.push('/login')}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 text-sm"
+        className="bg-primary hover:bg-primar-hover text-primary-foreground hover:text-primary-foreground px-4 py-2 text-sm"
       >
         Login
       </Button>
@@ -47,11 +47,6 @@ const ProfileButton = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
-            {user?.balance !== undefined && (
-              <p className="text-xs leading-none text-muted-foreground">
-                Balance: {user.balance} credits
-              </p>
-            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

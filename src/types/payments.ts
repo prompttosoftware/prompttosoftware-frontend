@@ -74,3 +74,13 @@ export interface CreatePaymentIntentResponse {
   currency: string;
   status: string;
 }
+
+export interface CreatePaymentIntentAPIResponse {
+  data: {
+    clientSecret: string;
+    paymentIntentId: string;
+    amount: number;
+    currency: string;
+    status: string;
+  }
+}

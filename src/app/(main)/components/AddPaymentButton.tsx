@@ -10,7 +10,7 @@ export default function AddPaymentButton() {
   return (
     <Button
       variant="outline"
-      className="flex items-center space-x-2 px-4 py-2 add-payment-button"
+      className="flex items-center space-x-2 px-4 py-2 add-payment-button bg-primary text-primary-foreground hover:bg-primary-hover hover:text-primary-hover-foreground"
       data-test-id="add-payment-button" // Added for tutorial step targeting
       onClick={() => {
         openModal({}); // Call openModal to set isOpen to true

@@ -6,67 +6,142 @@
 @layer base {
   :root {
     /* Light theme */
-    --background: 0 0% 100%;            /* white */
-    --foreground: 0 0% 0%;              /* black */
+    
+    /* MAIN PAGE BACKGROUNDS */
+    --background: 0 0% 100%;            /* white - Main page background, body background */
+    
+    /* PRIMARY TEXT COLORS */
+    --foreground: 0 0% 0%;              /* black - Main body text, headings like DialogTitle, CardTitle */
+    
+    /* CARD & CONTAINER BACKGROUNDS */
+    --card: 0 0% 100%;                  /* white - Card backgrounds (ProjectCard, Dialog containers) */
+    --card-foreground: 0 0% 0%;         /* black - Text content inside cards (CardContent text, descriptions) */
+    
+    /* DROPDOWN & MODAL BACKGROUNDS */
+    --popover: 0 0% 100%;               /* white - Dialog/Modal backgrounds, dropdown menus, SavedCardsList */
+    --popover-foreground: 0 0% 0%;      /* black - Text inside modals/dropdowns, dialog descriptions */
+    
+    /* BUTTON & INTERACTIVE ELEMENT COLORS */
+    --primary: 0 0% 0%;                 /* black - Primary button backgrounds, active states */
+    --primary-foreground: 0 0% 100%;    /* white - Text on primary buttons ("Next", "Cancel" button text) */
+    
+    --primary-hover: 0 0% 20%;           /* Slightly lighter than primary for hover */
+    --primary-hover-foreground: 0 0% 100%; /* Same as primary-foreground usually */
 
-    --card: 0 0% 100%;                  /* white */
-    --card-foreground: 0 0% 0%;         /* black */
-
-    --popover: 0 0% 100%;               /* white */
-    --popover-foreground: 0 0% 0%;      /* black */
-
-    --primary: 0 0% 0%;                 /* black */
-    --primary-foreground: 0 0% 100%;    /* white */
-
-    --muted: 0 0% 90%;                  /* light gray */
-    --muted-foreground: 0 0% 20%;       /* dark gray */
-
-    --border: 0 0% 80%;                 /* medium gray */
-    --input: 0 0% 80%;                  /* medium gray */
-    --ring: 0 0% 0%;                    /* black */
-    --radius: 0.5rem;
+    /* SUBTLE BACKGROUNDS & SECONDARY TEXT */
+    --muted: 0 0% 90%;                  /* light gray - Disabled button backgrounds, subtle section backgrounds */
+    --muted-foreground: 0 0% 20%;       /* dark gray - Secondary text (CardFooter timestamps, input placeholders like "$", helper text) */
+    
+    /* BORDERS & INPUT STYLING */
+    --border: 0 0% 80%;                 /* medium gray - Card borders, input borders, CardFooter border-t, hover states */
+    --input: 0 0% 80%;                  /* medium gray - Input field backgrounds and borders (Amount input field) */
+    
+    /* FOCUS & SELECTION INDICATORS */
+    --ring: 0 0% 0%;                    /* black - Focus rings on inputs and buttons, selection indicators */
+    
+    --radius: 0.5rem;                   /* Border radius for rounded corners */
   }
-
+  
   .bg-popover {
     background-color: hsl(var(--popover) / 1) !important;
   }
-
-
+  
   .dark {
-    /* Dark theme */
-    --background: 0 0% 0%;              /* black */
-    --foreground: 0 0% 100%;            /* white */
+    /* Dark theme - Same element assignments as light theme, but with inverted colors */
+    
+    /* MAIN PAGE BACKGROUNDS */
+    --background: 0 0% 0%;              /* black - Main page background, body background */
+    
+    /* PRIMARY TEXT COLORS */
+    --foreground: 0 0% 100%;            /* white - Main body text, headings like DialogTitle, CardTitle */
+    
+    /* CARD & CONTAINER BACKGROUNDS */
+    --card: 0 0% 0%;                    /* black - Card backgrounds (ProjectCard, Dialog containers) */
+    --card-foreground: 0 0% 100%;       /* white - Text content inside cards (CardContent text, descriptions) */
+    
+    /* DROPDOWN & MODAL BACKGROUNDS */
+    --popover: 0 0% 0%;                 /* black - Dialog/Modal backgrounds, dropdown menus, SavedCardsList */
+    --popover-foreground: 0 0% 100%;    /* white - Text inside modals/dropdowns, dialog descriptions */
+    
+    /* BUTTON & INTERACTIVE ELEMENT COLORS */
+    --primary: 0 0% 100%;               /* white - Primary button backgrounds, active states */
+    --primary-foreground: 0 0% 0%;      /* black - Text on primary buttons ("Next", "Cancel" button text) */
+    
+    --primary-hover: 0 0% 80%;           /* Darker than white primary in dark mode */
+    --primary-hover-foreground: 0 0% 0%;
 
-    --card: 0 0% 0%;                    /* black */
-    --card-foreground: 0 0% 100%;       /* white */
-
-    --popover: 0 0% 0%;                 /* black */
-    --popover-foreground: 0 0% 100%;    /* white */
-
-    --primary: 0 0% 100%;               /* white */
-    --primary-foreground: 0 0% 0%;      /* black */
-
-    --muted: 0 0% 20%;                  /* dark gray */
-    --muted-foreground: 0 0% 80%;       /* light gray */
-
-    --border: 0 0% 40%;                 /* medium gray */
-    --input: 0 0% 40%;                  /* medium gray */
-    --ring: 0 0% 100%;                  /* white */
+    /* SUBTLE BACKGROUNDS & SECONDARY TEXT */
+    --muted: 0 0% 20%;                  /* dark gray - Disabled button backgrounds, subtle section backgrounds */
+    --muted-foreground: 0 0% 80%;       /* light gray - Secondary text (CardFooter timestamps, input placeholders, helper text) */
+    
+    /* BORDERS & INPUT STYLING */
+    --border: 0 0% 40%;                 /* medium gray - Card borders, input borders, CardFooter border-t, hover states */
+    --input: 0 0% 40%;                  /* medium gray - Input field backgrounds and borders (Amount input field) */
+    
+    /* FOCUS & SELECTION INDICATORS */
+    --ring: 0 0% 100%;                  /* white - Focus rings on inputs and buttons, selection indicators */
   }
-
+  
   .debug {
-    --background: 300 100% 80%;
-    --foreground: 120 100% 25%;
-    --card: 200 100% 70%;
-    --card-foreground: 0 0% 0%;
-    --popover: 50 100% 70%;
-    --popover-foreground: 0 0% 20%;
-    --primary: 0 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --muted: 280 100% 90%;
-    --muted-foreground: 280 100% 20%;
-    --border: 0 0% 0%;
-    --input: 0 0% 0%;
-    --ring: 120 100% 40%;
+    /* Debug theme - Highly contrasted colors for development/testing */
+    /* Use vibrant colors to easily identify which elements use which variables */
+    
+    /* MAIN PAGE BACKGROUNDS */
+    --background: 300 100% 80%;         /* bright magenta - Makes page background obvious */
+    
+    /* PRIMARY TEXT COLORS */
+    --foreground: 120 100% 25%;         /* dark green - Makes main text stand out */
+    
+    /* CARD & CONTAINER BACKGROUNDS */
+    --card: 200 100% 70%;               /* bright blue - Makes cards clearly visible */
+    --card-foreground: 0 0% 0%;         /* black - Ensures text is readable on blue cards */
+    
+    /* DROPDOWN & MODAL BACKGROUNDS */
+    --popover: 50 100% 70%;             /* bright yellow - Makes modals/dropdowns obvious */
+    --popover-foreground: 0 0% 20%;     /* dark gray - Readable text on yellow background */
+    
+    /* BUTTON & INTERACTIVE ELEMENT COLORS */
+    --primary: 0 100% 50%;              /* bright red - Makes primary buttons stand out */
+    --primary-foreground: 0 0% 100%;    /* white - Readable text on red buttons */
+    
+    /* SUBTLE BACKGROUNDS & SECONDARY TEXT */
+    --muted: 280 100% 90%;              /* light purple - Makes muted areas visible */
+    --muted-foreground: 280 100% 20%;   /* dark purple - Secondary text with purple tint */
+    
+    /* BORDERS & INPUT STYLING */
+    --border: 0 0% 0%;                  /* black - Makes all borders highly visible */
+    --input: 0 0% 0%;                   /* black - Makes input fields stand out with black backgrounds */
+    
+    /* FOCUS & SELECTION INDICATORS */
+    --ring: 120 100% 40%;               /* bright green - Makes focus states very obvious */
   }
 }
+
+/*
+USAGE EXAMPLES FROM YOUR COMPONENTS:
+
+1. PaymentModal:
+   - Dialog background: uses --popover
+   - DialogTitle: uses --popover-foreground  
+   - DialogDescription: uses --muted-foreground
+   - Input field: uses --input for background/border
+   - Dollar sign placeholder: uses --muted-foreground
+   - Next/Cancel buttons: use --primary and --primary-foreground
+   - Button hover states: use --ring for focus outlines
+
+2. ProjectCard:
+   - Card container: uses --card background
+   - CardTitle: uses --card-foreground
+   - Description text: uses --muted-foreground
+   - CardFooter border: uses --border
+   - Timestamps: use --muted-foreground
+   - Hover border effect: would use --ring or custom colors
+
+3. General Application:
+   - Page backgrounds: --background
+   - Main headings: --foreground
+   - Form labels: --foreground
+   - Disabled elements: --muted background with --muted-foreground text
+   - Error states: custom destructive colors (not shown in variables)
+   - Success states: custom success colors (not shown in variables)
+*/

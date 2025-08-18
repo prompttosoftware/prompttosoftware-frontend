@@ -1,5 +1,5 @@
 // lib/payments.ts
-import { CreatePaymentIntentRequest, CreatePaymentIntentResponse, SavedCard } from '@/types/payments';
+import { CreatePaymentIntentAPIResponse, CreatePaymentIntentRequest, CreatePaymentIntentResponse, SavedCard } from '@/types/payments';
 import { httpClient } from '@/lib/httpClient';
 import { FAKE_CARDS } from '@/lib/dev/fakeData';
 
@@ -20,14 +20,14 @@ export async function createPaymentIntent(
         }
     }
 
-    const response = await httpClient.post<
+    const { data } = await httpClient.post<
         CreatePaymentIntentRequest,
-        CreatePaymentIntentResponse
+        CreatePaymentIntentAPIResponse
     >('/payments/create-intent', payload);
-    return response;
+    return data;
 }
 
-// NEW: Fetch saved payment methods from our backend
+// Fetch saved payment methods from our backend
   export async function getSavedCards(): Promise<SavedCard[]> {
     if (
         process.env.NEXT_PUBLIC_FAKE_AUTH === 'true' &&
@@ -39,7 +39,7 @@ export async function createPaymentIntent(
     return data;
   }
 
-  // NEW: Detach a saved payment method via our backend
+  // Detach a saved payment method via our backend
   export async function deleteSavedCard(cardId: string): Promise<{ message: string }> {
     const { data } = await httpClient.delete<{ message: string }>(`/payments/cards/${cardId}`);
     return data;
