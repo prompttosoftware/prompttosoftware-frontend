@@ -2,7 +2,8 @@ import { setupHttpClientInterceptors, httpClient } from '@/lib/httpClient';
 import { paymentsService } from '@/services/paymentsService';
 
 // Auth Types
-import { UserProfile, AuthResponse, SavedCard } from '@/types/auth';
+import { UserProfile, AuthResponse } from '@/types/auth';
+import { SavedCard } from '@/types/payments';
 
 // Project Types
 import {
@@ -18,6 +19,7 @@ import {
     ExploreProjectsParams,
     ProjectFormData
 } from '@/types/project';
+import { Transaction } from '@/types/transactions';
 
 // API Key Types
 export interface ApiKey {
@@ -183,6 +185,15 @@ export const api = {
   },
 
   /**
+   * Fetches the transaction history for the currently logged-in user.
+   * Corresponds to: GET /transactions
+   */
+  listUserTransactions: async (): Promise<Transaction[]> => {
+    const response = await httpClient.get<Transaction[]>('/transactions');
+    return response.data;
+  },
+
+  /**
    * Fetches the complete data for a single project by its ID.
    * Corresponds to: GET /projects/:projectId
    * @param projectId - The ID of the project to fetch.
@@ -321,33 +332,29 @@ export const api = {
   },
 
   /**
-   * Delete a saved card by cardId.
-   * DELETE /me/card/:cardId
+   * Fetches the saved payment cards for the currently logged-in user.
+   * Corresponds to: GET /api/v1/payments/cards
    */
-  deleteCard: async (cardId: string): Promise<UserProfile> => {
-    const response = await httpClient.delete<UserProfileResponse>(`/me/card/${cardId}`);
+  listSavedCards: async (): Promise<SavedCard[]> => {
+    const response = await httpClient.get<SavedCard[]>('/payments/cards');
+    return response.data;
+  },
 
-    const backendUser = response.data.data.user;
+  /**
+   * Deletes a specific saved card.
+   * Corresponds to: DELETE /api/v1/payments/cards/:cardId
+   */
+  deleteSavedCard: async (cardId: string): Promise<void> => {
+    await httpClient.delete(`/payments/cards/${cardId}`);
+  },
 
-    return {
-      _id: backendUser._id,
-      email: backendUser.email,
-      isNewUser: backendUser.isNewUser ?? false,
-      balance: backendUser.balance,
-      name: backendUser.name,
-      avatarUrl: backendUser.avatarUrl,
-      role: backendUser.role,
-      integrations: {
-        jira: {
-          isLinked: backendUser.integrations?.jira?.isLinked,
-        }
-      },
-      apiKeys: backendUser.apiKeys || [],
-      savedCards: backendUser.savedCards || [],
-      starredProjects: backendUser.starredProjects || [],
-      createdAt: backendUser.createdAt,
-      updatedAt: backendUser.updatedAt,
-    };
+  /**
+   * Sets a specific card as the default.
+   * Corresponds to: PATCH /api/v1/payments/cards/:cardId/set-default
+   */
+  setDefaultSavedCard: async (cardId: string): Promise<SavedCard[]> => {
+    const response = await httpClient.patch<SavedCard[]>(`/payments/cards/${cardId}/set-default`);
+    return response.data;
   },
 
   /**

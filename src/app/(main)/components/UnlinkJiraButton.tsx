@@ -28,11 +28,11 @@ const UnlinkJiraButton = () => {
     <Button
       type="button"
       onClick={handleUnlinkJira}
-      className="bg-destructive hover:bg-destructive/90 text-white font-semibold flex items-center"
+      className="bg-primary hover:bg-primary-hover text-primary-foreground hover:text-primary-hover-foreground font-semibold flex items-center focus:ring"
       disabled={isLoading || !isJiraLinked}
       aria-label="Unlink your Jira account"
     >
-      <JiraLogoIcon className="text-white mr-2" />
+      <JiraLogoIcon className="w-4 h-4 mr-2" />
       Unlink Jira
     </Button>
   );

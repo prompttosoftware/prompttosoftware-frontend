@@ -34,12 +34,6 @@ export default async function DashboardPage() {
     fetchUserTransactions(),
   ]);
 
-  // 4. Prepare user data with transactions
-  const userWithTransactions = {
-    ...user,
-    transactionHistory: transactions,
-  };
-
   // 5. Filter projects on the server to get only active ones
   const activeProjects = allProjects.filter((project: Project) =>
     ACTIVE_STATUSES.includes(project.status)
@@ -48,5 +42,11 @@ export default async function DashboardPage() {
   console.debug(`[DashboardPage] Initial user:`, user);
 
   // 6. Render the page with pre-fetched data
-  return <DashboardClient user={userWithTransactions} activeProjects={activeProjects} />;
+  return (
+    <DashboardClient 
+      user={user} 
+      activeProjects={activeProjects} 
+      initialTransactions={transactions} 
+    />
+  );
 }

@@ -324,7 +324,7 @@ export const ApiKeyManager: React.FC = () => {
           <CardHeader>
             <CardTitle>No API Keys</CardTitle>
             <CardDescription>
-              Add API keys for your AI providers to get started.
+              We provide a default OpenRouter API key. If you would like to use your own key or use a different provider, add them here.
             </CardDescription>
           </CardHeader>
           <CardContent>

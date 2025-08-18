@@ -1,15 +1,14 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { UserProfile } from '@/types/auth';
 import { ApiKeyManager } from '@/app/(main)/components/ApiKeyManager';
 import DeleteAccountButton from '@/app/(main)/components/DeleteAccountButton';
-import { SavedCardsList } from '@/app/(main)/components/SavedCardsList';
 import { AuthProvider } from '@/lib/AuthContext';
-import { logger } from '@/lib/logger';
 import UnlinkJiraButton from '../../components/UnlinkJiraButton';
 import LinkJiraButton from '../../components/LinkJiraButton';
 import { useAuth } from '@/hooks/useAuth';
+import { SettingsSavedCardsList } from './SettingsSavedCardsList';
 
 type SettingsClientProps = {
   initialUser: UserProfile;
@@ -18,10 +17,6 @@ type SettingsClientProps = {
 // This component takes the server-fetched user and provides it to its
 // children via the context they expect.
 export default function SettingsClient({ initialUser }: SettingsClientProps) {
-
-  const handleCardSelection = useCallback((cardId: string) => {
-    logger.debug(`Card selected: ${cardId}`);
-  }, []);
 
   const { user } = useAuth();
     
@@ -43,8 +38,7 @@ export default function SettingsClient({ initialUser }: SettingsClientProps) {
           <p className="text-gray-700 mb-4">
             Manage your saved payment cards for quicker transactions.
           </p>
-          {/* This now works, because it's inside the AuthProvider! */}
-          <SavedCardsList selectedCardId={''} onCardSelect={handleCardSelection} />
+          <SettingsSavedCardsList />
         </section>
 
         <section className="bg-white p-6 rounded-lg shadow-md mb-8">
@@ -52,7 +46,6 @@ export default function SettingsClient({ initialUser }: SettingsClientProps) {
           <p className="text-gray-700 mb-4">
             Add and delete your API keys for each provider.
           </p>
-          {/* This also works now! */}
           <ApiKeyManager />
         </section>
         <section className="bg-white p-6 rounded-lg shadow-md mb-8">
@@ -61,7 +54,6 @@ export default function SettingsClient({ initialUser }: SettingsClientProps) {
             Connect your Jira account to enable project syncing and enhanced issue tracking.
           </p>
 
-          {/* Conditionally render the appropriate button */}
           <div className="flex items-center gap-4">
             {user?.integrations.jira.isLinked ? (
               <>

@@ -8,20 +8,28 @@ import { Button } from '@/components/ui/button';
 import { AuthProvider } from '@/lib/AuthContext';
 import AccountUsageSection from '@/app/(main)/dashboard/components/AccountUsageSection';
 import ActiveProjectsSummary from '@/app/(main)/dashboard/components/ActiveProjectsSummary';
+import { Transaction } from '@/types/transactions';
+import { useUserTransactions } from '@/hooks/useUserTransactions';
 
 type DashboardClientProps = {
   user: UserProfile;
   activeProjects: Project[];
+  initialTransactions: Transaction[];
 };
 
-export default function DashboardClient({ user, activeProjects }: DashboardClientProps) {
+export default function DashboardClient({ user, activeProjects, initialTransactions }: DashboardClientProps) {
+  
+  const { data: transactions } = useUserTransactions({
+    initialData: initialTransactions,
+  });
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-8">Welcome, {user.name}!</h1>
           <AuthProvider initialData={user}>
       
-          <AccountUsageSection initialUser={user} />
+          <AccountUsageSection balance={user.balance} transactions={transactions || []} />
           
           <section className="w-full max-w-5xl mb-12">
             <div className="flex justify-between items-center mb-6">

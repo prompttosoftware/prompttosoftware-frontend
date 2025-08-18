@@ -6,7 +6,7 @@ import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AddPaymentButton from '@/app/(main)/components/AddPaymentButton';
-import { TransactionUserProfile } from '@/types/transactions';
+import { Transaction } from '@/types/transactions';
 
 // Helper function to calculate spending
 const calculateSpending = (transactions: any[], startDate: Date, endDate: Date): number => {
@@ -19,23 +19,21 @@ const calculateSpending = (transactions: any[], startDate: Date, endDate: Date):
 };
 
 interface AccountUsageSectionProps {
-  initialUser: TransactionUserProfile; // Receive the initial user data as a prop
+  transactions: Transaction[]; // Receive transactions directly
+  balance: number;            // Receive balance directly
 }
 
-const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ initialUser }) => {
+const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions, balance }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>('current');
   
   // All calculations are now based on the `initialUser` prop.
   const usageData = useMemo(() => {
-    if (!initialUser?.transactionHistory) {
-      return { /* ... default values ... */ };
-    }
 
-    const spendingHistory = initialUser.transactionHistory
-      .filter(tx => tx.type === 'debit' && tx.status === 'succeeded') // Filter for successful debits
+    const spendingHistory = transactions
+      .filter(tx => tx.type === 'debit' && tx.status === 'succeeded')
       .map(tx => ({
-        amount: tx.amount, // Amount is already positive
-        originalDate: parseISO(tx.createdAt), // Use createdAt from the new model
+        amount: tx.amount,
+        originalDate: parseISO(tx.createdAt),
       }))
       .sort((a, b) => a.originalDate.getTime() - b.originalDate.getTime());
 
@@ -47,7 +45,7 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ initialUser }
     const currentMonthSpending = calculateSpending(spendingHistory, startOfCurrentMonth, now);
     const previousMonthSpending = calculateSpending(spendingHistory, startOfPreviousMonth, endOfPreviousMonth);
 
-    const remainingBudget = initialUser.balance || 0;
+    const remainingBudget = balance;
     const totalBudget = remainingBudget + currentMonthSpending;
 
     return {
@@ -57,7 +55,7 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ initialUser }
       remainingBudget,
       historicalSpending: spendingHistory,
     };
-  }, [initialUser]);
+  }, [transactions, balance]);
 
   const {
     historicalSpending: rawHistoricalData = [],

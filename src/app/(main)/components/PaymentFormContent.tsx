@@ -112,13 +112,13 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         
         const addedAmount = amount;
         updateBalance(addedAmount);
-        setSuccessMessageStore(`Successfully added $${addedAmount.toFixed(2)} to your balance!`);
+        toast.success(`Successfully added $${addedAmount.toFixed(2)} to your balance!`);
         logger.info(`Balance updated in store by: $${addedAmount.toFixed(2)}`);
 
         if (paymentIntent.amount && Math.round(addedAmount * 100) !== paymentIntent.amount) {
           logger.warn(`Amount mismatch detected! UI Amount: ${addedAmount}, Stripe Amount: ${paymentIntent.amount / 100}`);
         }
-        
+
         resetAddFundsStep();
         closeModal();
         clearStoreState();
