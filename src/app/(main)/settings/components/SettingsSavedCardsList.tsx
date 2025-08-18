@@ -71,7 +71,7 @@ export function SettingsSavedCardsList() {
   if (isError) {
     return (
       <div className="p-4 border rounded-md text-sm text-destructive bg-destructive/10">
-        Error loading cards: {error.message}
+        Error loading cards: {error?.message || 'Unknown error.'}
       </div>
     );
   }
