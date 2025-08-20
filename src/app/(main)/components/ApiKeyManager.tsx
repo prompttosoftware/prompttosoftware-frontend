@@ -120,7 +120,7 @@ export const AddApiKeyButton: React.FC<AddApiKeyButtonProps> = ({
           Add API Key
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-white/90 text-gray-900 backdrop-blur-md rounded-lg shadow-lg">
+      <DialogContent className="sm:max-w-md bg-popover text-popover-foreground backdrop-blur-md rounded-lg shadow-lg">
         <DialogHeader>
           <DialogTitle>Add API Key</DialogTitle>
         </DialogHeader>
@@ -154,7 +154,7 @@ export const AddApiKeyButton: React.FC<AddApiKeyButtonProps> = ({
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm">{error}</div>
+            <div className="text-destructive text-sm">{error}</div>
           )}
 
           <div className="flex justify-end space-x-2">
@@ -275,12 +275,12 @@ export const ApiKeyManager: React.FC = () => {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
-          <div className="h-9 w-28 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-6 w-32 bg-muted rounded animate-pulse"></div>
+          <div className="h-9 w-28 bg-muted rounded animate-pulse"></div>
         </div>
         <div className="space-y-2">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+            <div key={i} className="h-16 bg-muted rounded animate-pulse"></div>
           ))}
         </div>
       </div>
@@ -290,7 +290,7 @@ export const ApiKeyManager: React.FC = () => {
   // Display an error message if there was a problem loading the API keys.
   if (loadError) {
     return (
-      <div className="text-red-600 text-center p-4">
+      <div className="text-destructive text-center p-4">
         {loadError}
         <Button 
           onClick={fetchApiKeys} // The Retry button re-attempts fetching API keys
@@ -343,7 +343,7 @@ export const ApiKeyManager: React.FC = () => {
                   <Badge variant="secondary">
                     {getProviderLabel(key.provider)}
                   </Badge>
-                  <span className="font-mono text-sm text-gray-600">
+                  <span className="font-mono text-sm text-card-foreground">
                     {key.api_key}
                   </span>
                 </div>

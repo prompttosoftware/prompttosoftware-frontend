@@ -116,20 +116,20 @@ export default function InstallationManager() {
   };
 
   return (
-    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
-      <h3 className="text-md font-semibold text-gray-800 mb-2">Development Tools</h3>
-      <p className="text-sm text-gray-600 mb-4">
+    <div className="p-4 rounded-md bg-card shadow-sm">
+      <h3 className="text-md font-semibold text-card-foreground mb-2">Development Tools</h3>
+      <p className="text-sm text-card-foreground mb-4">
         Select additional development tools to install globally. Basic tools like git and curl are always included.
       </p>
       
       {/* Always installed tools */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Always Installed</h4>
+        <h4 className="text-sm font-medium text-card-foreground mb-2">Always Installed</h4>
         <div className="flex flex-wrap gap-2">
           {ALWAYS_INSTALLED.map((tool) => (
             <span
               key={tool}
-              className="px-2 py-1 bg-gray-200 text-gray-500 text-xs rounded border"
+              className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded"
             >
               {tool} (installed)
             </span>
@@ -139,22 +139,22 @@ export default function InstallationManager() {
 
       {/* User selected tools */}
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Additional Tools</h4>
+        <h4 className="text-sm font-medium text-card-foreground mb-2">Additional Tools</h4>
         <div className="space-y-2">
           {fields.length === 0 ? (
-            <p className="text-sm text-gray-500">No additional tools selected.</p>
+            <p className="text-sm text-muted">No additional tools selected.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {fields.map((installation, index) => (
                 <div
                   key={installation.id}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded border"
+                  className="flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground text-xs rounded"
                 >
                   <span>{installation.name}</span>
                   <button
                     type="button"
                     onClick={() => remove(index)}
-                    className="ml-1 text-blue-600 hover:text-blue-800 font-bold text-sm"
+                    className="ml-1 text-primary-foreground hover:text-primary-hover-foreground font-bold text-sm"
                     title="Remove"
                   >
                     ×
@@ -194,7 +194,7 @@ export default function InstallationManager() {
                       <div className="font-medium text-sm">
                         {tool.name} {isToolAdded(tool.name) && '(added)'}
                       </div>
-                      <div className="text-xs text-gray-500">{tool.description}</div>
+                      <div className="text-xs text-popover-foreground">{tool.description}</div>
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />

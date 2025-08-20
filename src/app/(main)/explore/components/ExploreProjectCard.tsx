@@ -36,7 +36,7 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
           </Avatar>
           <div>
             <CardTitle className="text-lg font-semibold">{project.name}</CardTitle>
-            <p className="text-sm text-gray-500">by {project.user?.name || 'Unknown User'}</p>
+            <p className="text-sm text-card-foreground">by {project.user?.name || 'Unknown User'}</p>
 
             <div className="mt-1 flex flex-wrap gap-1">
               {project.models && project.models.medium && Array.isArray(project.models.medium) && project.models.medium.slice(0, 3).map((m, i) => (
@@ -60,7 +60,7 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
                 </span>
               ))}
               {project.models && project.models.medium && project.models.medium.length > 3 && (
-                <span className="text-xs px-2 py-0.5 rounded bg-gray-300 text-gray-800">
+                <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
                   +{project.models.medium.length - 3}
                 </span>
               )}
@@ -80,10 +80,10 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
                     href={repo.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-md transition-colors"
                   >
-                    <Github className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm text-blue-600 dark:text-blue-400 truncate">
+                    <Github className="h-4 w-4 text-card-foreground flex-shrink-0" />
+                    <span className="text-sm text-card-foreground truncate">
                       {repo.name || repo.url.split('/').filter(Boolean).pop()}
                     </span>
                   </a>
@@ -92,7 +92,7 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
             ))}
           </ul>
         ) : (
-          <div className="text-center text-sm text-gray-400">
+          <div className="text-center text-sm text-muted">
             No public repositories linked.
           </div>
         )}
@@ -104,20 +104,20 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
           size="sm"
           onClick={handleToggle}
           disabled={isLoading}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-300 group"
+          className="flex items-center gap-2 text-card-foreground group"
         >
           <Star
             className={`h-5 w-5 transition-colors ${
               isStarred
                 ? 'text-yellow-400'
-                : 'text-gray-400 group-hover:text-yellow-300'
+                : 'text-muted group-hover:text-yellow-300'
             }`}
             fill={isStarred ? 'currentColor' : 'none'}
           />
           <span className="font-medium">{stars}</span>
         </Button>
 
-        <span className="text-sm text-gray-500 dark:text-gray-400">
+        <span className="text-sm text-card-foreground">
           {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
         </span>
       </CardFooter>

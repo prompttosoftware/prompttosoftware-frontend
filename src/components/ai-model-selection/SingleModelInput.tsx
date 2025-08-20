@@ -69,7 +69,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
   const excludeProviders = availableProviders;
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-md border">
+    <div className="flex flex-col gap-4 p-4 rounded-md">
       {/* Provider Dropdown */}
       <div>
         <Label htmlFor={`${providerFieldName}`} className="mb-2 block text-sm font-medium text-gray-700">

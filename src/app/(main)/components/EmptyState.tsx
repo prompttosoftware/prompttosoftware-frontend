@@ -22,15 +22,15 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center justify-center h-full w-full p-6 text-center">
-      <div className="text-gray-400 mx-auto w-16 h-16">
+      <div className="text-foreground mx-auto w-16 h-16">
         {/* Generic Icon placeholder */}
         <MagnifyingGlassIcon data-testid="empty-state-icon" className="w-full h-full" />
       </div>
-      <h3 className="text-xl font-semibold text-gray-700 mb-2">{title}</h3>
-      <p className="text-gray-500 mb-4">{description}</p>
+      <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+      <p className="text-foreground mb-4">{description}</p>
       {!hideButton && buttonText && buttonLink && (
         <Link href={buttonLink} passHref>
-          <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary-hover hover:text-primary-foreground focus:outline-none focus:ring">
             {buttonText}
           </button>
         </Link>

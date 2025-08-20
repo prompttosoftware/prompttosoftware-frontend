@@ -38,8 +38,8 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
   
 
   return (
-    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
-      <h4 className="text-md font-semibold text-gray-700 mb-3">
+    <div className="bg-card p-4 rounded-md shadow-sm mb-4">
+      <h4 className="text-md font-semibold text-card-foreground mb-3">
         Existing Repository #{index + 1}
         {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm" className="ml-2">
           Delete
@@ -56,7 +56,7 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
           disabled={disableInputs}
         />
         {isInvalid && urlError?.message && (
-          <p className="text-red-500 text-xs mt-1">{String(urlError.message)}</p>
+          <p className="text-destructive text-xs mt-1">{String(urlError.message)}</p>
         )}
       </div>
 

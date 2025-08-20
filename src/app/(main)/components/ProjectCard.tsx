@@ -19,7 +19,7 @@ const StatusIndicator = ({ status }: { status: Status }) => {
   return (
     <div className="flex items-center gap-2" title={`Status: ${config.label}`}>
       <span className={`h-3 w-3 rounded-full ${config.className}`}></span>
-      <span className="text-sm capitalize text-gray-600 hidden sm:inline">{config.label}</span>
+      <span className="text-sm capitalize text-card-foreground hidden sm:inline">{config.label}</span>
     </div>
   );
 };
@@ -32,10 +32,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
     // The entire card is a link to the project's detail page.
     <Link href={`/projects/${project._id}`} className="block h-full no-underline">
-      <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border-blue-500 hover:shadow-xl">
+      <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border hover:shadow-xl">
         <CardHeader>
           <div className="flex justify-between items-start gap-4">
-            <CardTitle className="text-xl font-semibold text-gray-800 break-words">
+            <CardTitle className="text-xl font-semibold text-card-foreground break-words">
               {project.name}
             </CardTitle>
             <StatusIndicator status={project.status} />
@@ -44,12 +44,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
         <CardContent className="flex-grow">
           {/* The project description from the ProjectSummary can go here if available */}
-          <p className="text-gray-500 text-sm">
+          <p className="text-card-foreground text-sm">
             View details, manage status, and see project history.
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-between items-center text-sm text-gray-500 border-t pt-4">
+        <CardFooter className="flex justify-between items-center text-sm text-card-foreground border-t pt-4">
           <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5" title={`${project.stars ?? 0} Stars`}>
                   <Star className="h-4 w-4 text-yellow-500"/>

@@ -38,26 +38,26 @@ export default function ProjectDescription() {
 
   return (
     <div>
-      <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor="description" className="block text-sm font-medium text-card-foreground mb-1">
         Project Description
       </label>
       <textarea
         id="description"
         rows={4}
         {...register('description')}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3"
+        className="mt-1 block bg-input text-muted w-full rounded-md border shadow-sm focus:ring sm:text-sm p-3"
         placeholder="Describe the software you want to build..."
       />
       {errors.description && (
-        <p className="mt-2 text-sm text-red-600">{errors.description.message}</p>
+        <p className="mt-2 text-sm text-destructive">{errors.description.message}</p>
       )}
 
-      <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50 shadow-sm flex items-center justify-between">
-        <p className="text-md font-semibold text-gray-700">Estimated Cost:</p>
+      <div className="mt-4 p-4 rounded-md bg-card shadow-sm flex items-center justify-between">
+        <p className="text-md font-semibold text-card-foreground">Estimated Cost:</p>
         {isEstimating ? (
           <LoadingSpinner size='small' />
         ) : (
-          <p className="text-lg font-bold text-gray-600">
+          <p className="text-lg font-bold text-card-foreground">
             {estimatedCostResult?.calculatedCost ? `$${estimatedCostResult.calculatedCost.toFixed(2)}` : '$0.00'}
           </p>
         )}

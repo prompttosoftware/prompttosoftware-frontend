@@ -16,11 +16,11 @@ export default function JiraIntegration({ isJiraGloballyLinked }: JiraIntegratio
   const jiraLinked = watch('advancedOptions.jiraLinked');
 
   return (
-    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm">
+    <div className="p-4 rounded-md bg-card shadow-sm">
       {/* Disclaimer */}
       {isJiraGloballyLinked && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-sm text-yellow-800">
+        <div className="mb-4 p-3 border rounded-md">
+          <p className="text-sm text-muted">
             <strong>Important:</strong> Only one project can use Jira integration at a time. 
             These settings cannot be changed once the project is created.
           </p>
@@ -36,11 +36,11 @@ export default function JiraIntegration({ isJiraGloballyLinked }: JiraIntegratio
           className="mt-1" // Align checkbox with the first line of text
         />
         <div className="flex-grow">
-          <Label htmlFor="jira-checkbox" className={`font-semibold ${!isJiraGloballyLinked ? 'text-gray-400' : ''}`}>
+          <Label htmlFor="jira-checkbox" className={`font-semibold ${!isJiraGloballyLinked ? 'text-card-foreground' : ''}`}>
             Create and track project tasks in Jira
           </Label>
          
-          {!isJiraGloballyLinked && <p className="text-sm text-gray-500 mt-2">Link your Jira account first.</p>}
+          {!isJiraGloballyLinked && <p className="text-sm text-card-foreground mt-2">Link your Jira account first.</p>}
         </div>
         {!isJiraGloballyLinked && <LinkJiraButton />}
       </div>
@@ -56,7 +56,7 @@ export default function JiraIntegration({ isJiraGloballyLinked }: JiraIntegratio
             placeholder="e.g., PROJ"
             className="mt-1 max-w-xs"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-card-foreground mt-1">
             If left blank, a new Jira project will be created.
           </p>
         </div>

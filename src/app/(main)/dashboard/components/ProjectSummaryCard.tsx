@@ -20,7 +20,7 @@ const StatusIndicator = ({ status }: { status: Status }) => {
   return (
     <div className="flex items-center gap-2" title={`Status: ${config.label}`}>
       <span className={`h-3 w-3 rounded-full ${config.className}`}></span>
-      <span className="text-sm capitalize text-gray-600 hidden sm:inline">{config.label}</span>
+      <span className="text-sm capitalize text-card-foreground hidden sm:inline">{config.label}</span>
     </div>
   );
 };
@@ -39,7 +39,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
       <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border-blue-500 hover:shadow-xl">
         <CardHeader>
           <div className="flex justify-between items-start gap-4">
-            <CardTitle className="text-lg font-semibold text-gray-800 break-words">
+            <CardTitle className="text-lg font-semibold text-card-foreground break-words">
               {project.name}
             </CardTitle>
             <StatusIndicator status={project.status} />
@@ -48,7 +48,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
 
         <CardContent className="flex-grow space-y-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-gray-600">
+            <span className="flex items-center gap-2 text-card-foreground">
               <AlertTriangle className="h-4 w-4 text-orange-500" />
               Incomplete Issues
             </span>
@@ -56,7 +56,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-gray-600">
+            <span className="flex items-center gap-2 text-card-foreground">
               <GitCommit className="h-4 w-4 text-green-500" />
               Completed Issues
             </span>
@@ -64,8 +64,8 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
           </div>
           
           <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-gray-600">
-              <Clock className="h-4 w-4 text-gray-500" />
+            <span className="flex items-center gap-2 text-card-foreground">
+              <Clock className="h-4 w-4 text-card-foreground" />
               Last Update
             </span>
             <span className="font-medium">
@@ -76,8 +76,8 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
 
         <CardFooter className="flex flex-col items-start gap-2 pt-4 border-t">
           <div className="w-full flex justify-between items-center text-sm">
-              <span className="font-medium text-gray-700">Task Progress</span>
-              <span className="font-mono text-gray-500">{progress.toFixed(0)}%</span>
+              <span className="font-medium text-card-foreground">Task Progress</span>
+              <span className="font-mono text-card-foreground">{progress.toFixed(0)}%</span>
           </div>
           <Progress value={progress} className="w-full" />
         </CardFooter>

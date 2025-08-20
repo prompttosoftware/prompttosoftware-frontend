@@ -60,7 +60,7 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
       {(fields || []).map((field, index) => (
         <div
           key={field.id}
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
+          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-card rounded-lg shadow-sm"
         >
           <div className="flex-1 w-full">
             <SingleModelInput

@@ -8,78 +8,97 @@
     /* Light theme */
     
     /* MAIN PAGE BACKGROUNDS */
-    --background: 0 0% 100%;            /* white - Main page background, body background */
+    --background: 210 40% 98%;           /* A very light, cool gray (almost white) */
     
     /* PRIMARY TEXT COLORS */
-    --foreground: 0 0% 0%;              /* black - Main body text, headings like DialogTitle, CardTitle */
+    --foreground: 222.2 47.4% 11.2%;     /* A dark, slate-blue (almost black) */
     
     /* CARD & CONTAINER BACKGROUNDS */
-    --card: 0 0% 100%;                  /* white - Card backgrounds (ProjectCard, Dialog containers) */
-    --card-foreground: 0 0% 0%;         /* black - Text content inside cards (CardContent text, descriptions) */
+    --card: 0 0% 100%;                   /* Pure white to stand out from the background */
+    --card-foreground: 222.2 47.4% 11.2%;      /* Same as main text */
     
     /* DROPDOWN & MODAL BACKGROUNDS */
-    --popover: 0 0% 100%;               /* white - Dialog/Modal backgrounds, dropdown menus, SavedCardsList */
-    --popover-foreground: 0 0% 0%;      /* black - Text inside modals/dropdowns, dialog descriptions */
+    --popover: 0 0% 100%;                /* Pure white for popovers */
+    --popover-foreground: 222.2 47.4% 11.2%;   /* Same as main text */
     
     /* BUTTON & INTERACTIVE ELEMENT COLORS */
-    --primary: 0 0% 0%;                 /* black - Primary button backgrounds, active states */
-    --primary-foreground: 0 0% 100%;    /* white - Text on primary buttons ("Next", "Cancel" button text) */
+    --primary: 222.2 47.4% 11.2%;        /* The dark slate-blue for primary actions */
+    --primary-foreground: 210 40% 98%;   /* The light gray for text on primary buttons */
     
-    --primary-hover: 0 0% 20%;           /* Slightly lighter than primary for hover */
-    --primary-hover-foreground: 0 0% 100%; /* Same as primary-foreground usually */
+    --primary-hover: 222.2 47.4% 21.2%;  /* A slightly lighter slate-blue for hover */
+    --primary-hover-foreground: 210 40% 98%;
 
     /* SUBTLE BACKGROUNDS & SECONDARY TEXT */
-    --muted: 0 0% 90%;                  /* light gray - Disabled button backgrounds, subtle section backgrounds */
-    --muted-foreground: 0 0% 20%;       /* dark gray - Secondary text (CardFooter timestamps, input placeholders like "$", helper text) */
+    --muted: 210 40% 94.1%;              /* A slightly darker, subtle gray for disabled states, etc. */
+    --muted-foreground: 215.4 16.3% 46.9%;   /* A medium gray for placeholder text, subtitles */
     
     /* BORDERS & INPUT STYLING */
-    --border: 0 0% 80%;                 /* medium gray - Card borders, input borders, CardFooter border-t, hover states */
-    --input: 0 0% 80%;                  /* medium gray - Input field backgrounds and borders (Amount input field) */
+    --border: 214.3 31.8% 91.4%;         /* A light gray for borders */
+    --input: 214.3 31.8% 91.4%;          /* Same light gray for input fields */
     
     /* FOCUS & SELECTION INDICATORS */
-    --ring: 0 0% 0%;                    /* black - Focus rings on inputs and buttons, selection indicators */
+    --ring: 222.2 47.4% 11.2%;           /* Dark slate-blue for focus rings */
     
-    --radius: 0.5rem;                   /* Border radius for rounded corners */
+    --radius: 0.5rem;                    /* Border radius for rounded corners */
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --success: 142.1 76.2% 36.3%;        /* A modern, pleasing green */
+    --success-foreground: 210 40% 98%;
   }
-  
+
   .bg-popover {
     background-color: hsl(var(--popover) / 1) !important;
   }
-  
+
+  :root {
+    --chart-line: hsl(var(--foreground));
+    --chart-foreground: hsl(var(--foreground));
+    --popover-foreground: hsl(var(--popover-foreground));
+    --placeholder: hsl(var(--muted-foreground));
+  }
+
   .dark {
-    /* Dark theme - Same element assignments as light theme, but with inverted colors */
+    /* Dark theme */
     
     /* MAIN PAGE BACKGROUNDS */
-    --background: 0 0% 0%;              /* black - Main page background, body background */
+    --background: 222.2 47.4% 11.2%;     /* A dark, slate-blue background */
     
     /* PRIMARY TEXT COLORS */
-    --foreground: 0 0% 100%;            /* white - Main body text, headings like DialogTitle, CardTitle */
+    --foreground: 210 40% 98%;           /* A light, cool gray for text */
     
     /* CARD & CONTAINER BACKGROUNDS */
-    --card: 0 0% 0%;                    /* black - Card backgrounds (ProjectCard, Dialog containers) */
-    --card-foreground: 0 0% 100%;       /* white - Text content inside cards (CardContent text, descriptions) */
+    --card: 222.2 47.4% 16.2%;           /* A slightly lighter dark-blue for cards */
+    --card-foreground: 210 40% 98%;      /* Same as main text */
     
     /* DROPDOWN & MODAL BACKGROUNDS */
-    --popover: 0 0% 0%;                 /* black - Dialog/Modal backgrounds, dropdown menus, SavedCardsList */
-    --popover-foreground: 0 0% 100%;    /* white - Text inside modals/dropdowns, dialog descriptions */
+    --popover: 222.2 47.4% 11.2%;        /* Same as main background for popovers */
+    --popover-foreground: 210 40% 98%;   /* Same as main text */
     
     /* BUTTON & INTERACTIVE ELEMENT COLORS */
-    --primary: 0 0% 100%;               /* white - Primary button backgrounds, active states */
-    --primary-foreground: 0 0% 0%;      /* black - Text on primary buttons ("Next", "Cancel" button text) */
-    
-    --primary-hover: 0 0% 80%;           /* Darker than white primary in dark mode */
-    --primary-hover-foreground: 0 0% 0%;
+    --primary: 210 40% 98%;              /* The light gray for primary actions */
+    --primary-foreground: 222.2 47.4% 11.2%;   /* The dark slate-blue for text on primary buttons */
+
+    --primary-hover: 210 40% 88%;        /* A slightly darker gray for hover */
+    --primary-hover-foreground: 222.2 47.4% 11.2%;
 
     /* SUBTLE BACKGROUNDS & SECONDARY TEXT */
-    --muted: 0 0% 20%;                  /* dark gray - Disabled button backgrounds, subtle section backgrounds */
-    --muted-foreground: 0 0% 80%;       /* light gray - Secondary text (CardFooter timestamps, input placeholders, helper text) */
+    --muted: 217.2 32.6% 17.5%;          /* A subtle dark gray, slightly lighter than background */
+    --muted-foreground: 215 20.2% 65.1%; /* A lighter gray for placeholder text, subtitles */
     
     /* BORDERS & INPUT STYLING */
-    --border: 0 0% 40%;                 /* medium gray - Card borders, input borders, CardFooter border-t, hover states */
-    --input: 0 0% 40%;                  /* medium gray - Input field backgrounds and borders (Amount input field) */
+    --border: 217.2 32.6% 27.5%;         /* A visible but not harsh gray for borders */
+    --input: 217.2 32.6% 27.5%;          /* Same gray for input fields */
     
     /* FOCUS & SELECTION INDICATORS */
-    --ring: 0 0% 100%;                  /* white - Focus rings on inputs and buttons, selection indicators */
+    --ring: 210 40% 98%;                 /* Light gray for focus rings */
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+      
+    --success: 142.1 70.6% 45.3%;        /* A slightly brighter green for dark mode */
+    --success-foreground: 222.2 47.4% 11.2%;
   }
   
   .debug {
@@ -104,6 +123,9 @@
     --primary: 0 100% 50%;              /* bright red - Makes primary buttons stand out */
     --primary-foreground: 0 0% 100%;    /* white - Readable text on red buttons */
     
+    --primary-hover: 0 100% 20%;           /* Slightly lighter than primary for hover */
+    --primary-hover-foreground: 0 0% 100%; /* Same as primary-foreground usually */
+
     /* SUBTLE BACKGROUNDS & SECONDARY TEXT */
     --muted: 280 100% 90%;              /* light purple - Makes muted areas visible */
     --muted-foreground: 280 100% 20%;   /* dark purple - Secondary text with purple tint */
@@ -114,7 +136,19 @@
     
     /* FOCUS & SELECTION INDICATORS */
     --ring: 120 100% 40%;               /* bright green - Makes focus states very obvious */
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --success: 120 62.8% 30.6%;
+    --success-foreground: 0 0% 98%;
   }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
 }
 
 /*

@@ -41,10 +41,10 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
   };
 
   return (
-    <div className="border border-gray-200 p-4 rounded-md shadow-sm space-y-4">
-      <h3 className="text-lg font-medium text-gray-700">GitHub Repositories</h3>
+    <div className="bg-card p-4 rounded-md shadow-sm space-y-4">
+      <h3 className="text-lg font-medium text-card-foreground">GitHub Repositories</h3>
       {fields.length === 0 && (
-        <p className="text-sm text-gray-500">No repositories added. New ones will be created if needed.</p>
+        <p className="text-sm text-muted-foreground">No repositories added. New ones will be created if needed.</p>
       )}
       {fields.map((field, index) => {
         // If we're editing, only disable inputs for items that existed initially
@@ -70,7 +70,7 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
         <Button 
           type="button" 
           onClick={addNewRepo} 
-          variant="outline"
+          variant="default"
           disabled={false} // Explicitly enable
         >
           Add New Repo
@@ -78,7 +78,7 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
         <Button 
           type="button" 
           onClick={addExistingRepo} 
-          variant="outline"
+          variant="default"
           disabled={false} // Explicitly enable
         >
           Add Existing Repo

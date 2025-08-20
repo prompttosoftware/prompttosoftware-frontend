@@ -52,8 +52,8 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
   const nameError = currentRepoErrors?.name;
 
   return (
-    <div className="border border-gray-200 p-4 rounded-md bg-gray-50 shadow-sm mb-4">
-      <h4 className="text-md font-semibold text-gray-700 mb-3">
+    <div className="bg-card p-4 rounded-md shadow-sm mb-4">
+      <h4 className="text-md font-semibold text-card-foreground mb-3">
         New Repository #{index + 1}
         {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm">
           Delete
@@ -71,7 +71,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
             aria-invalid={!!nameError}
             disabled={disableInputs}
           />
-          {nameError && <p className="text-red-500 text-xs mt-1">{nameError.message}</p>}
+          {nameError && <p className="text-destructive text-xs mt-1">{nameError.message}</p>}
         </div>
         <div>
           <Label htmlFor={`new-repo-org-${index}`}>Organization Name (Optional)</Label>

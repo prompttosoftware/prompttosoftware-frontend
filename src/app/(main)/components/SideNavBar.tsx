@@ -64,7 +64,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
         <div className="flex items-center justify-end h-16 px-4">
           <button
             onClick={toggleExpansion}
-            className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground focus:outline-none focus:ring hidden md:flex"
+            className="p-2 rounded-full focus:outline-none focus:ring hidden md:flex"
             aria-label={isExpanded ? 'Collapse navigation' : 'Expand navigation'}
           >
             {isExpanded ? (
@@ -75,7 +75,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
           </button>
           <button
             onClick={() => setIsMobileNavOpen(false)}
-            className="p-2 rounded-full hover:bg-muted hover:text-muted-foreground focus:outline-none focus:ring flex md:hidden ml-auto"
+            className="p-2 rounded-full focus:outline-none focus:ring flex md:hidden ml-auto"
             aria-label="Close navigation"
           >
             <ChevronLeftIcon className="h-6 w-6 text-foreground" />
@@ -89,7 +89,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
               <Link
                 key={item.name}
                 href={item.href}
-                className="flex items-center p-3 rounded-lg text-sm font-medium justify-start text-foreground hover:text-muted-foreground hover:bg-muted transition-colors duration-200 focus:outline-none focus:ring"
+                className="flex items-center p-3 rounded-lg text-sm font-medium justify-start text-foreground transition-colors duration-200 focus:outline-none focus:ring"
                 aria-label={item.name}
                 {...(
                   item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
@@ -107,7 +107,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 <Tooltip.Trigger asChild>
                   <Link
                     href={item.href}
-                    className="flex items-center p-3 rounded-lg text-sm font-medium justify-center text-foreground hover:bg-muted hover:text-muted-foreground transition-colors duration-200 focus:outline-none focus:ring"
+                    className="flex items-center p-3 rounded-lg text-sm font-medium justify-center text-foreground transition-colors duration-200 focus:outline-none focus:ring"
                     aria-label={item.name}
                     {...(
                       item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
@@ -122,6 +122,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 <Tooltip.Portal>
                   <Tooltip.Content
                     className="bg-popover text-popover-foreground text-xs px-2 py-1 rounded-md shadow-lg z-[60]"
+                    side="right"
                     sideOffset={5}
                   >
                     {item.name}

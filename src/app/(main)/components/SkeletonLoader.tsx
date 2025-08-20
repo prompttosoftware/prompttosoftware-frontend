@@ -15,7 +15,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   return (
     <div
       data-testid="skeleton-loader"
-      className={`bg-gray-300 dark:bg-gray-700 rounded animate-pulse ${width} ${height} ${className}`}
+      className={`bg-muted rounded animate-pulse ${width} ${height} ${className}`}
     />
   );
 };

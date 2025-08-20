@@ -134,7 +134,7 @@ export function PaymentModal() {
     if (step === 'add_amount') {
       return (
         <>
-          <div className="grid gap-6 py-4 overflow-y-auto max-h-[60vh] pr-4">
+          <div className="grid gap-6 py-4 overflow-y-auto max-h-[60vh] px-4">
             <div className="grid gap-2">
               <Label htmlFor="amount">Amount</Label>
               <div className="relative">
@@ -146,7 +146,7 @@ export function PaymentModal() {
                   placeholder="50.00"
                   value={amount === 0 ? '' : amount.toString()}
                   onChange={handleAmountChange}
-                  className="pl-7"
+                  className="pl-7 bg-input placeholder:text-muted-foreground text-card-foreground"
                   required
                 />
               </div>

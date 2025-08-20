@@ -132,11 +132,11 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions,
   
   const percentageChangeIndicator = useMemo(() => {
     if (typeof percentageChange !== 'string' || percentageChange.includes('N/A')) {
-      return 'text-gray-500';
+      return 'text-card-foreground';
     }
     const numChange = parseFloat(percentageChange);
     if (isNaN(numChange) || numChange === 0) {
-      return 'text-gray-500';
+      return 'text-card-foreground';
     } else if (numChange > 0) {
       return 'text-red-500';
     } else {
@@ -161,7 +161,7 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions,
   };
 
   return (
-    <Card className="w-full max-w-5xl mb-6 bg-white rounded-lg shadow-md">
+    <Card className="w-full max-w-5xl mb-6 bg-card rounded-lg shadow-md">
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>Account Usage Statistics</CardTitle>
         <AddPaymentButton />
@@ -169,23 +169,23 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions,
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <div>
-            <p className="text-lg font-semibold text-gray-700">Current Month Spending:</p>
-            <p className="text-2xl font-bold text-gray-900">${currentMonthSpending.toFixed(2)}</p>
+            <p className="text-lg font-semibold text-card-foreground">Current Month Spending:</p>
+            <p className="text-2xl font-bold text-card-foreground">${currentMonthSpending.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-700">Total Budget:</p>
-            <p className="text-2xl font-bold text-gray-900">${totalBudget.toFixed(2)}</p>
+            <p className="text-lg font-semibold text-card-foreground">Total Budget:</p>
+            <p className="text-2xl font-bold text-card-foreground">${totalBudget.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-700">Remaining Budget:</p>
-            <p className="text-2xl font-bold text-gray-900">${Math.max(0, remainingBudget).toFixed(2)}</p>
+            <p className="text-lg font-semibold text-card-foreground">Remaining Budget:</p>
+            <p className="text-2xl font-bold text-card-foreground">${Math.max(0, remainingBudget).toFixed(2)}</p>
           </div>
           <div className="md:col-span-2 lg:col-span-3">
-            <p className="text-lg font-semibold text-gray-700">Budget Status:</p>
-            <p className="text-xl font-bold text-gray-900">{budgetStatusMessage}</p>
+            <p className="text-lg font-semibold text-card-foreground">Budget Status:</p>
+            <p className="text-xl font-bold text-card-foreground">{budgetStatusMessage}</p>
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-700">
+            <p className="text-lg font-semibold text-card-foreground">
               vs Previous Month:
             </p>
             <p className={`text-2xl font-bold ${percentageChangeIndicator}`}>
@@ -196,10 +196,10 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions,
 
         <div className="flex justify-end mb-4">
           <Select onValueChange={handleMonthChange} value={selectedMonth}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] btn-secondary">
               <SelectValue placeholder="Select Month" />
             </SelectTrigger>
-            <SelectContent className="col-span-3 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm p-2 bg-white">
+            <SelectContent className="col-span-3 block w-full rounded-md shadow-sm focus:ring sm:text-sm p-2">
               <SelectItem value="current">Current Month</SelectItem>
               {getMonthOptions.map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -212,31 +212,35 @@ const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions,
 
         <div className="w-full h-80">
           {displayedData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" className={"text-card-foreground"}>
               <LineChart
                 data={displayedData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-line)" />
+                <XAxis dataKey="date" stroke="var(--chart-line)" tick={{ fill: 'var(--chart-line)' }} />
+                <YAxis stroke="var(--chart-line)" tick={{ fill: 'var(--chart-line)' }} />
+                <Tooltip 
+                formatter={(value: number) => `$${value.toFixed(2)}`} 
+                wrapperStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: '20px' }}
+                contentStyle={{ background: 'var(--popover)', color: 'var(--popover-foreground)' }}
+                />
                 <Line
-                  type="monotone"
-                  dataKey="amount"
-                  stroke="#8884d8"
-                  activeDot={{ r: 8 }}
-                  name="Spending"
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="var(--chart-line)"
+                    activeDot={{ r: 8 }}
+                    name="Spending"
                 />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="flex items-center justify-center h-full text-card-foreground">
               No spending data available for this period.
             </div>
           )}
         </div>
-        <p className="text-sm text-gray-500 mt-4 text-center">
+        <p className="text-sm text-card-foreground mt-4 text-center">
           *Note: This data is derived from your transaction history for informational purposes.
         </p>
       </CardContent>

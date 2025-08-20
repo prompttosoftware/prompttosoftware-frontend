@@ -49,15 +49,15 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       style: {
         base: {
           fontSize: '16px',
-          color: '#32325d',
+          color: 'var(--popover-foreground)',
           fontFamily: 'Arial, sans-serif',
           '::placeholder': {
             color: '#aab7c4',
           },
         },
         invalid: {
-          color: '#fa755a',
-          iconColor: '#fa755a',
+          color: 'var(--popover-foreground)',
+          iconColor: 'var(--popover-foreground)',
         },
       },
       hidePostalCode: true,
@@ -149,7 +149,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
 
   return (
     <div className="mt-4 p-3 border rounded-md shadow-sm">
-      <Label htmlFor="card-element" className="block text-sm font-medium text-gray-700 mb-2">
+      <Label htmlFor="card-element" className="block text-sm font-medium text-popover-foreground mb-2">
         Credit or debit card
       </Label>
       <div id="card-element">

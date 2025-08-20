@@ -9,36 +9,38 @@ import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import { PaginatedResponse, ExploreProjectsParams } from '@/types/project';
 import { Button } from '@/components/ui/button';
 import { keepPreviousData } from '@tanstack/react-query';
+import { ChevronDown } from 'lucide-react'; // A popular icon library, or use your own SVG
+
+// Import the newly needed parts from Radix UI
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectIcon,
+  SelectItemText,
+} from '@radix-ui/react-select';
 
 interface ExploreClientProps {
   initialData: PaginatedResponse<any>;
   initialParams: ExploreProjectsParams;
 }
 
-/**
- * This Client Component manages all interactive parts of the Explore page.
- * 1. It's initialized with data fetched from the server (`initialData`).
- * 2. It uses the `useExploreProjects` hook for any client-side refetching (when filters change).
- * 3. It syncs its filter state back to the URL for shareable links and browser history.
- */
 export default function ExploreClient({ initialData, initialParams }: ExploreClientProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // State for filters is initialized from the props passed by the server component.
   const [filters, setFilters] = useState<ExploreProjectsParams>(initialParams);
 
-  // The `useExploreProjects` hook is now seeded with the initial data.
-  // `react-query` is smart enough not to refetch on mount if initialData is provided.
-  // It will only refetch when the `filters` dependency changes.
   const { data, isLoading, isError, error, isPlaceholderData } = useExploreProjects(filters, {
     initialData: initialData,
-    placeholderData: keepPreviousData, // Smoother UX for pagination
+    placeholderData: keepPreviousData,
   });
   
   const projects = data?.data ?? [];
 
-  // This effect syncs the component's state with the URL's query string.
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.query) params.set('query', filters.query);
@@ -47,7 +49,6 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
     if (filters.page) params.set('page', filters.page.toString());
     if (filters.limit) params.set('limit', filters.limit.toString());
     
-    // Use `replace` to avoid polluting browser history for every filter change.
     router.replace(`${pathname}?${params.toString()}`);
   }, [filters, pathname, router]);
 
@@ -55,8 +56,8 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
     setFilters(prev => ({ ...prev, query: e.target.value, page: 1 }));
   };
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const [sortBy, sortOrder] = e.target.value.split('-') as [ExploreProjectsParams['sortBy'], ExploreProjectsParams['sortOrder']];
+  const handleSortChange = (value: string) => {
+    const [sortBy, sortOrder] = value.split('-') as [ExploreProjectsParams['sortBy'], ExploreProjectsParams['sortOrder']];
     setFilters(prev => ({ ...prev, sortBy, sortOrder, page: 1 }));
   };
   
@@ -72,23 +73,57 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
         <input
           type="text"
           placeholder="Search projects by name..."
-          className="flex-grow p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          // Added h-10 for consistent height
+          className="flex-grow p-3 h-10 border rounded-md bg-input focus:outline-none focus:ring-2 focus:ring-ring"
           value={filters.query}
           onChange={handleSearchChange}
         />
-        <select
-          className="p-3 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <Select
           value={`${filters.sortBy}-${filters.sortOrder}`}
-          onChange={handleSortChange}
+          onValueChange={handleSortChange}
         >
-          <option value="createdAt-desc">Most Recent</option>
-          <option value="stars-desc">Most Stars</option>
-          <option value="createdAt-asc">Oldest First</option>
-        </select>
+          {/* 
+            - Added h-10 to match the input height.
+            - Added flex and items-center for proper internal alignment.
+          */}
+          <SelectTrigger className="w-full sm:w-[200px] flex items-center justify-between p-3 h-10 border rounded-md bg-input focus:outline-none focus:ring-2 focus:ring-ring">
+            <SelectValue placeholder="Sort by..." />
+            <SelectIcon asChild>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </SelectIcon>
+          </SelectTrigger>
+          <SelectPortal>
+            <SelectContent 
+              position="popper" 
+              sideOffset={5}
+              className="w-[--radix-select-trigger-width] bg-popover text-popover-foreground border rounded-md shadow-lg py-1 z-50"
+            >
+              {/* Each item's text is now wrapped in SelectItemText to fix the blank trigger issue */}
+              <SelectItem 
+                value="createdAt-desc" 
+                className="relative flex items-center px-4 py-2 text-sm cursor-pointer outline-none hover:bg-accent focus:bg-accent"
+              >
+                <SelectItemText>Most Recent</SelectItemText>
+              </SelectItem>
+              <SelectItem 
+                value="stars-desc" 
+                className="relative flex items-center px-4 py-2 text-sm cursor-pointer outline-none hover:bg-accent focus:bg-accent"
+              >
+                <SelectItemText>Most Stars</SelectItemText>
+              </SelectItem>
+              <SelectItem 
+                value="createdAt-asc" 
+                className="relative flex items-center px-4 py-2 text-sm cursor-pointer outline-none hover:bg-accent focus:bg-accent"
+              >
+                <SelectItemText>Oldest First</SelectItemText>
+              </SelectItem>
+            </SelectContent>
+          </SelectPortal>
+        </Select>
       </div>
 
       {isLoading && <div className="flex justify-center items-center h-64"><LoadingSpinner /></div>}
-      {isError && <div className="text-center text-red-500">Error: {error?.message}</div>}
+      {isError && <div className="text-center text-destructive">Error: {error?.message}</div>}
 
       {!isLoading && !isError && projects.length === 0 && (
         <EmptyState
@@ -106,11 +141,11 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
           </div>
           
           <div className="flex justify-center items-center mt-8 space-x-4">
-            <Button onClick={() => handlePageChange(filters.page ?? 1 - 1)} disabled={filters.page === 1 || isPlaceholderData}>
+            <Button onClick={() => handlePageChange((filters.page ?? 1) - 1)} disabled={filters.page === 1 || isPlaceholderData}>
               Previous
             </Button>
             <span>Page {data?.page} of {data?.totalPages}</span>
-            <Button onClick={() => handlePageChange(filters.page ?? 1 + 1)} disabled={filters.page === data?.totalPages || isPlaceholderData}>
+            <Button onClick={() => handlePageChange((filters.page ?? 1) + 1)} disabled={filters.page === data?.totalPages || isPlaceholderData}>
               Next
             </Button>
           </div>

@@ -22,8 +22,8 @@ export default function ModelSelection() {
   return (
     <div className="space-y-4">
       {MODEL_LEVELS.map(({ level, title, tooltip }) => (
-        <div key={level} className="border border-gray-200 rounded-md">
-          <button type="button" onClick={() => toggle(level)} className="w-full text-left p-4 font-medium">
+        <div key={level} className="border rounded-md">
+          <button type="button" onClick={() => toggle(level)} className="button-secondary w-full text-left p-4 font-medium">
             {title}
           </button>
           {expanded[level] && (
