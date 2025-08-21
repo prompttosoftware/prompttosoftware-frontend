@@ -41,8 +41,8 @@ export function PaymentModal() {
     setStep,
     clearState,
     onClose,
+    onSuccess,
   } = usePaymentModalStore();
-  const queryClient = useQueryClient();
   const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
 
   // Local state
@@ -133,28 +133,12 @@ export function PaymentModal() {
   }, [setClientSecret, setStep]);
 
   const handlePaymentConfirmed = (intentId: string) => {
+    if (onSuccess) {
+      onSuccess({ paymentIntentId: intentId, amount: amount });
+    }
+
+    // 2. Now, simply close the modal.
     storeCloseModal();
-
-    const pollingPromise = pollForTransactionPromise({
-      paymentIntentId: intentId,
-      queryClient: queryClient,
-    });
-
-    toast.promise(pollingPromise, {
-      loading: "Payment successful! We're updating your balance...",
-      success: () => {
-        // This runs after the promise resolves
-        // Invalidate queries to update the UI with the new balance and transaction list
-        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-        queryClient.invalidateQueries({ queryKey: ['userTransactions'] });
-
-        return `Successfully added $${amount.toFixed(2)} to your balance!`;
-      },
-      error: (error) => {
-        // This runs after the promise rejects (e.g., on timeout)
-        return error.message;
-      },
-    });
   };
 
   const renderContent = () => {

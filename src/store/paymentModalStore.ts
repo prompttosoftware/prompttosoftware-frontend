@@ -7,6 +7,8 @@ export type PaymentStep =
   | 'confirm_card'
   | 'confirm_ideal';
 
+type OnSuccessCallback = (data: { paymentIntentId: string; amount: number }) => void;
+
 // Define the state structure for the payment modal
 interface PaymentModalState {
   isOpen: boolean;
@@ -16,7 +18,7 @@ interface PaymentModalState {
   amount: number; // Amount to pay (in cents, for Stripe compatibility)
   description: string; // Description for the payment intent
   onClose: () => void; // Callback when the modal is closed
-  onSuccess: (paymentMethodId: string) => void; // Callback on successful payment/setup
+  onSuccess: OnSuccessCallback; // Callback on successful payment/setup
   onGoToPaymentProvider: (clientSecret: string) => void; // Callback for redirect-based payments (e.g., iDEAL)
   step: PaymentStep; // Current step in the modal flow
   paymentMethodId: string | null; // For edit mode or saving payment methods
@@ -38,6 +40,7 @@ interface PaymentModalActions {
   setPaymentModalState: (newState: Partial<PaymentModalState>) => void; // Generic setter
   clearState: () => void; // Resets the entire store
   showTemporaryToast: (message: string, type: 'success' | 'error' | 'info', duration?: number) => void;
+  onSuccess?: OnSuccessCallback;
 }
 
 // Combine state and actions

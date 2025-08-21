@@ -163,7 +163,18 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
       } catch (error) {
           console.error('Project submission failed:', error);
           const action = isEditMode ? 'update' : 'create';
-          toast.error(error instanceof Error ? error.message : `Failed to ${action} project.`);
+
+          let errorMessage = `Failed to ${action} project.`;
+
+          const backendMessage = (error as any)?.response?.data?.message;
+
+          if (typeof backendMessage === 'string') {
+              errorMessage = backendMessage;
+          } else if (error instanceof Error) {
+              errorMessage = error.message;
+          }
+          
+          toast.error(errorMessage);
       } finally {
           setIsSubmitting(false);
       }

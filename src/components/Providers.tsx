@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { MswProvider } from '@/components/MswProvider';
+import { AuthProvider } from '@/lib/AuthContext';
 interface ProvidersProps {
   children: React.ReactNode;
 }
@@ -15,7 +16,9 @@ export function Providers({ children }: ProvidersProps) {
 
   const content = (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <AuthProvider initialData={null}>
+        {children}
+      </AuthProvider>
       {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
     </QueryClientProvider>
   );

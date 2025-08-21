@@ -18,15 +18,12 @@ import TutorialOverlay from '@/app/(main)/components/TutorialOverlay';
 import WelcomeModal from '@/app/(main)/components/WelcomeModal';
 import { Banner } from '@/types/banner';
 import AppHeader from '@/app/(main)/components/AppHeader';
-import { UserProfile } from '@/types/auth';
-import { AuthProvider } from '@/lib/AuthContext';
 
 interface MainUIProps {
-  user: UserProfile | null;
   children: React.ReactNode;
 }
 
-export default function MainUI({ user, children }: MainUIProps) {
+export default function MainUI({ children }: MainUIProps) {
   // All state and hooks that were in the layout now live here.
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -90,7 +87,7 @@ export default function MainUI({ user, children }: MainUIProps) {
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
 
   return (
-    <AuthProvider initialData={user}>
+    <>
       <Toaster position="top-center" richColors />
       {showWelcome && (
         <WelcomeModal 
@@ -130,6 +127,6 @@ export default function MainUI({ user, children }: MainUIProps) {
         </StripeWrapper>
         <SuccessToast />
       </div>
-    </AuthProvider>
+    </>
   );
 }

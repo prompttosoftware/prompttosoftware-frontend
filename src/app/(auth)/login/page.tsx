@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { LoginContent } from '@/app/login/components/LoginContent';
+import { LoginContent } from './components/LoginContent';
 
 // The loading fallback for suspense
 const LoginPageFallback = (

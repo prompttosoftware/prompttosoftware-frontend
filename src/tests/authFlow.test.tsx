@@ -6,7 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
-import LoginPage from '../app/login/page';
+import LoginPage from '../app/(auth)/login/page';
 import { act } from 'react-dom/test-utils';
 
 import { AuthContext } from '../lib/AuthContext'; // Import AuthContext to check its state

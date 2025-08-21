@@ -1,21 +1,25 @@
 // src/app/(main)/layout.tsx
 import React from 'react';
-import { redirect } from 'next/navigation';
 import MainUI from "@/app/(main)/components/MainUI";
 import { getInitialAuthData } from '@/lib/data/user';
+import { redirect } from 'next/navigation';
+import InitializeAuth from './components/InitializeAuth';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  
- const { user } = await getInitialAuthData();
 
-  if (!user && process.env.NODE_ENV === 'production') {
+  const { user } = await getInitialAuthData();
+
+  // Protect the route
+  if (!user) {
     redirect('/login');
   }
-
-  // 3. Pass the fetched user to the client component wrapper.
+  
   return (
-      <MainUI user={user}>
+    <>
+      <InitializeAuth user={user} />
+      <MainUI>
         {children}
       </MainUI>
+    </>
   ); 
 }

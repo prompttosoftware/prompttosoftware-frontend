@@ -74,9 +74,6 @@ export default function JiraCallbackHandler() {
                 const updatedUser = await api.linkJiraAccount(code);
                 console.log('API response:', updatedUser);
                 
-                // Update profile with returned data
-                await refreshUser();
-                
                 return 'Successfully linked to Jira!';
             } catch (error) {
                 console.error('Failed to link Jira account:', error);
@@ -86,7 +83,11 @@ export default function JiraCallbackHandler() {
 
         toast.promise(linkPromise(), {
             loading: 'Finalizing Jira connection...',
-            success: (message) => message,
+            success: async (message) => {
+                // Update profile with returned data
+                await refreshUser();
+                return message;
+            },
             error: (error) => {
                 console.error('Toast error:', error);
                 return 'Failed to link Jira account. Please try again.';
