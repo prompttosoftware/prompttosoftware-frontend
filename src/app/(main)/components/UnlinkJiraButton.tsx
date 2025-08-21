@@ -8,12 +8,12 @@ import { api } from '@/lib/api';
 import { JiraLogoIcon } from '@/components/icons/JiraLogoIcon';
 
 const UnlinkJiraButton = () => {
-  const { user, isLoading, updateProfile } = useAuth();
+  const { user, isLoading, refreshUser } = useAuth();
 
   const handleUnlinkJira = async () => {
     try {
-      const updatedUser = await api.unlinkJiraAccount();
-      updateProfile(updatedUser);
+      await api.unlinkJiraAccount();
+      await refreshUser();
 
       toast.success('Jira account unlinked successfully.');
     } catch (error) {

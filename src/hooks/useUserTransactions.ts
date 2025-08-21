@@ -8,7 +8,6 @@ type UseUserTransactionsOptions = Omit<
 >;
 
 export const useUserTransactions = (options?: UseUserTransactionsOptions) => {
-  // We can add a dev fake mode here if needed, like in useUserProjects
   
   return useQuery<Transaction[], Error>({
     queryKey: ['userTransactions'],

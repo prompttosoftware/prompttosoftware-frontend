@@ -25,6 +25,8 @@ import { createPaymentIntent } from '@/lib/payments';
 import { SavedCardsList } from './SavedCardsList';
 import { SavedCardConfirmation } from './SavedCardConfirmation';
 import PaymentFormContent from './PaymentFormContent';
+import { useQueryClient } from '@tanstack/react-query';
+import { pollForTransactionPromise } from '@/lib/transactions';
 
 export function PaymentModal() {
   // Store state
@@ -40,7 +42,7 @@ export function PaymentModal() {
     clearState,
     onClose,
   } = usePaymentModalStore();
-
+  const queryClient = useQueryClient();
   const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
 
   // Local state
@@ -130,6 +132,31 @@ export function PaymentModal() {
     setStep('add_amount');
   }, [setClientSecret, setStep]);
 
+  const handlePaymentConfirmed = (intentId: string) => {
+    storeCloseModal();
+
+    const pollingPromise = pollForTransactionPromise({
+      paymentIntentId: intentId,
+      queryClient: queryClient,
+    });
+
+    toast.promise(pollingPromise, {
+      loading: "Payment successful! We're updating your balance...",
+      success: () => {
+        // This runs after the promise resolves
+        // Invalidate queries to update the UI with the new balance and transaction list
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        queryClient.invalidateQueries({ queryKey: ['userTransactions'] });
+
+        return `Successfully added $${amount.toFixed(2)} to your balance!`;
+      },
+      error: (error) => {
+        // This runs after the promise rejects (e.g., on timeout)
+        return error.message;
+      },
+    });
+  };
+
   const renderContent = () => {
     if (step === 'add_amount') {
       return (
@@ -143,7 +170,7 @@ export function PaymentModal() {
                   id="amount"
                   type="text"
                   inputMode="decimal"
-                  placeholder="50.00"
+                  placeholder="5.00"
                   value={amount === 0 ? '' : amount.toString()}
                   onChange={handleAmountChange}
                   className="pl-7 bg-input placeholder:text-muted-foreground text-card-foreground"
@@ -182,9 +209,7 @@ export function PaymentModal() {
               setSaveCardForFuture={setSaveCard}
               closeModal={storeCloseModal}
               resetAddFundsStep={resetToAmountStep}
-              setClientSecret={setClientSecret}
-              clearStoreState={clearState}
-              setSuccessMessageStore={setSuccessMessageStore}
+              onPaymentConfirmed={handlePaymentConfirmed}
             />
           ) : (
             <SavedCardConfirmation

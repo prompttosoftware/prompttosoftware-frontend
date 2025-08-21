@@ -4,41 +4,34 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useBalanceStore } from '@/store/balanceStore';
 import { Label } from '@/components/ui/label';
 import { logger } from '@/lib/logger';
 import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from 'sonner'; // 1. Import toast from sonner
-import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface PaymentFormContentProps {
   clientSecret: string;
   amount: number;
-  setClientSecret: (secret: string | null) => void;
   closeModal: () => void;
-  clearStoreState: () => void;
   resetAddFundsStep: () => void;
-  setSuccessMessageStore: (message: string | null) => void;
   showSaveCardOption: boolean;
   saveCardForFuture: boolean;
   setSaveCardForFuture: (value: boolean) => void;
+  onPaymentConfirmed: (paymentIntentId: string) => void;
 }
 
 const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
   clientSecret,
   amount,
-  setClientSecret,
   closeModal,
-  clearStoreState,
   resetAddFundsStep,
-  setSuccessMessageStore,
   showSaveCardOption,
   saveCardForFuture,
   setSaveCardForFuture,
+  onPaymentConfirmed
 }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const updateBalance = useBalanceStore((state) => state.updateBalance);
 
   logger.debug(`PaymentFormContent rendered. clientSecret: ${!!clientSecret}, stripe: ${!!stripe}, elements: ${!!elements}`);
 
@@ -83,7 +76,6 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
     }
 
     setIsProcessing(true);
-    // No longer need to clear global error
 
     try {
       const cardElement = elements.getElement(CardElement);
@@ -109,24 +101,8 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         toast.error(error.message || 'Payment failed. Please try again.');
         resetAddFundsStep();
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        logger.info('Funds added successfully in PaymentFormContent!');
-        
-        const addedAmount = amount;
-        updateBalance(addedAmount);
-        toast.success(`Successfully added $${addedAmount.toFixed(2)} to your balance!`);
-        logger.info(`Balance updated in store by: $${addedAmount.toFixed(2)}`);
-
-        if (paymentIntent.amount && Math.round(addedAmount * 100) !== paymentIntent.amount) {
-          logger.warn(`Amount mismatch detected! UI Amount: ${addedAmount}, Stripe Amount: ${paymentIntent.amount / 100}`);
-        }
-        
-        const queryClient = useQueryClient();
-        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-        queryClient.invalidateQueries({ queryKey: ['userTransactions'] });
-
-        resetAddFundsStep();
-        closeModal();
-        clearStoreState();
+        logger.info('Payment confirmed on client. Handing off to parent for polling.');
+        onPaymentConfirmed(paymentIntent.id);
       } else {
         logger.warn(`Payment not successful in PaymentFormContent: status ${paymentIntent?.status}`);
         toast.error(`Payment could not be completed. Status: ${paymentIntent?.status}. Please try again.`);
@@ -143,13 +119,10 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
     stripe,
     elements,
     clientSecret,
-    closeModal,
     amount,
-    clearStoreState,
     resetAddFundsStep,
-    setSuccessMessageStore,
-    updateBalance,
-    saveCardForFuture, // Add saveCardForFuture to dependency array
+    saveCardForFuture,
+    onPaymentConfirmed
   ]);
 
   return (
@@ -159,7 +132,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
       </Label>
       <div id="card-element">
         <CardElement options={cardElementOptions} onChange={handleCardChange} />
-        {cardError && <div className="text-red-500 text-sm mt-2">{cardError}</div>}
+        {cardError && <div className="text-destructive text-sm mt-2">{cardError}</div>}
       </div>
       {showSaveCardOption && (
         <div className="flex items-center space-x-2 my-4">

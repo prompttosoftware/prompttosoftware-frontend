@@ -9,7 +9,7 @@ export default function JiraCallbackHandler() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const { updateProfile, isAuthenticated } = useAuth();
+    const { refreshUser, isAuthenticated } = useAuth();
 
     const isProcessing = useRef(false);
 
@@ -75,7 +75,7 @@ export default function JiraCallbackHandler() {
                 console.log('API response:', updatedUser);
                 
                 // Update profile with returned data
-                updateProfile(updatedUser);
+                await refreshUser();
                 
                 return 'Successfully linked to Jira!';
             } catch (error) {
@@ -93,7 +93,7 @@ export default function JiraCallbackHandler() {
             },
         });
 
-    }, [searchParams, pathname, router, updateProfile, isAuthenticated]);
+    }, [searchParams, pathname, router, refreshUser, isAuthenticated]);
 
     return null;
 }

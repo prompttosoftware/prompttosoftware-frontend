@@ -125,10 +125,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
       logger.info('AuthProvider: Refreshing user profile');
       // Just tell React Query to refetch. It will handle the API call and state updates.
       await queryClient.refetchQueries({ queryKey: ['auth', 'me'] });
-      toast.success("Session refreshed!");
     } catch (error) {
       logger.error('AuthProvider: Failed to refresh user profile', error);
-      toast.error("Could not refresh your session.");
     }
   };
 
