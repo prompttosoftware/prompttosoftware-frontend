@@ -1,26 +1,13 @@
 // src/lib/server-api.ts
 import 'server-only';
 import { cookies } from 'next/headers';
+import fs from 'fs';
 
 const IN_CLUSTER_URL = process.env.MANAGEMENT_API_URL;
 const EXTERNAL_URL = process.env.API_BASE_URL;
 const SA_TOKEN_PATH = '/var/run/secrets/kubernetes.io/serviceaccount/token';
 
-let fs: any = null;
-try {
-  if (typeof window === 'undefined') {
-    fs = require('fs');
-  }
-} catch (err) {
-  // fs not available
-}
-
 function getServiceAccountToken(): string | null {
-  console.debug('[getServiceAccountToken] typeof window:', typeof window);
-  if (typeof window !== 'undefined') {
-    console.error('[getServiceAccountToken] ERROR: Running in browser context!');
-    return null;
-  }
   try {
     const token = fs.readFileSync(SA_TOKEN_PATH, 'utf-8').trim();
     console.debug('[serverFetch] Using Kubernetes service account token.');
@@ -32,12 +19,6 @@ function getServiceAccountToken(): string | null {
 }
 
 async function getJwtFromCookie(): Promise<string | null> {
-  console.debug('[getJwtFromCookie] typeof window:', typeof window);
-  if (typeof window !== 'undefined') {
-    console.error('[getJwtFromCookie] ERROR: Running in browser context!');
-    return null;
-  }
-  
   try {
     console.debug('[getJwtFromCookie] About to call cookies()');
     const cookieStore = await cookies();
@@ -66,21 +47,8 @@ export async function serverFetch(
   jwt?: string,
   { needsAuth = true, ...init }: FetchOptions = {}
 ) {
-  console.debug('[serverFetch] Starting serverFetch call');
-  console.debug('[serverFetch] typeof window:', typeof window);
-  console.debug('[serverFetch] process.env.NODE_ENV:', process.env.NODE_ENV);
- 
-  if (typeof window !== 'undefined') {
-    console.error('[serverFetch] CRITICAL ERROR: serverFetch called in browser context!');
-    throw new Error('serverFetch called in browser context');
-  }
-
   const isInCluster = !!getServiceAccountToken();
   const baseURL = isInCluster ? IN_CLUSTER_URL : EXTERNAL_URL;
- 
-  console.debug('[serverFetch] isInCluster:', isInCluster);
-  console.debug('[serverFetch] Base URL:', baseURL);
-  console.debug('[serverFetch] Endpoint:', endpoint);
 
   if (!baseURL) {
     throw new Error('Missing API_BASE_URL or MANAGEMENT_API_URL');

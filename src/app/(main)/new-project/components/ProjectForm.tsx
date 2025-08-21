@@ -87,20 +87,8 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
     if (isEditMode && initialProjectData) {
       return mapProjectToFormData(initialProjectData);
     }
-
-    // --- 2. In create mode, try to load from localStorage first ---
-    try {
-      const savedDraft = localStorage.getItem(FORM_DRAFT_KEY);
-      if (savedDraft) {
-        console.log('Found a saved draft, loading it.');
-        return JSON.parse(savedDraft);
-      }
-    } catch (error) {
-        console.error("Failed to parse form draft from localStorage:", error);
-        // If parsing fails, fall through to the default values.
-    }
     
-    // Fallback for create mode (no draft found or parsing failed)
+    // Fallback for create mode (this is the initial state before client-side hydration)
     return {
       description: '',
       maxRuntimeHours: 24,
@@ -122,7 +110,24 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   });
 
   // --- 3. Save form data to localStorage on change (only in create mode) ---
-  const { watch } = methods;
+  const { watch, reset } = methods;
+
+  useEffect(() => {
+    // Only attempt to load a draft if we are in "create" mode.
+    if (!isEditMode) {
+      try {
+        const savedDraft = localStorage.getItem(FORM_DRAFT_KEY);
+        if (savedDraft) {
+          console.log('Found a saved draft, loading it.');
+          const parsedDraft = JSON.parse(savedDraft);
+          reset(parsedDraft); // Use reset to update the entire form state
+        }
+      } catch (error) {
+          console.error("Failed to parse form draft from localStorage:", error);
+      }
+    }
+  }, [isEditMode, reset]);
+
   useEffect(() => {
     // Only save drafts if we are in "create" mode.
     if (!isEditMode) {
@@ -137,7 +142,6 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
       return () => subscription.unsubscribe();
     }
   }, [watch, isEditMode]);
-
 
   const onSubmit = async (data: ProjectFormData) => {
       setIsSubmitting(true);

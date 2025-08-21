@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useContext } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useSuccessMessageStore } from '@/store/successMessageStore'; // Import success message store
-import { AuthContext } from '@/lib/AuthContext'; // Import AuthContext
 import { logger } from '@/utils/logger'; // Import logger
 import { AxiosError } from 'axios'; // Import AxiosError type
 import { api } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
 
 const DeleteAccountButton: React.FC = () => {
   const { showConfirmation, setError, setConfirmationLoading } = useGlobalErrorStore();
-  const { logout } = useContext(AuthContext); // Get logout from AuthContext
+  const { logout } = useAuth();
   const { setMessage: setSuccessMessage } = useSuccessMessageStore(); // Get setSuccessMessage from store hook
 
   const handleDeleteAccount = () => {

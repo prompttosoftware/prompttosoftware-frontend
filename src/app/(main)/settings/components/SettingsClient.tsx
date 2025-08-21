@@ -34,7 +34,7 @@ export default function SettingsClient({ }: SettingsClientProps) {
           <h3 className="text-lg font-medium mb-4">Account Actions</h3>
           <div className="flex items-center gap-4">
             {/* New Logout Button */}
-            <Button variant="secondary" onClick={logout}>
+            <Button variant='secondary' onClick={logout}>
               Logout
             </Button>
             

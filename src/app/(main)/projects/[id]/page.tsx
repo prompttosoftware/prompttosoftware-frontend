@@ -2,8 +2,6 @@ import { notFound } from 'next/navigation';
 import { fetchProjectById } from '@/lib/data/projects';
 import ProjectDetailClient from '@/app/(main)/projects/[id]/components/ProjectDetailClient';
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 interface ProjectDetailPageProps {

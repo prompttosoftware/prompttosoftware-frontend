@@ -12,11 +12,6 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   trailingSlash: false,
   
-  // Ensure proper handling of dynamic routes
-  serverExternalPackages: [],
-  experimental: {
-    dynamicIO: false
-  },
 
   async generateBuildId() {
     return 'build-' + Date.now();
