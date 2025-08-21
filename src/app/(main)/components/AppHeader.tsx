@@ -1,7 +1,6 @@
 // src/app/(main)/components/AppHeader.tsx
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import ProfileButton from '@/app/(main)/components/ProfileButton';
 import AddPaymentButton from '@/app/(main)/components/AddPaymentButton';
@@ -11,21 +10,7 @@ import { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import JiraCallbackHandler from '@/app/(main)/components/JiraCallbackHandler';
 
-const formatPathToTitle = (path: string) => {
-    if (path === '/') return 'Dashboard';
-
-    // Get the last non-empty segment from the path
-    const lastSegment = path.split('/').filter(Boolean).pop() || '';
-
-    // Replace dashes with spaces and capitalize each word
-    return lastSegment
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
-
 export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => void; }) {
-  const pathname = usePathname();
   const { isAuthenticated, user } = useAuth();
 
   return (

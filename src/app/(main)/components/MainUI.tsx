@@ -1,12 +1,11 @@
 // src/app/(main)/components/MainUI.tsx
 'use client';
 
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import SideNavBar from '@/app/(main)/components/SideNavBar';
 import { useAuth } from '@/hooks/useAuth';
 import { StripeWrapper } from '@/components/StripeWrapper';
-import { AuthContext } from '@/lib/AuthContext';
 import useBannerStore from '@/store/bannerStore';
 import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { useRouter } from 'next/navigation';
@@ -26,9 +25,7 @@ export default function MainUI({ children }: { children: React.ReactNode }) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   
-  // All useEffects and logic that were in the layout now live here.
-  const { showTutorial, setShowTutorial } = useContext(AuthContext);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, showTutorial, setShowTutorial } = useAuth();
   const router = useRouter();
   const initBanners = useBannerStore((state) => state.initBanners);
   const { error, clearError } = useGlobalErrorStore();

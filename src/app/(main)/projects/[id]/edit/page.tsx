@@ -1,7 +1,6 @@
 // app/projects/[id]/edit/page.tsx
 
-import { redirect, notFound } from 'next/navigation';
-import { getInitialAuthData } from '@/lib/data/user';
+import { notFound } from 'next/navigation';
 import { fetchProjectById } from '@/lib/data/projects';
 import ProjectClient from '@/app/(main)/new-project/components/ProjectClient';
 
@@ -18,12 +17,6 @@ export default async function EditProjectPage({ params }: {
 }) {
   const { id } = await params;
 
-  // 1. Fetch auth status and user data
-  const { user } = await getInitialAuthData();
-  if (!user) {
-    redirect(`/login?from=/projects/${id}/edit`);
-  }
-
   // 2. Fetch the project data on the server
   const projectToEdit = await fetchProjectById(id);
   if (!projectToEdit) {
@@ -33,7 +26,6 @@ export default async function EditProjectPage({ params }: {
   // 3. Render the form component, passing initial data to activate "edit" mode
   return (
     <ProjectClient 
-      user={user} 
       initialProjectData={projectToEdit} 
     />
   );

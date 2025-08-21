@@ -3,8 +3,6 @@ import { Project, Status } from '@/types/project';
 import { fetchUserTransactions } from '@/lib/data/transactions';
 import DashboardClient from '@/app/(main)/dashboard/components/DashboardClient';
 import { logger } from '@/lib/logger';
-import { getInitialAuthData } from '@/lib/data/user';
-import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 // Define which statuses are considered "active" for the summary component
@@ -18,15 +16,6 @@ export default async function DashboardPage() {
   if (typeof window !== 'undefined') {
     console.error('[DashboardPage] CRITICAL ERROR: Server component running in browser!');
   }
-
-  // 1. Check authentication first - don't fetch other data for unauthenticated users
-  const { user } = await getInitialAuthData();
-  
-  
-  // 2. If not authenticated, redirect immediately without fetching other data
-  if (!user) {
-    redirect('/login');
-  }
   
   // 3. Now fetch projects and transactions in parallel since we know user is authenticated
   const [allProjects, transactions] = await Promise.all([
@@ -39,12 +28,9 @@ export default async function DashboardPage() {
     ACTIVE_STATUSES.includes(project.status)
   );
 
-  console.debug(`[DashboardPage] Initial user:`, user);
-
   // 6. Render the page with pre-fetched data
   return (
-    <DashboardClient 
-      user={user} 
+    <DashboardClient
       activeProjects={activeProjects} 
       initialTransactions={transactions} 
     />

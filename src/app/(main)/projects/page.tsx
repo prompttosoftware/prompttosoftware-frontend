@@ -25,7 +25,6 @@ const ProjectsPage = async () => {
 
   return (
     <div className="container mx-auto p-4 md:p-6" data-tutorialid="projects-page-container">
-      {/* --- Page Header --- */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Your Projects</h1>
         {isAuthenticated && (
@@ -38,13 +37,7 @@ const ProjectsPage = async () => {
         )}
       </div>
 
-      {/* --- Page Content --- */}
-      {/* 
-        The rendering logic is now much simpler.
-        We handle the unauthenticated case here, and delegate the rest
-        to our new client component, hydrating it with initial data.
-      */}
-      {isAuthenticated ? (
+      {isAuthenticated || process.env.NODE_ENV !== 'production' ? (
         <ProjectList initialProjects={initialProjects} />
       ) : (
         <EmptyState

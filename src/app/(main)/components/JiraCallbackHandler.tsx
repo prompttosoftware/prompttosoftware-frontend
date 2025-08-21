@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
@@ -11,17 +11,28 @@ export default function JiraCallbackHandler() {
     const searchParams = useSearchParams();
     const { updateProfile, isAuthenticated } = useAuth();
 
+    const isProcessing = useRef(false);
+
     useEffect(() => {
-        // Add comprehensive logging
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+
+        if (!code || !state || isProcessing.current) {
+            return;
+        }
+
+        // Set the flag to true immediately to prevent re-entry
+        isProcessing.current = true;
+
         console.log('JiraCallbackHandler mounted');
         console.log('Current pathname:', pathname);
         console.log('Search params:', Object.fromEntries(searchParams.entries()));
         console.log('Is authenticated:', isAuthenticated);
 
-        const code = searchParams.get('code');
-        const state = searchParams.get('state');
         const error = searchParams.get('error');
         const storedState = sessionStorage.getItem('jira_oauth_state');
+
+        sessionStorage.removeItem('jira_oauth_state');
 
         console.log('OAuth params:', { code: !!code, state, error, storedState });
 
@@ -55,8 +66,6 @@ export default function JiraCallbackHandler() {
 
         console.log('Valid OAuth callback detected, processing...');
 
-        // Clean up stored state and URL immediately
-        sessionStorage.removeItem('jira_oauth_state');
         router.replace(pathname, { scroll: false });
 
         const linkPromise = async () => {

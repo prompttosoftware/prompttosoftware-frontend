@@ -31,7 +31,7 @@ const MessageInput = ({ sendMessage }: MessageInputProps) => {
   };
   
   return (
-    <div className="flex items-center space-x-2 p-4 border-t bg-gray-50">
+    <div className="flex items-center space-x-2 p-4 border-t ">
       <Input
         type="text"
         placeholder="Type your message..."
@@ -39,7 +39,7 @@ const MessageInput = ({ sendMessage }: MessageInputProps) => {
         onChange={(e) => setMessage(e.target.value)}
         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
         disabled={sendMessage.isPending}
-        className="flex-grow"
+        className="flex-grow bg-input text-card-foreground placeholder:text-muted-foreground"
       />
       <Button onClick={handleSend} disabled={!message.trim() || sendMessage.isPending}>
         {sendMessage.isPending ? 'Sending...' : 'Send'}

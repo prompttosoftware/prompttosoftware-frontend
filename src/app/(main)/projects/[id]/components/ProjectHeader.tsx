@@ -18,11 +18,11 @@ interface ProjectHeaderProps {
 
 const ProjectHeader = ({ name, projectId, onDeleteClick }: ProjectHeaderProps) => (
   <div className="flex justify-between items-start mb-4">
-    <h1 className="text-3xl font-bold text-gray-800">{name}</h1>
+    <h1 className="text-3xl font-bold text-card-foreground">{name}</h1>
     <div className="flex items-center space-x-2"> {/* Group the edit button and dropdown */}
         {/* EDIT BUTTON */}
         <Link href={`/projects/${projectId??'loading'}/edit`} passHref>
-        <Button size="sm">
+        <Button size="sm" variant='ghost'>
             <Pencil className="mr-2 h-4 w-4" />
         </Button>
         </Link>

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { logger } from '@/lib/logger';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner'; // 1. Import toast from sonner
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PaymentFormContentProps {
   clientSecret: string;
@@ -118,6 +119,10 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         if (paymentIntent.amount && Math.round(addedAmount * 100) !== paymentIntent.amount) {
           logger.warn(`Amount mismatch detected! UI Amount: ${addedAmount}, Stripe Amount: ${paymentIntent.amount / 100}`);
         }
+        
+        const queryClient = useQueryClient();
+        queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        queryClient.invalidateQueries({ queryKey: ['userTransactions'] });
 
         resetAddFundsStep();
         closeModal();

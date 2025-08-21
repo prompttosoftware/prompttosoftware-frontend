@@ -13,14 +13,10 @@ interface ProjectListProps {
 }
 
 const ProjectList: React.FC<ProjectListProps> = ({ initialProjects }) => {
-  // Use the hook with the initial data passed from the server.
-  // TanStack Query will use this data for the initial render and then
-  // manage fetching in the background according to your staleTime/refetch rules.
   const { data: projects, isLoading, isError } = useUserProjects({
     initialData: initialProjects,
   });
 
-  // Client-side loading state (for navigations, not the initial SSR load)
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

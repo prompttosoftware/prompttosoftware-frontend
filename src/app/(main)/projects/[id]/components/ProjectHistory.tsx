@@ -84,7 +84,7 @@ const ProjectHistory = ({ history = [] }: ProjectHistoryProps) => {
     <div className="flex-grow p-4 overflow-hidden">
         <ScrollArea className="h-full pr-4">
             {sortedHistory.length === 0 ? (
-                <div className="flex justify-center items-center h-full text-gray-500">
+                <div className="flex justify-center items-center h-full text-muted-foreground">
                     No history yet. Start by sending a message.
                 </div>
             ) : (

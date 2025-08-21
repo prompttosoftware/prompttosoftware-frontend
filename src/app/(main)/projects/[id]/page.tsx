@@ -20,9 +20,6 @@ const ProjectDetailPage = async (props: ProjectDetailPageProps) => {
   let id: string;
   
   try {
-    // More defensive params handling
-    console.log('Props received:', JSON.stringify(props, null, 2));
-    
     if (!props || !props.params) {
       console.error('No props or params provided');
       notFound();

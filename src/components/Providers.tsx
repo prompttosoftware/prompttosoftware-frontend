@@ -4,20 +4,23 @@
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { UserProfile } from '@/types/auth';
 import { MswProvider } from '@/components/MswProvider';
+import { AuthProvider } from '@/lib/AuthContext';
+import { UserProfile } from '@/types/auth';
 interface ProvidersProps {
   children: React.ReactNode;
-  initialAuthData?: { user: UserProfile | null }; // Define the prop type
+  initialUser: UserProfile | null;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, initialUser }: ProvidersProps) {
   // Use useState to ensure the client is only created once per component lifecycle
   const [queryClient] = useState(() => new QueryClient());
 
   const content = (
     <QueryClientProvider client={queryClient}>
-      {children}
+      <AuthProvider initialData={initialUser}>
+        {children}
+      </AuthProvider>
       {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
     </QueryClientProvider>
   );
