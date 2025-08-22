@@ -1,4 +1,3 @@
-// src/app/(main)/components/AppHeader.tsx
 'use client';
 
 import { Bars3Icon } from '@heroicons/react/24/outline';
@@ -9,12 +8,13 @@ import LinkJiraButton from '@/app/(main)/components/LinkJiraButton';
 import { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import JiraCallbackHandler from '@/app/(main)/components/JiraCallbackHandler';
+import SkeletonLoader from './SkeletonLoader';
 
 export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => void; }) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
 
   return (
-    <header className="sticky top-0 h-16 bg-background shadow-md flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0">
+    <header className="sticky top-0 h-16 bg-background border flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0">
       <div className="flex items-center">
         <button
           className="md:hidden p-2 mr-2"
@@ -28,13 +28,27 @@ export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => 
         <Suspense fallback={null}>
           <JiraCallbackHandler />
         </Suspense>
-        {isAuthenticated && (
-          <>
-            {user?.integrations.jira.isLinked === false && <LinkJiraButton />}
-            <AddPaymentButton />
-            <BalanceDisplay />
-          </>
+
+        {isLoading ? (
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <SkeletonLoader width="w-28" height="h-10" />
+            <SkeletonLoader width="w-40" height="h-10" className="rounded-lg" />
+          </div>
+        ) : (
+          isAuthenticated && (
+            <>
+              {user?.integrations.jira.isLinked === false && <LinkJiraButton />}
+              
+              <div className="flex items-center border rounded-lg overflow-hidden hover:shadow-sm">
+                <BalanceDisplay balance={user?.balance} />
+                <div className="h-6 border-l border-border" /> {/* Vertical Divider */}
+                <AddPaymentButton />
+              </div>
+
+            </>
+          )
         )}
+        
         <ProfileButton />
       </div>
     </header>

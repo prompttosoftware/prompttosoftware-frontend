@@ -1,7 +1,7 @@
 // src/hooks/useProjectActions.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { UserMessagePayload, SensitiveDataResponsePayload } from '@/types/project';
+import { UserMessagePayload, SensitiveDataResponsePayload, Project } from '@/types/project';
 import { useRouter } from 'next/navigation';
 
 // This hook is designed to be used on a page where you already know the projectId
@@ -35,9 +35,15 @@ export const useProjectActions = (projectId: string) => {
   const deleteProjectMutation = useMutation({
     mutationFn: () => api.deleteProject(projectId),
     onSuccess: () => {
-      // After deleting, invalidate the list to remove it
-      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
-      // And redirect the user away from the deleted project's page
+      queryClient.setQueryData(['userProjects'], (oldData: Project[] | undefined) => {
+        if (!oldData) {
+          return oldData;
+        }
+        return oldData.filter(project => project._id !== projectId);
+      });
+
+      queryClient.removeQueries({ queryKey: ['project', projectId] });
+      
       router.push('/dashboard');
     },
   });

@@ -94,7 +94,7 @@ const LinkJiraButton = () => {
     <Button
       type="button"
       onClick={handleLinkJira}
-      className="bg-primary hover:bg-primary-hover text-primary-foreground hover:text-primary-hover-foreground font-semibold flex items-center focus:ring"
+      variant='outline'
       disabled={isLoading || isJiraLinked}
       aria-label={isJiraLinked ? 'Jira account is linked' : 'Link your Jira account'}
     >

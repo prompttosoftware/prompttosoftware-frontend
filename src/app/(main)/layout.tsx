@@ -3,7 +3,6 @@ import React from 'react';
 import MainUI from "@/app/(main)/components/MainUI";
 import { getInitialAuthData } from '@/lib/data/user';
 import { redirect } from 'next/navigation';
-import InitializeAuth from './components/InitializeAuth';
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
 
@@ -15,11 +14,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   }
   
   return (
-    <>
-      <InitializeAuth user={user} />
-      <MainUI>
-        {children}
-      </MainUI>
-    </>
+    <MainUI>
+      {children}
+    </MainUI>
   ); 
 }

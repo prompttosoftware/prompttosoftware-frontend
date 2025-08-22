@@ -54,7 +54,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
 
       {/* Side Navigation Bar */}
       <div
-        className={`flex-col h-full bg-background text-foreground transition-all duration-300 ease-in-out fixed left-0 top-0 bottom-0 z-50 shadow-lg side-navbar
+        className={`flex-col h-full bg-background text-foreground transition-all duration-300 ease-in-out fixed left-0 top-0 bottom-0 z-50 border side-navbar
           ${isExpanded ? 'w-64' : 'w-20'}
           ${isMobileNavOpen ? 'flex w-64' : 'hidden'}
           md:flex`}

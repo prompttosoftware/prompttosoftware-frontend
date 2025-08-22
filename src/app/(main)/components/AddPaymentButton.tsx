@@ -8,14 +8,13 @@ import { pollForTransactionPromise } from '@/lib/transactions';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 
-export default function AddPaymentButton() {
+export default function AddPaymentButton({ disabled }: { disabled?: boolean }) {
   const openModal = usePaymentModalStore((state) => state.openPaymentModal);
   const { refreshUser } = useAuth();
   const queryClient = useQueryClient();
 
   const handleAddFundsClick = () => {
     openModal({
-      // Define the onSuccess logic right here
       onSuccess: ({ paymentIntentId, amount }) => {
         const pollingPromise = pollForTransactionPromise({
           paymentIntentId,
@@ -39,16 +38,15 @@ export default function AddPaymentButton() {
 
   return (
     <Button
-      variant="outline"
-      className="flex items-center space-x-2 px-4 py-2 add-payment-button"
-      data-test-id="add-payment-button" // Added for tutorial step targeting
-      onClick={() => {
-        handleAddFundsClick();
-        console.log('Add Payment button clicked');
-      }}
+      variant="ghost"
+      size="icon"
+      className="h-10 w-10 rounded-none add-payment-button"
+      data-test-id="add-payment-button"
+      onClick={handleAddFundsClick}
+      disabled={disabled}
+      aria-label="Add Payment"
     >
-      <Plus className="h-4 w-4" />
-      <span>Add Payment</span>
+      <Plus className="h-5 w-5" />
     </Button>
   );
 }

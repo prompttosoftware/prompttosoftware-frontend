@@ -13,10 +13,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import SkeletonLoader from './SkeletonLoader';
 
 const ProfileButton = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
   const router = useRouter();
+  
+  if (isLoading) {
+    return <SkeletonLoader width="w-8" height="h-8" className="rounded-full" />;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -37,9 +42,7 @@ const ProfileButton = () => {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full profile-button">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.avatarUrl || '/avatars/01.png'} alt="User Avatar" />
-            <AvatarFallback>
-              {initial}
-            </AvatarFallback>
+            <AvatarFallback>{initial}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

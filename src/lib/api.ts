@@ -250,15 +250,6 @@ export const api = {
     return response.data;
   },
 
-  /**
-   * Sends a request to restart a project's container.
-   * POST /projects/:projectId/restart
-   */
-  restartProject: async (projectId: string): Promise<ProjectActionResponse> => {
-    const response = await httpClient.post<ProjectActionResponse>(`/projects/${projectId}/restart`);
-    return response.data;
-  },
-
  // Project communication & data
   /**
    * Sends a message from the user to the project agent.
