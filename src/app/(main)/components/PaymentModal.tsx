@@ -25,8 +25,6 @@ import { createPaymentIntent } from '@/lib/payments';
 import { SavedCardsList } from './SavedCardsList';
 import { SavedCardConfirmation } from './SavedCardConfirmation';
 import PaymentFormContent from './PaymentFormContent';
-import { useQueryClient } from '@tanstack/react-query';
-import { pollForTransactionPromise } from '@/lib/transactions';
 
 export function PaymentModal() {
   // Store state
@@ -206,6 +204,7 @@ export function PaymentModal() {
               setIsLoading={setIsLoadingPaymentIntent}
               setSuccessMessageStore={setSuccessMessageStore}
               clearStoreState={clearState}
+              onPaymentConfirmed={handlePaymentConfirmed}
             />
           )}
         </StripeWrapper>

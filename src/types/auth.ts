@@ -50,6 +50,7 @@ export interface UserProfile {
     isDefault?: boolean;
   }[];
   starredProjects?: string[];
+  accountStatus: 'healthy' | 'suspended';
   createdAt: string;
   updatedAt: string;
 }

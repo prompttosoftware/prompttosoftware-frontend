@@ -6,7 +6,6 @@ import { SavedCard } from '@/types/payments';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { logger } from '@/lib/logger';
-import { useBalanceStore } from '@/store/balanceStore';
 import { Loader2 } from 'lucide-react';
 
 interface SavedCardConfirmationProps {
@@ -19,6 +18,7 @@ interface SavedCardConfirmationProps {
   setIsLoading: (loading: boolean) => void;
   setSuccessMessageStore: (message: string | null) => void;
   clearStoreState: () => void;
+  onPaymentConfirmed: (paymentIntentId: string) => void;
 }
 
 export function SavedCardConfirmation({
@@ -26,15 +26,11 @@ export function SavedCardConfirmation({
   amount,
   clientSecret,
   onBack,
-  onClose,
   isLoading,
   setIsLoading,
-  setSuccessMessageStore,
-  clearStoreState,  
+  onPaymentConfirmed, 
 }: SavedCardConfirmationProps) {
   const stripe = useStripe();
-  const updateBalance = useBalanceStore((state) => state.updateBalance);
-
   const { data: savedCards } = useQuery<SavedCard[]>({
     queryKey: ['savedCards'],
     queryFn: () => getSavedCards(),
@@ -60,10 +56,7 @@ export function SavedCardConfirmation({
         onBack(); // Go back to amount step on failure
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         logger.info('Payment confirmed successfully with saved card.');
-        updateBalance(amount);
-        setSuccessMessageStore(`Successfully added $${amount.toFixed(2)} to your balance!`);
-        onClose();
-        clearStoreState();
+        onPaymentConfirmed(paymentIntent.id);
       } else {
         logger.warn(`Payment not successful: status ${paymentIntent?.status}`);
         onBack();
@@ -79,17 +72,14 @@ export function SavedCardConfirmation({
     clientSecret,
     selectedCardId,
     amount,
-    onClose,
     onBack,
     setIsLoading,
-    updateBalance,
-    setSuccessMessageStore,
-    clearStoreState,
+    onPaymentConfirmed
   ]);
 
   if (!selectedCard) {
     return (
-      <div className="py-4 text-center text-red-600">
+      <div className="py-4 text-center text-destructive">
         Error: Selected card could not be found. Please try again.
         <div className="mt-2">
           <Button variant="outline" onClick={onBack}>
