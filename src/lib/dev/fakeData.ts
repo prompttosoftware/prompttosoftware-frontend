@@ -293,6 +293,7 @@ export const FAKE_USER: UserProfile = {
     { provider: 'GOOGLE', api_key: 'AIzaSyxxxxxx' },
   ],
   starredProjects: [],
+  accountStatus: 'healthy',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };

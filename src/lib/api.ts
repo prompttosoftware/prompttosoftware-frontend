@@ -111,6 +111,7 @@ export const api = {
       apiKeys: backendUser.apiKeys || [],
       savedCards: backendUser.savedCards || [],
       starredProjects: backendUser.starredProjects || [],
+      accountStatus: backendUser.accountStatus || 'healthy',
       createdAt: backendUser.createdAt,
       updatedAt: backendUser.updatedAt,
     };
@@ -326,6 +327,7 @@ export const api = {
       apiKeys: backendUser.apiKeys || [],
       savedCards: backendUser.savedCards || [],
       starredProjects: backendUser.starredProjects || [],
+      accountStatus: backendUser.accountStats || 'healthy',
       createdAt: backendUser.createdAt,
       updatedAt: backendUser.updatedAt,
     };
