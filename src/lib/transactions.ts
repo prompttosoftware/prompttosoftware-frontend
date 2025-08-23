@@ -2,6 +2,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { Transaction } from '@/types/transactions';
 import { logger } from '@/lib/logger';
+import { api } from './api';
 
 interface PollForTransactionParams {
   paymentIntentId: string;
@@ -40,6 +41,7 @@ export const pollForTransactionPromise = ({
       try {
         const transactions = await queryClient.fetchQuery<Transaction[]>({
           queryKey: ['userTransactions'],
+          queryFn: api.listUserTransactions
         });
         console.log(transactions.length + ' transactions found.');
 

@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
+import { AccountUsageSectionSkeleton } from './AccountUsageSectionSkeleton';
 
 type DashboardClientProps = {
   activeProjects: Project[];
@@ -40,21 +41,27 @@ export default function DashboardClient({ activeProjects, initialTransactions }:
     );
   }
   
+  if (isLoading || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen py-2">
+        <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
+          <div className="w-full max-w-lg mb-8 space-y-4">
+            <SkeletonLoader height="h-10" width="w-3/4" className="mx-auto" />
+            <SkeletonLoader height="h-10" width="w-1/2" className="mx-auto" />
+          </div>
+          <AccountUsageSectionSkeleton />
+        </main>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
-          {isLoading ? (
-            <div className="w-full max-w-lg mb-8 space-y-4">
-              <SkeletonLoader height="h-10" width="w-3/4" className="mx-auto" />
-              <SkeletonLoader height="h-10" width="w-1/2" className="mx-auto" />
-            </div>
-          ) : (
-            <>
-              <h3 className="text-4xl sm:text-5xl font-bold mb-4">Welcome, {user?.name}</h3>
-              <h3 className="text-2xl sm:text-3xl font-semibold mb-8 text-muted-foreground">Account Status: {user?.accountStatus}</h3>
-            </>
-          )}
-          <AccountUsageSection balance={user?.balance} transactions={transactions || []} />
+          <h3 className="text-4xl sm:text-5xl font-bold mb-4">Welcome, {user.name}</h3>
+          <h3 className="text-2xl sm:text-3xl font-semibold mb-8 text-muted-foreground">Account Status: {user.accountStatus}</h3>
+          
+          <AccountUsageSection balance={user.balance} transactions={transactions || []} />
           
           <section className="w-full max-w-5xl mb-12">
             <div className="flex justify-between items-center mb-6">
