@@ -6,6 +6,7 @@ import { format, parseISO, startOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Transaction } from '@/types/transactions';
+import { formatCurrency } from '@/lib/formatters';
 
 interface SpendingHistoryChartProps {
   transactions: Transaction[];
