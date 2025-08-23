@@ -5,7 +5,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AddPaymentButton from '@/app/(main)/components/AddPaymentButton';
 import { Transaction } from '@/types/transactions';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
@@ -67,7 +66,7 @@ interface AccountUsageSectionProps {
 const AccountUsageSection: React.FC<AccountUsageSectionProps> = ({ transactions, balance }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>('current');
 
-  if (balance === undefined) {
+  if (!balance) {
     return <AccountUsageSectionSkeleton />;
   }
   

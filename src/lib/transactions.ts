@@ -21,7 +21,7 @@ export const pollForTransactionPromise = ({
   return new Promise((resolve, reject) => {
     let intervalId: NodeJS.Timeout | null = null;
     let timeoutId: NodeJS.Timeout | null = null;
-
+    console.log('polling started');
     const clearTimers = () => {
       if (intervalId) clearInterval(intervalId);
       if (timeoutId) clearTimeout(timeoutId);
@@ -36,22 +36,28 @@ export const pollForTransactionPromise = ({
 
     // Start the polling interval
     intervalId = setInterval(async () => {
+      console.log('polling interval started');
       try {
         const transactions = await queryClient.fetchQuery<Transaction[]>({
           queryKey: ['userTransactions'],
         });
+        console.log(transactions.length + ' transactions found.');
 
         const found = transactions.some(
           (tx) => tx.stripeEventId === paymentIntentId
         );
 
+        console.log('Found matching transactions: ' + found);
+
         if (found) {
+          console.log('Found transactions!');
           logger.info(`Transaction found for Payment Intent: ${paymentIntentId}. Resolving promise.`);
           clearTimers();
           resolve(); // The promise succeeds!
         }
         // If not found, the interval will simply run again.
       } catch (error) {
+        console.log('Error while polling for transactions. ' + JSON.stringify(error));
         logger.error(`Error fetching transactions during polling for ${paymentIntentId}`, error);
         clearTimers();
         reject(new Error('An error occurred while confirming your transaction.')); // The promise fails.

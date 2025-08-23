@@ -16,8 +16,6 @@ interface SavedCardConfirmationProps {
   onClose: () => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  setSuccessMessageStore: (message: string | null) => void;
-  clearStoreState: () => void;
   onPaymentConfirmed: (paymentIntentId: string) => void;
 }
 

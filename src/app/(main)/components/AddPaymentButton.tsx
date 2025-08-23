@@ -16,14 +16,17 @@ export default function AddPaymentButton({ disabled }: { disabled?: boolean }) {
   const handleAddFundsClick = () => {
     openModal({
       onSuccess: ({ paymentIntentId, amount }) => {
+        console.log('Successful payment intent creation.');
         const pollingPromise = pollForTransactionPromise({
           paymentIntentId,
           queryClient: queryClient,
         });
+        console.info('Poll for transactions created.');
 
         toast.promise(pollingPromise, {
           loading: "Payment successful! We're updating your balance...",
           success: async () => {
+            console.log('Transaction found. Success!');
             await refreshUser();
             queryClient.invalidateQueries({ queryKey: ['userTransactions'] });
             return `Successfully added $${amount.toFixed(2)} to your balance!`;
@@ -42,7 +45,10 @@ export default function AddPaymentButton({ disabled }: { disabled?: boolean }) {
       size="icon"
       className="h-10 w-10 rounded-none add-payment-button"
       data-test-id="add-payment-button"
-      onClick={handleAddFundsClick}
+      onClick={() => {
+        handleAddFundsClick();
+        console.log('Add Payment button clicked');
+      }}
       disabled={disabled}
       aria-label="Add Payment"
     >

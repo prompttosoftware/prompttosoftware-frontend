@@ -202,8 +202,6 @@ export function PaymentModal() {
               onClose={storeCloseModal}
               isLoading={isLoadingPaymentIntent}
               setIsLoading={setIsLoadingPaymentIntent}
-              setSuccessMessageStore={setSuccessMessageStore}
-              clearStoreState={clearState}
               onPaymentConfirmed={handlePaymentConfirmed}
             />
           )}
