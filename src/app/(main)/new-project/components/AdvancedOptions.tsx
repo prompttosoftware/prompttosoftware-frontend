@@ -24,7 +24,7 @@ export default function AdvancedOptions({ isEditing, isJiraGloballyLinked }: Adv
 
   return (
     <div className="space-y-6 border-t pt-6">
-      <h2 className="text-xl font-semibold text-gray-800">Advanced Options</h2>
+      <h2 className="text-xl font-semibold text-card-foreground">Advanced Options</h2>
       <ModelSelection />
       <InstallationManager />
       <JiraIntegration isJiraGloballyLinked={isJiraGloballyLinked} />

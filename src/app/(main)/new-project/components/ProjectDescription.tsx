@@ -45,14 +45,14 @@ export default function ProjectDescription() {
         id="description"
         rows={4}
         {...register('description')}
-        className="mt-1 block bg-input text-muted w-full rounded-md border shadow-sm focus:ring sm:text-sm p-3"
+        className="mt-1 block bg-input placeholder:text-muted-foreground text-card-foreground w-full rounded-md border shadow-sm focus:ring sm:text-sm p-3"
         placeholder="Describe the software you want to build..."
       />
       {errors.description && (
         <p className="mt-2 text-sm text-destructive">{errors.description.message}</p>
       )}
 
-      <div className="mt-4 p-4 rounded-md bg-card shadow-sm flex items-center justify-between">
+      <div className="mt-4 p-4 rounded-md bg-card border flex items-center justify-between">
         <p className="text-md font-semibold text-card-foreground">Estimated Cost:</p>
         {isEstimating ? (
           <LoadingSpinner size='small' />

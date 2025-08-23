@@ -1,7 +1,7 @@
 // src/app/new-project/components/ProjectForm.tsx
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react'; // Import useEffect
+import React, { useState, useMemo, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -69,26 +69,15 @@ interface ProjectFormProps {
 export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div className="p-8 text-center"><LoadingSpinner /></div>;
-  }
-  if (!user) {
-    return <div className="p-8 text-center">Your session has expired. Please refresh.</div>;
-  }
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const isEditMode = !!initialProjectData;
   const projectId = initialProjectData?._id;
-  const isJiraGloballyLinked = user.integrations?.jira?.isLinked ?? false;
 
   const defaultValues = useMemo(() => {
-    // In edit mode, always use the data from the server.
     if (isEditMode && initialProjectData) {
       return mapProjectToFormData(initialProjectData);
     }
-    
-    // Fallback for create mode (this is the initial state before client-side hydration)
     return {
       description: '',
       maxRuntimeHours: 24,
@@ -102,34 +91,30 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
     };
   }, [isEditMode, initialProjectData]);
 
-
   const methods = useForm<ProjectFormData>({
     resolver: zodResolver(formSchema),
     mode: 'onSubmit',
     defaultValues,
   });
 
-  // --- 3. Save form data to localStorage on change (only in create mode) ---
   const { watch, reset } = methods;
 
   useEffect(() => {
-    // Only attempt to load a draft if we are in "create" mode.
+    // This effect runs once on the client to check localStorage and signal hydration is complete.
     if (!isEditMode) {
       try {
         const savedDraft = localStorage.getItem(FORM_DRAFT_KEY);
         if (savedDraft) {
-          console.log('Found a saved draft, loading it.');
           const parsedDraft = JSON.parse(savedDraft);
-          reset(parsedDraft); // Use reset to update the entire form state
+          reset(parsedDraft);
         }
       } catch (error) {
-          console.error("Failed to parse form draft from localStorage:", error);
+        console.error("Failed to parse form draft from localStorage:", error);
       }
     }
   }, [isEditMode, reset]);
 
   useEffect(() => {
-    // Only save drafts if we are in "create" mode.
     if (!isEditMode) {
       const subscription = watch((value) => {
         try {
@@ -138,10 +123,19 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
           console.error("Failed to save form draft to localStorage:", error);
         }
       });
-      // Clean up the subscription when the component unmounts
       return () => subscription.unsubscribe();
     }
   }, [watch, isEditMode]);
+
+  if (isAuthLoading) {
+    return <div className="p-8 text-center"><LoadingSpinner /></div>;
+  }
+
+  if (!user) {
+    return <div className="p-8 text-center">Your session has expired. Please refresh.</div>;
+  }
+
+  const isJiraGloballyLinked = user.integrations?.jira?.isLinked ?? false;
 
   const onSubmit = async (data: ProjectFormData) => {
       setIsSubmitting(true);
@@ -182,7 +176,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-card p-6 rounded-lg shadow-md">
+      <div className="bg-card p-6 rounded-lg border">
         <h1 className="text-2xl font-bold mb-6">
             {isEditMode ? `Editing '${initialProjectData?.name}'` : 'Create a New Project'}
         </h1>

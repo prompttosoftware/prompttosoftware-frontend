@@ -36,7 +36,7 @@ const ProjectSummaryCard: React.FC<ProjectSummaryCardProps> = ({ project }) => {
 
   return (
     <Link href={`/projects/${project._id}`} className="block h-full no-underline">
-      <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border-blue-500 hover:shadow-xl">
+      <Card className="h-full flex flex-col transition-all duration-200 border hover:shadow-sm">
         <CardHeader>
           <div className="flex justify-between items-start gap-4">
             <CardTitle className="text-lg font-semibold text-card-foreground break-words">

@@ -1,2 +1,2 @@
 export { default as ActiveProjectsSummary } from './ActiveProjectsSummary';
-export { default as AccountUsageSection } from './AccountUsageSection';
+export { default as AccountUsageSection } from './SpendingHistoryChart';

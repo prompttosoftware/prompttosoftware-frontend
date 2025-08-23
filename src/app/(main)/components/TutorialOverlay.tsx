@@ -141,22 +141,22 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
     <>
       <button
         onClick={finishTutorial}
-        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-700"
+        className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-popover-foreground"
         aria-label="Skip tutorial"
       >
         <X size={18} />
       </button>
-      <h3 className="mb-2 text-lg font-bold text-gray-800">{currentStep.title}</h3>
-      <p className="text-sm text-gray-600">{currentStep.description}</p>
+      <h3 className="mb-2 text-lg font-bold text-popover-foreground">{currentStep.title}</h3>
+      <p className="text-sm text-popover-foreground">{currentStep.description}</p>
       <div className="mt-4 flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500">
+        <span className="text-xs font-medium text-popover-foreground">
           Step {currentStepIndex + 1} of {tutorialSteps.length}
         </span>
         {shouldShowNextButton && (
           <Button onClick={handleNext}>{isLastStep ? 'Finish' : 'Next'}</Button>
         )}
         {!shouldShowNextButton && (
-          <span className="text-xs text-gray-400 italic">
+          <span className="text-xs text-muted-foreground italic">
             Click the highlighted element to continue
           </span>
         )}
@@ -168,7 +168,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
   if (isCenteredStep) {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="relative w-96 max-w-[calc(100vw-2rem)] rounded-lg bg-white p-6 shadow-2xl">
+        <div className="relative w-96 max-w-[calc(100vw-2rem)] rounded-lg bg-popover p-6 shadow-2xl">
           {PopoverContent}
         </div>
       </div>
@@ -243,7 +243,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
       
       {/* The Popover: positioned tutorial content */}
       <div
-        className="fixed z-[9999] w-80 max-w-[calc(100vw-2rem)] rounded-lg bg-white p-4 shadow-2xl"
+        className="fixed z-[9999] w-80 max-w-[calc(100vw-2rem)] rounded-lg bg-popover p-4 shadow-2xl"
         style={{
           top: `${popoverTop}px`,
           left: `${popoverLeft}px`,

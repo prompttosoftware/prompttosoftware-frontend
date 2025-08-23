@@ -41,7 +41,7 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
   };
 
   return (
-    <div className="bg-card p-4 rounded-md shadow-sm space-y-4">
+    <div className="bg-card p-4 rounded-md border space-y-4">
       <h3 className="text-lg font-medium text-card-foreground">GitHub Repositories</h3>
       {fields.length === 0 && (
         <p className="text-sm text-muted-foreground">No repositories added. New ones will be created if needed.</p>

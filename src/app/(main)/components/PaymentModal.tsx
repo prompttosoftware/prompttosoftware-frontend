@@ -41,11 +41,10 @@ export function PaymentModal() {
     onClose,
     onSuccess,
   } = usePaymentModalStore();
-  const { setMessage: setSuccessMessageStore } = useSuccessMessageStore();
 
   // Local state
   const [isLoadingPaymentIntent, setIsLoadingPaymentIntent] = useState(false);
-  const [selectedCardId, setSelectedCardId] = useState<string>('new_card');
+  const [selectedCardId, setSelectedCardId] = useState<string>();
   const [saveCard, setSaveCard] = useState(true);
 
   const prevIsOpenRef = useRef(isOpen);
@@ -195,7 +194,7 @@ export function PaymentModal() {
             />
           ) : (
             <SavedCardConfirmation
-              selectedCardId={selectedCardId}
+              selectedCardId={selectedCardId!}
               amount={amount}
               clientSecret={clientSecret}
               onBack={resetToAmountStep}

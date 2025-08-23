@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
+import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
 
 export function LoginContent() {
   const router = useRouter();
@@ -96,45 +97,144 @@ export function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">
-      <div className="bg-card border p-8 rounded-xl shadow-2xl w-full max-w-lg text-center">
-        <h1 className="text-4xl font-bold text-card-foreground mb-4">Welcome</h1>
+    <div className="bg-background text-foreground">
+      {/* Hero Section - Above the fold */}
+      <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-4xl text-center">
+          
+          <header className="mb-8">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-card-foreground">
+              Automate Software Development with AI
+            </h1>
+            <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Welcome to <span className="font-semibold text-primary">prompttosoftware.com</span>. Describe your project, and our autonomous AI system will build, test, and deliver it directly to your GitHub repository.
+            </p>
+          </header>
 
-        {sessionExpired && (
-          <div className="bg-yellow-900 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg mb-6">
-            <strong className="font-bold">Session Expired.</strong>
-            <span className="block sm:inline"> Please sign in again.</span>
+          {sessionExpired && (
+            <div className="bg-yellow-900 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg mb-6 max-w-lg mx-auto">
+              <strong className="font-bold">Session Expired.</strong>
+              <span className="block sm:inline"> Please sign in again.</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6 max-w-lg mx-auto">
+              <strong className="font-bold">Authentication Error:</strong>
+              <span className="block sm:inline"> {error}</span>
+            </div>
+          )}
+          
+          <div className="flex flex-col items-center justify-center space-y-6">
+            {isLoggingIn ? (
+              <div className="flex justify-center items-center h-16 w-full max-w-xs">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="ml-4 text-lg">Authenticating with GitHub...</p>
+              </div>
+            ) : (
+              <button
+                onClick={handleGitHubLogin}
+                className="w-full max-w-xs flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg"
+              >
+                <GitHubLogoIcon className="w-8 h-8 mr-3" />
+                Sign in with GitHub
+              </button>
+            )}
+            <p className="text-sm text-muted-foreground">
+              Integrates with GitHub, Jira, OpenRouter, and more.
+            </p>
           </div>
-        )}
+        </div>
 
-        {error && (
-          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6">
-            <strong className="font-bold">Authentication Error:</strong>
-            <span className="block sm:inline"> {error}</span>
+        <div className="absolute bottom-10 animate-bounce">
+          <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+      </main>
+
+      {/* Features Section - Below the fold */}
+      <section id="features" className="py-20 bg-secondary/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">A Hands-Free Development Cycle</h2>
+            <p className="mt-4 text-lg text-muted-foreground">From idea to complete software project, powered by AI.</p>
           </div>
-        )}
 
-        <p className="text-card-foreground mb-6">
-          Sign in with your GitHub account to continue. We request repository access to create and manage your software projects.
-        </p>
+          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+            
+            {/* Feature Card 1 (Slightly tweaked) */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-card-foreground">From Idea to Repository</h3>
+              <p className="mt-2 text-muted-foreground">
+                Describe a project in any language or framework. The system autonomously creates repositories, writes code, runs tests, and even researches solutions—all without your intervention.
+              </p>
+            </div>
 
-        {isLoggingIn ? (
-          <div className="flex justify-center items-center h-16">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-            <p className="ml-4 text-lg">Authenticating...</p>
+            {/* Feature Card 2 (Unchanged) */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-card-foreground">Enhance Existing Projects</h3>
+              <p className="mt-2 text-muted-foreground">
+                Point the AI to your existing GitHub repositories to continue development, add features, or fix bugs. It works alongside you, committing code and updating Jira tickets as it progresses.
+              </p>
+            </div>
+            
+            {/* Feature Card 3 (Unchanged) */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-card-foreground">Full Control & Flexibility</h3>
+              <p className="mt-2 text-muted-foreground">
+                Choose the exact AI models for different tasks, from cost-effective small models to powerful frontier models. You can even bring your own API keys to use your preferred providers.
+              </p>
+            </div>
+
+            {/* Feature Card 4 (NEW - Replaces "Any Language") */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-card-foreground">Orchestrate Full-Stack Applications</h3>
+              <p className="mt-2 text-muted-foreground">
+                A single project can span multiple repositories. Our AI agent works concurrently on your frontend, backend, mobile apps, games, etc., understanding the complete architecture to ensure all components integrate perfectly.
+              </p>
+            </div>
           </div>
-        ) : (
-          <button
-            onClick={handleGitHubLogin}
-            className="w-full flex items-center justify-center px-6 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring transition duration-150 ease-in-out"
-          >
-            <svg className="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path fillRule="evenodd" d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.085 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.565 21.796 24 17.3 24 12c0-6.63-5.37-12-12-12z" clipRule="evenodd" />
-            </svg>
-            Sign in with GitHub
-          </button>
-        )}
-      </div>
+        </div>
+      </section>
+
+      {/* Expectation Setting Section */}
+      <section className="py-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-card border border-border rounded-lg p-8">
+            <h3 className="text-xl font-semibold text-center text-card-foreground">An Experimental Developer Tool</h3>
+            <p className="mt-4 text-muted-foreground">
+              PromptToSoftware is undergoing continuous improvement. AI-generated code can vary in quality and may require human oversight and refinement. We recommend reviewing the completed project to understand its structure and logic. Your feedback is invaluable as we build the future of automated development.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-20 bg-secondary/50">
+        <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Ready to Free Up Your Time?</h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Stop supervising your AI. Start shipping finished features.
+          </p>
+          <div className="mt-8">
+             <button
+                onClick={handleGitHubLogin}
+                disabled={isLoggingIn}
+                className="w-full max-w-xs inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg disabled:opacity-50"
+              >
+                <GitHubLogoIcon className="w-8 h-8 mr-3" />
+                Get Started with GitHub
+              </button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-background">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} PromptToSoftware, LLC. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }

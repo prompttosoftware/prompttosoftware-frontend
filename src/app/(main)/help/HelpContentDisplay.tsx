@@ -21,7 +21,7 @@ export default function HelpContentDisplay({ initialSelectedItemName, helpMenuIt
   return (
     <>
       {/* Navigation Sidebar */}
-      <nav className="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 bg-card rounded-lg shadow-md p-4 mb-4 md:mb-0 md:mr-4">
+      <nav className="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 bg-card rounded-lg border p-4 mb-4 md:mb-0 md:mr-4">
         <ul className="space-y-2">
           {helpMenuItems.map((item) => (
             <li key={item.name}>
@@ -44,7 +44,7 @@ export default function HelpContentDisplay({ initialSelectedItemName, helpMenuIt
       </nav>
 
       {/* Content Area */}
-      <div className="flex-grow bg-card rounded-lg shadow-md p-6 lg:p-8 overflow-y-auto">
+      <div className="flex-grow bg-card rounded-lg border p-6 lg:p-8 overflow-y-auto">
         {selectedItem ? selectedItem.content : <p className="text-card-foreground">Select an item from the menu.</p>}
       </div>
     </>

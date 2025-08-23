@@ -55,5 +55,12 @@ export const tutorialSteps: TutorialStep[] = [
     targetSelector: '[data-testid="new-project-button"]', // Target the New Project link in the SideNavBar
     position: 'right', // Positioning it to the right of the SideNavBar button
   },
+  {
+    id: 'completed',
+    title: 'Next Steps',
+    description: 'You have completed the tutorial. Add funds to your account and create your first project!',
+    position: 'center',
+    disableBeacon: true,
+  },
   
 ];

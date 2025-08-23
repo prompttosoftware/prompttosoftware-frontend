@@ -27,7 +27,7 @@ const ExploreProjectCard: React.FC<ExploreProjectCardProps> = ({ project }) => {
   };
 
   return (
-    <Card className="flex flex-col h-full shadow-md">
+    <Card className="flex flex-col h-full border">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Avatar>

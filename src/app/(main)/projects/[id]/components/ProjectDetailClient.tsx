@@ -63,7 +63,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     return (
       <div className="container mx-auto p-4 space-y-6">
         {/* Header Skeleton */}
-        <div className="bg-card shadow rounded-lg p-6 space-y-4">
+        <div className="bg-card rounded-lg border p-6 space-y-4">
           <SkeletonLoader width="w-1/3" height="h-8" /> {/* Project name */}
           <SkeletonLoader width="w-1/6" height="h-6" /> {/* Status */}
           <div className="flex space-x-4">
@@ -73,7 +73,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         </div>
 
         {/* History/Chat Skeleton */}
-        <div className="flex flex-col h-[60vh] bg-card shadow rounded-lg p-6 space-y-4">
+        <div className="flex flex-col h-[60vh] bg-card border rounded-lg p-6 space-y-4">
           <SkeletonLoader height="h-48" /> {/* History area */}
           <SkeletonLoader height="h-12" /> {/* Input area */}
         </div>
@@ -86,7 +86,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     <>
       <div className="container mx-auto p-4">
         {/* --- Top Panel --- */}
-        <div className="bg-card shadow rounded-lg p-6 mb-6">
+        <div className="bg-card border rounded-lg p-6 mb-6">
           <ProjectHeader
             projectId={currentProject._id}
             name={currentProject.name}
@@ -103,7 +103,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
           />
         </div>
         {/* --- History/Chat Panel --- */}
-        <div className="flex flex-col h-[60vh] bg-card shadow rounded-lg">
+        <div className="flex flex-col h-[60vh] bg-card border rounded-lg">
           <ProjectHistory history={currentProject.history} />
           <MessageInput sendMessage={sendMessage} />
         </div>

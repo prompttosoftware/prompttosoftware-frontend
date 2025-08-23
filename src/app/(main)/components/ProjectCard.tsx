@@ -32,7 +32,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
     // The entire card is a link to the project's detail page.
     <Link href={`/projects/${project._id}`} className="block h-full no-underline">
-      <Card className="h-full flex flex-col transition-all duration-200 border border-transparent hover:border hover:shadow-xl">
+      <Card className="h-full flex flex-col transition-all duration-200 border hover:shadow-sm">
         <CardHeader>
           <div className="flex justify-between items-start gap-4">
             <CardTitle className="text-xl font-semibold text-card-foreground break-words">

@@ -1,31 +1,48 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Project } from '@/types/project';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import AccountUsageSection from '@/app/(main)/dashboard/components/AccountUsageSection';
-import ActiveProjectsSummary from '@/app/(main)/dashboard/components/ActiveProjectsSummary';
 import { Transaction } from '@/types/transactions';
 import { useUserTransactions } from '@/hooks/useUserTransactions';
 import { useAuth } from '@/hooks/useAuth';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
-import { AccountUsageSectionSkeleton } from './AccountUsageSectionSkeleton';
+import ActiveProjectsSummary from '@/app/(main)/dashboard/components/ActiveProjectsSummary';
+import { startOfMonth } from 'date-fns';
+import DashboardHeader from './DashboardHeader';
+import DashboardStats from './DashboardStats';
+import SpendingHistoryChart from './SpendingHistoryChart';
 
 type DashboardClientProps = {
   activeProjects: Project[];
   initialTransactions: Transaction[];
 };
 
+// Helper function to calculate spending
+const calculateSpending = (transactions: Transaction[], startDate: Date, endDate: Date): number => {
+  return transactions
+    .filter(tx => {
+      const txDate = new Date(tx.createdAt);
+      return tx.type === 'debit' && tx.status === 'succeeded' && txDate >= startDate && txDate <= endDate;
+    })
+    .reduce((sum, tx) => sum + tx.amount, 0);
+};
+
 export default function DashboardClient({ activeProjects, initialTransactions }: DashboardClientProps) {
-  
   const { data: transactions } = useUserTransactions({
     initialData: initialTransactions,
   });
-
   const { user, isLoading, isError } = useAuth();
+
+  const currentMonthSpending = useMemo(() => {
+    if (!transactions) return 0;
+    const now = new Date();
+    const startOfCurrentMonth = startOfMonth(now);
+    return calculateSpending(transactions, startOfCurrentMonth, now);
+  }, [transactions]);
 
   if (isError) {
     return (
@@ -42,37 +59,56 @@ export default function DashboardClient({ activeProjects, initialTransactions }:
   }
   
   if (isLoading || !user) {
+    // A more fitting skeleton for the new layout
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen py-2">
-        <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
-          <div className="w-full max-w-lg mb-8 space-y-4">
-            <SkeletonLoader height="h-10" width="w-3/4" className="mx-auto" />
-            <SkeletonLoader height="h-10" width="w-1/2" className="mx-auto" />
-          </div>
-          <AccountUsageSectionSkeleton />
-        </main>
+      <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="w-full max-w-7xl mx-auto">
+            <div className="flex justify-between items-center">
+                <div>
+                    <SkeletonLoader height="h-8" width="w-48" />
+                    <SkeletonLoader height="h-4" width="w-64" className="mt-2" />
+                </div>
+                <SkeletonLoader height="h-10" width="w-40" />
+            </div>
+        </div>
+        <div className="w-full max-w-7xl mx-auto grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <SkeletonLoader height="h-32" />
+            <SkeletonLoader height="h-32" />
+            <SkeletonLoader height="h-32" />
+            <SkeletonLoader height="h-32" />
+        </div>
+        <div className="w-full max-w-7xl mx-auto">
+            <SkeletonLoader height="h-64" />
+        </div>
       </div>
     );
   }
   
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <main className="flex flex-col items-center justify-center w-full flex-1 px-4 sm:px-20 text-center">
-          <h3 className="text-4xl sm:text-5xl font-bold mb-4">Welcome, {user.name}</h3>
-          <h3 className="text-2xl sm:text-3xl font-semibold mb-8 text-muted-foreground">Account Status: {user.accountStatus}</h3>
-          
-          <AccountUsageSection balance={user.balance} transactions={transactions || []} />
-          
-          <section className="w-full max-w-5xl mb-12">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-semibold text-left">Active Projects</h2>
-                <Link href="/projects" passHref>
-                <Button variant="outline">View all</Button>
-                </Link>
-            </div>
-            <ActiveProjectsSummary initialProjects={activeProjects} />
-          </section>
-      </main>
+    <div className="flex flex-col w-full min-h-screen p-4 sm:p-6 lg:p-8 space-y-8">
+      <DashboardHeader userName={user.name} />
+
+      <DashboardStats 
+        balance={user.balance}
+        currentMonthSpending={currentMonthSpending}
+        activeProjectsCount={activeProjects.length}
+        accountStatus={user.accountStatus}
+      />
+      
+      <section className="w-full max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Active Projects</h2>
+            <Link href="/projects" passHref>
+              <Button variant="outline">View All</Button>
+            </Link>
+        </div>
+        <ActiveProjectsSummary initialProjects={activeProjects} />
+      </section>
+
+      <section className="w-full max-w-7xl mx-auto">
+        <SpendingHistoryChart transactions={transactions || []} />
+      </section>
+
     </div>
   );
 }
