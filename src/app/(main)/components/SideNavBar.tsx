@@ -92,9 +92,9 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 className="flex items-center p-3 rounded-lg text-sm font-medium justify-start text-foreground transition-colors duration-200 focus:outline-none focus:ring"
                 aria-label={item.name}
                 {...(
-                  item.name === 'New Project' ? { 'data-testid': 'new-project-button' } :
-                  item.name === 'Explore' ? { id: 'explore-tab' } :
-                  item.name === 'Projects' ? { id: 'projects-tab' } :
+                  item.name === 'New Project' ? { 'id': 'nav-link-new-project' } :
+                  item.name === 'Explore' ? { id: 'nav-link-explore' } :
+                  item.name === 'Projects' ? { id: 'nav-link-projects' } :
                   {}
                 )}
               >

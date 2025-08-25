@@ -59,6 +59,7 @@ export function SavedCardsList({ selectedCardId, onCardSelect }: SavedCardsListP
           value={selectedCardId}
           onValueChange={onCardSelect}
           className="grid gap-2"
+          id="saved-cards-section"
         >
           {savedCards?.map((card) => (
             <Label

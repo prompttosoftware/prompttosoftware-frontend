@@ -16,7 +16,7 @@ export default function AdvancedOptions({ isEditing, isJiraGloballyLinked }: Adv
 
   if (!show) {
     return (
-      <Button type="button" onClick={() => setShow(true)} variant="secondary" className="w-full">
+      <Button type="button" onClick={() => setShow(true)} variant="secondary" className="w-full" id="advanced-options-toggle">
         Show Advanced Options
       </Button>
     );

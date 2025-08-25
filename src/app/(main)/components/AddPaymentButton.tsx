@@ -44,7 +44,7 @@ export default function AddPaymentButton({ disabled }: { disabled?: boolean }) {
       variant="ghost"
       size="icon"
       className="h-10 w-10 rounded-none add-payment-button"
-      data-test-id="add-payment-button"
+      data-testid="add-payment-button"
       onClick={() => {
         handleAddFundsClick();
         console.log('Add Payment button clicked');

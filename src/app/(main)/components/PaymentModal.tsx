@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePaymentModalStore } from '@/store/paymentModalStore';
-import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -25,6 +24,7 @@ import { createPaymentIntent } from '@/lib/payments';
 import { SavedCardsList } from './SavedCardsList';
 import { SavedCardConfirmation } from './SavedCardConfirmation';
 import PaymentFormContent from './PaymentFormContent';
+import { useTutorialStore } from '@/store/tutorialStore';
 
 export function PaymentModal() {
   // Store state
@@ -41,6 +41,8 @@ export function PaymentModal() {
     onClose,
     onSuccess,
   } = usePaymentModalStore();
+  
+  const isTutorialActive = useTutorialStore((state) => state.isActive);
 
   // Local state
   const [isLoadingPaymentIntent, setIsLoadingPaymentIntent] = useState(false);
@@ -154,6 +156,7 @@ export function PaymentModal() {
                   placeholder="5.00"
                   value={amount === 0 ? '' : amount.toString()}
                   onChange={handleAmountChange}
+                  data-testid="choose-amount-input"
                   className="pl-7 bg-input placeholder:text-muted-foreground text-card-foreground"
                   required
                 />
@@ -169,7 +172,7 @@ export function PaymentModal() {
             <Button variant="outline" onClick={storeCloseModal} disabled={isLoadingPaymentIntent}>
               Cancel
             </Button>
-            <Button onClick={handleInitiatePaymentProcess} disabled={amount <= 0 || isLoadingPaymentIntent}>
+            <Button onClick={handleInitiatePaymentProcess} disabled={amount <= 0 || isLoadingPaymentIntent} data-testid="payment-next-button">
               {isLoadingPaymentIntent && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Next
             </Button>
@@ -221,8 +224,13 @@ export function PaymentModal() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={storeCloseModal}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={storeCloseModal}
+    >
+      <DialogContent 
+        className="sm:max-w-md"
+      >
         <DialogHeader>
           <DialogTitle className="text-xl">Add Funds</DialogTitle>
           <DialogDescription>

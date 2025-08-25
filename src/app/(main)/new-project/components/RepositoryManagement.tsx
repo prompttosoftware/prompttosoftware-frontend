@@ -10,6 +10,8 @@ interface RepositoryManagementProps {
   isEditing: boolean;
 }
 
+const MAX_REPOSITORIES = 5;
+
 export default function RepositoryManagement({ isEditing }: RepositoryManagementProps) {
   const { control } = useFormContext<ProjectFormData>();
   const { fields, append, remove } = useFieldArray({
@@ -20,6 +22,8 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
   // Track the initial field count when component mounts
   const initialFieldCountRef = useRef<number>(fields.length);
   const [currentFieldCount, setCurrentFieldCount] = useState(fields.length);
+
+   const isAtMaxRepos = fields.length >= MAX_REPOSITORIES;
   
   // Update the current field count when fields change
   useEffect(() => {
@@ -27,11 +31,13 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
   }, [fields.length]);
 
   const addNewRepo = () => {
+    if (isAtMaxRepos) return;
     const newItem = { type: 'new' as const, name: '', isPrivate: false };
     append(newItem);
   };
 
   const addExistingRepo = () => {
+    if (isAtMaxRepos) return;
     const newItem = { type: 'existing' as const, url: '' };
     append(newItem);
   };
@@ -66,23 +72,32 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
           />
         );
       })}
-      <div className="flex gap-4 pt-2">
-        <Button 
-          type="button" 
-          onClick={addNewRepo} 
-          variant="default"
-          disabled={false} // Explicitly enable
-        >
-          Add New Repo
-        </Button>
-        <Button 
-          type="button" 
-          onClick={addExistingRepo} 
-          variant="default"
-          disabled={false} // Explicitly enable
-        >
-          Add Existing Repo
-        </Button>
+      <div className="flex flex-col sm:flex-row gap-4 pt-2">
+        <div className="flex gap-4">
+          <Button 
+            type="button" 
+            onClick={addNewRepo} 
+            variant="default"
+            disabled={isAtMaxRepos}
+            data-testid="add-new-repo-button"
+          >
+            Add New Repo
+          </Button>
+          <Button 
+            type="button" 
+            onClick={addExistingRepo} 
+            variant="default"
+            disabled={isAtMaxRepos}
+            data-testid="add-existing-repo-button"
+          >
+            Add Existing Repo
+          </Button>
+        </div>
+        {isAtMaxRepos && (
+            <p className="text-sm text-destructive self-center">
+                Maximum of {MAX_REPOSITORIES} repositories reached.
+            </p>
+        )}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function JiraIntegration({ isJiraGloballyLinked }: JiraIntegratio
   const jiraLinked = watch('advancedOptions.jiraLinked');
 
   return (
-    <div className="p-4 rounded-md bg-card shadow-sm">
+    <div className="p-4 rounded-md bg-card shadow-sm" id="jira-integration-section">
       {/* Disclaimer */}
       {isJiraGloballyLinked && (
         <div className="mb-4 p-3 border rounded-md">

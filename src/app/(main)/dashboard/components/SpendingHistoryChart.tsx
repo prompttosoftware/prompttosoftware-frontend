@@ -56,7 +56,7 @@ const SpendingHistoryChart: React.FC<SpendingHistoryChartProps> = ({ transaction
   return (
     <Card className="w-full max-w-7xl mx-auto">
       <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle>Detailed Spending History</CardTitle>
+        <CardTitle>Spending History</CardTitle>
         <Select onValueChange={setSelectedMonth} value={selectedMonth}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select Month" />

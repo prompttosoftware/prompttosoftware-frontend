@@ -41,7 +41,7 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
     <div className="bg-card p-4 rounded-md shadow-sm mb-4">
       <h4 className="text-md font-semibold text-card-foreground mb-3">
         Existing Repository #{index + 1}
-        {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm" className="ml-2">
+        {!disableInputs && <Button type="button" onClick={onRemove} variant="ghost" size="sm" className="ml-2">
           Delete
         </Button>}
       </h4>

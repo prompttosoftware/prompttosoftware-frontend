@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SkeletonLoader from './SkeletonLoader';
+import { ExternalLink } from 'lucide-react';
 
 const ProfileButton = () => {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
@@ -54,6 +55,13 @@ const ProfileButton = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => window.open('/privacy', '_blank')}
+          className="flex items-center justify-between"
+        >
+          Privacy Policy
+          <ExternalLink className="ml-2 h-4 w-4" />
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -12,7 +12,6 @@ import {
 } from 'recharts';
 import { AccountUsage } from '@/types/usage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 
 interface SpendingGraphProps {
   historicalSpending: AccountUsage['historicalSpending'];

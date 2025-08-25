@@ -48,7 +48,7 @@ export default function DashboardStats({
   const isHealthy = accountStatus === 'healthy';
 
   return (
-    <div className="w-full max-w-7xl mx-auto mb-8">
+    <div className="w-full max-w-7xl mx-auto mb-8" id="dashboard-stats-container">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Current Balance"

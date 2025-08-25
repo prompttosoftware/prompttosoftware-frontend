@@ -29,6 +29,8 @@ export default function MainUI({ children }: MainUIProps) {
   const { showTutorial, setShowTutorial } = useAuth();
   const initBanners = useBannerStore((state) => state.initBanners);
   const { error, clearError } = useGlobalErrorStore();
+
+  const hasActiveBanner = useBannerStore(state => !!state.activeBanner);
   
   useEffect(() => {
     if (error) {
@@ -66,9 +68,11 @@ export default function MainUI({ children }: MainUIProps) {
         <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${navMarginClass}`}>
           <AppHeader onMobileNavOpen={() => setIsMobileNavOpen(true)} />
 
-          <div className="p-4 flex-shrink-0">
-            <BannerDisplay />
-          </div>
+          {hasActiveBanner && (
+            <div className="p-4 flex-shrink-0">
+              <BannerDisplay />
+            </div>
+          )}
 
           <main className="flex-1 p-8">{children}</main>
         </div>

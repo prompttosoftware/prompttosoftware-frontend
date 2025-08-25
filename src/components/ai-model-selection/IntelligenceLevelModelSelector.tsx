@@ -1,6 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { SingleModelInput } from './SingleModelInput';
-import { ModelConfig } from '@/types/ai-models';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react'; // Assuming lucide-react is installed for icons
 
@@ -11,6 +10,8 @@ import { DEFAULT_MODELS } from '@/lib/data/models';
 interface IntelligenceLevelModelSelectorProps {
   level: 'utility' | 'low' | 'medium' | 'high' | 'super' | 'backup';
 }
+
+const MAX_MODELS_PER_LEVEL = 3;
 
 export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSelectorProps> = ({
   level,
@@ -26,12 +27,15 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
     name: `advancedOptions.aiModels.${level}` as 'advancedOptions.aiModels.utility', // Type assertion needed for dynamic name
   });
 
+  const isAtMaxModels = fields.length >= MAX_MODELS_PER_LEVEL;
+
   const defaultModel = {
     provider: 'openrouter' as Provider,
     model: DEFAULT_MODELS[level] ?? '',
   };
 
   const handleAddModel = useCallback(() => {
+    if (isAtMaxModels) return;
     append({ provider: undefined, model: '' }, { shouldFocus: false });
   }, [append]);
 
@@ -81,10 +85,20 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
           </Button>
         </div>
       ))}
-      <Button onClick={handleAddModel} variant="outline" className="w-full">
+      <Button 
+        onClick={handleAddModel} 
+        variant="outline" 
+        className="w-full"
+        disabled={isAtMaxModels}
+      >
         <PlusCircle className="mr-2 h-4 w-4" />
         Add another model
       </Button>
+      {isAtMaxModels && (
+        <p className="text-sm text-destructive text-center">
+            You have reached the maximum of {MAX_MODELS_PER_LEVEL} models for this level.
+        </p>
+      )}
     </div>
   );
 };

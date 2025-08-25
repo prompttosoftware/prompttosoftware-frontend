@@ -172,7 +172,7 @@ export default function InstallationManager() {
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="min-w-[160px]">
+              <Button variant="outline" className="min-w-[160px]" data-testid="add-tools-button">
                 Add Tools
               </Button>
             </DropdownMenuTrigger>

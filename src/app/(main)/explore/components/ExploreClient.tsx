@@ -75,6 +75,7 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
           placeholder="Search projects by name..."
           // Added h-10 for consistent height
           className="flex-grow p-3 h-10 border rounded-md bg-input focus:ring"
+          id="explore-search-input"
           value={filters.query}
           onChange={handleSearchChange}
         />
@@ -86,7 +87,7 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
             - Added h-10 to match the input height.
             - Added flex and items-center for proper internal alignment.
           */}
-          <SelectTrigger className="w-full sm:w-[200px] flex items-center justify-between p-3 h-10 border rounded-md bg-input focus:ring">
+          <SelectTrigger className="w-full sm:w-[200px] flex items-center justify-between p-3 h-10 border rounded-md bg-input focus:ring" id="explore-filters-group">
             <SelectValue placeholder="Sort by..." />
             <SelectIcon asChild>
               <ChevronDown className="h-4 w-4 opacity-50" />

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
+import { ExternalLink } from 'lucide-react';
 
 export function LoginContent() {
   const router = useRouter();
@@ -143,6 +144,13 @@ export function LoginContent() {
             <p className="text-sm text-muted-foreground">
               Integrates with GitHub, Jira, OpenRouter, and more.
             </p>
+            <button
+              onClick={() => window.open('/privacy', '_blank')}
+              className="text-xs text-muted-foreground hover:underline flex items-center"
+            >
+              Privacy Policy
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </button>
           </div>
         </div>
 
@@ -217,15 +225,22 @@ export function LoginContent() {
           <p className="mt-4 text-lg text-muted-foreground">
             Stop supervising your AI. Start shipping finished features.
           </p>
-          <div className="mt-8">
-             <button
-                onClick={handleGitHubLogin}
-                disabled={isLoggingIn}
-                className="w-full max-w-xs inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg disabled:opacity-50"
-              >
-                <GitHubLogoIcon className="w-8 h-8 mr-3" />
-                Get Started with GitHub
-              </button>
+          <div className="mt-8 flex flex-col items-center justify-center space-y-6">
+            <button
+              onClick={handleGitHubLogin}
+              disabled={isLoggingIn}
+              className="w-full max-w-xs inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg disabled:opacity-50"
+            >
+              <GitHubLogoIcon className="w-8 h-8 mr-3" />
+              Get Started with GitHub
+            </button>
+            <button
+              onClick={() => window.open('/privacy', '_blank')}
+              className="text-xs text-muted-foreground hover:underline flex items-center"
+            >
+              Privacy Policy
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </button>
           </div>
         </div>
       </section>

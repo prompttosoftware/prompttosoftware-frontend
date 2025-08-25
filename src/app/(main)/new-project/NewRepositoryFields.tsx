@@ -55,7 +55,7 @@ export const NewRepositoryFields: React.FC<NewRepositoryFieldsProps> = ({ index,
     <div className="bg-card p-4 rounded-md shadow-sm mb-4">
       <h4 className="text-md font-semibold text-card-foreground mb-3">
         New Repository #{index + 1}
-        {!disableInputs && <Button type="button" onClick={onRemove} variant="destructive" size="sm">
+        {!disableInputs && <Button type="button" onClick={onRemove} variant="ghost" size="sm">
           Delete
         </Button>}
       </h4>

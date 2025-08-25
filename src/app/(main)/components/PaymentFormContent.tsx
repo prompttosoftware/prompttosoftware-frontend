@@ -131,7 +131,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         Credit or debit card
       </Label>
       <div id="card-element">
-        <CardElement options={cardElementOptions} onChange={handleCardChange} />
+        <CardElement options={cardElementOptions} onChange={handleCardChange} id="stripe-card-element-form" />
         {cardError && <div className="text-destructive text-sm mt-2">{cardError}</div>}
       </div>
       {showSaveCardOption && (
@@ -154,6 +154,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
           onClick={handleStripeConfirmation}
           disabled={isProcessing || !stripe || !elements}
           className="relative flex items-center justify-center min-w-[8rem]"
+          data-testid="confirm-payment-button"
         >
           {isProcessing && (
             <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

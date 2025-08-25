@@ -1,7 +1,9 @@
-// app/help/HelpContentDisplay.tsx (This will be your Client Component)
+// app/help/HelpContentDisplay.tsx
 'use client';
 
 import React, { useState } from 'react';
+// You would need an icon library like lucide-react or heroicons
+// import { Menu, X } from 'lucide-react'; 
 
 interface HelpMenuItem {
   name: string;
@@ -15,18 +17,39 @@ interface HelpContentDisplayProps {
 
 export default function HelpContentDisplay({ initialSelectedItemName, helpMenuItems }: HelpContentDisplayProps) {
   const [selectedItemName, setSelectedItemName] = useState<string>(initialSelectedItemName);
+  const [isNavOpen, setIsNavOpen] = useState(false); // State to control mobile nav
 
   const selectedItem = helpMenuItems.find(item => item.name === selectedItemName);
 
+  const handleItemClick = (name: string) => {
+    setSelectedItemName(name);
+    setIsNavOpen(false); // Close nav on mobile after selection
+  };
+
   return (
     <>
-      {/* Navigation Sidebar */}
-      <nav className="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 bg-card rounded-lg border p-4 mb-4 md:mb-0 md:mr-4">
+      {/* Mobile Navigation Toggle */}
+      <div className="md:hidden mb-4">
+        <button
+          onClick={() => setIsNavOpen(!isNavOpen)}
+          className="flex items-center justify-between w-full bg-card border rounded-lg p-3 text-lg font-semibold"
+        >
+          <span>{selectedItemName}</span>
+          {/* A simple SVG for a chevron icon. Replace with a proper icon library. */}
+          <svg className={`w-5 h-5 transition-transform ${isNavOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        </button>
+      </div>
+
+      {/* Navigation Sidebar (Conditional for mobile) */}
+      <nav className={`
+        w-full md:w-1/4 lg:w-1/5 flex-shrink-0 bg-card rounded-lg border p-4 mb-4 md:mb-0 md:mr-4
+        ${isNavOpen ? 'block' : 'hidden'} md:block
+      `}>
         <ul className="space-y-2">
           {helpMenuItems.map((item) => (
             <li key={item.name}>
               <button
-                onClick={() => setSelectedItemName(item.name)}
+                onClick={() => handleItemClick(item.name)}
                 className={`
                   w-full text-left py-2 px-3 rounded-md transition-colors duration-200
                   ${selectedItemName === item.name

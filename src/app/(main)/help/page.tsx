@@ -31,75 +31,115 @@ const HelpSectionRenderer = ({ contentBlocks }: { contentBlocks: ContentBlock[] 
 
 interface HelpMenuItem {
   name: string;
-  content: ContentBlock[]; // We now use our new structured content type
+  content: ContentBlock[];
 }
 
 const helpMenuItems: HelpMenuItem[] = [
   {
     name: 'About',
     content: [
-      { type: 'heading', content: 'About This Application' },
-      { type: 'paragraph', content: 'This application is designed to help you generate software projects from simple text prompts. It leverages advanced AI models to interpret your requirements and produce functional codebases, boilerplate, and project structures. Our goal is to streamline the development process and make it accessible to everyone, regardless of their coding expertise.' },
-      { type: 'paragraph', content: 'We are constantly working to improve our services, add new features, and expand the range of technologies we support. Your feedback is invaluable in helping us achieve this.' },
+      { type: 'heading', content: 'About PromptToSoftware' },
+      { type: 'paragraph', content: 'PromptToSoftware is a fully automated, hands-free AI software development system. Our mission is to free up developers\' time by handling the entire development lifecycle, from initial concept to a functional codebase.' },
+      { type: 'paragraph', content: 'You provide a description, and our autonomous AI system will design the architecture, write the code, run tests, and deliver a complete project directly to your GitHub repository. It can start from scratch, continue work on existing projects, or even fix bugs.' },
+      { type: 'paragraph', content: 'This is an experimental development tool undergoing continuous improvement. AI-generated results can vary and may require human oversight. We encourage you to review the generated code to understand its structure and logic.' },
     ],
+  },
+  {
+    name: 'Project Creation',
+    content: [
+      { type: 'heading', content: 'Creating a New Project' },
+      { type: 'paragraph', content: 'Here is a detailed guide to each field in the project creation form, along with tips for getting the best results.' },
+      { type: 'list', content: [
+          <><strong>Project Description:</strong> This is the core instruction for the AI. It can be a detailed specification or a vague idea. The AI will attempt to follow detailed instructions while filling in any gaps with best practices. If the description is vague, the AI will design an interesting and useful application based on the concept. It is recommended to describe the project rather than posing a question or prompt. <strong>Do not paste code here;</strong> add code to a GitHub repository and select it instead.</>,
+          <><strong>Max Runtime:</strong> A safety limit measured in hours. The project will automatically stop once this duration is reached. You can edit this value at any time while the project is running.</>,
+          <><strong>Max Budget:</strong> A cost-based safety limit in USD. The project will automatically stop when its total cost reaches this amount. This can also be edited while the project is running.</>,
+          <><strong>Repositories:</strong> You can link existing GitHub repositories or create new ones for the project. If no repositories are provided, the AI will determine what is needed and create them in your account. If you provide repositories, the AI will work exclusively within them and will not create others. For new repositories, you can start from a template, fork another repository, or start from scratch.</>,
+      ]},
+      { type: 'subheading', content: 'Advanced Options' },
+      { type: 'list', content: [
+        <><strong>AI Model Selection:</strong> Different tasks use different "intelligence levels" to optimize for cost and performance. While the default models are recommended, you can customize them.
+            <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
+                <li><strong>Recommendation:</strong> Use models with at least a 120k token context window for Medium, High, and Super levels.</li>
+                <li><strong>Warning:</strong> The "Medium" intelligence level does the vast majority of the work (approx. 75%). Using a slow model here will significantly increase project runtime and cost.</li>
+                <li><strong>Backup Model:</strong> If the primary models get stuck, the system can "escalate" intelligence. Medium becomes High, High becomes Super, and Super becomes the Backup model. This can happen up to two times so at most the Backup model can be used for High intelligence.</li>
+                <li><strong>Multiple Models:</strong> Selecting multiple models for one intelligence level (e.g., three different models for "Medium") allows the system to randomly pick one for each request. This enhances knowledge diversity, can help avoid getting stuck, and may increase your effective rate limits if the models are from different providers.</li>
+            </ul>
+        </>,
+        <><strong>Approximate Model Usage Breakdown:</strong>
+            <ul className="list-disc list-inside ml-4 mt-2 text-muted-foreground">
+                <li><strong>Utility:</strong> ~1%</li>
+                <li><strong>Low:</strong> ~4%</li>
+                <li><strong>Medium:</strong> ~75%</li>
+                <li><strong>High:</strong> ~5%</li>
+                <li><strong>Super:</strong> ~15%</li>
+                <li><strong>Backup:</strong> Only used on failure.</li>
+            </ul>
+        </>,
+        <><strong>Installations:</strong> You can select packages from a predefined list to ensure they are installed in the project's container. The AI will automatically determine and install necessary packages, but this option guarantees a specific tool is available.</>,
+        <><strong>Jira Integration:</strong> Enable this to have the project managed via Jira issues. <strong>Important:</strong> Due to Jira's authentication method, only one active project can be linked to your Jira account at a time.</>,
+      ]}
+    ]
   },
   {
     name: 'GitHub',
     content: [
-      { type: 'heading', content: 'Understanding GitHub & Its Use in Our Application' },
-      { type: 'paragraph', content: "GitHub is a web-based platform that uses Git for version control. It's widely used by developers to host and review code, manage projects, and build software alongside millions of other developers. Think of it as a central hub where code lives, gets tracked, and is collaboratively improved." },
-      { type: 'paragraph', content: 'In our application, GitHub serves as the primary way to receive and manage the code projects you generate. Once a project is created, you have the option to connect your GitHub account and push the generated codebase directly to a new or existing repository in your GitHub account. This streamlines your workflow by making your generated code immediately available in a version-controlled environment.' },
-      { type: 'subheading', content: 'Key GitHub Concepts:' },
+      { type: 'heading', content: 'Integrating with GitHub' },
+      { type: 'subheading', content: 'What is GitHub?' },
+      { type: 'paragraph', content: "GitHub is a platform for hosting and collaborating on code using the Git version control system. It's where your project's code will live and be managed." },
+      { type: 'subheading', content: 'How PromptToSoftware Uses GitHub' },
       { type: 'list', content: [
-          <><strong>Repository (Repo):</strong> A repository is the most basic element of GitHub. It's like a folder for your project. A repo contains all of your project's files (including documentation, images, and other assets), and stores each revision of every file.</>,
-          <><strong>Cloning:</strong> When you "clone" a repository, you are making a complete copy of it from GitHub to your local machine. This allows you to work on the code using your preferred local development environment.
-             <CodeExample command="git clone [repository-url]" description='(Replace [repository-url] with the actual URL of your GitHub repository.)' />
-          </>,
-          <><strong>Committing:</strong> A commit is a snapshot of your repository at a specific point in time. Each commit represents a set of changes you've made to the code.</>,
-          <><strong>Pushing:</strong> "Pushing" sends your committed changes from your local repository up to the remote repository on GitHub, making them available to others (and keeping your GitHub repo updated).</>
+          <><strong>Your Code, Your Account:</strong> All repositories, whether new or existing, are located directly in your connected GitHub account. You have full ownership and control.</>,
+          <><strong>Pull Requests for Tasks:</strong> As the AI completes tasks (often corresponding to a Jira issue), it will create and automatically merge a pull request in the relevant repository. This provides a clear history of changes.</>,
+          <><strong>Linked to Jira:</strong> If you are using Jira, pull request titles will be formatted as `{"\"{Issue Key}: {Issue summary}\""}` (e.g., `PROJ-123: Implement user authentication`), creating a direct link between the task and the code.</>,
+          <><strong>The Single Source of Truth:</strong> The code generated by the AI is only saved in your GitHub repositories. <strong>Warning:</strong> If you delete or rename a repository on GitHub that a project is using, that code will be lost or disconnected and the project will fail.</>,
       ]},
-      { type: 'subheading', content: 'Where to Learn More:' },
+      { type: 'subheading', content: 'Core Concepts & Learning Resources' },
       { type: 'list', content: [
-          <><StyledLink href="https://docs.github.com/en/get-started">GitHub Docs: Getting Started</StyledLink> - The official documentation for beginners.</>,
-          <><StyledLink href="https://guides.github.com/">GitHub Guides</StyledLink> - Short, helpful guides on specific GitHub features.</>,
-          <><StyledLink href="https://try.github.io/">Try Git (Codecademy)</StyledLink> - An interactive tutorial to learn Git basics.</>,
+          <><strong>Creating an Account:</strong> You need a GitHub account to use our service. You can sign up at <StyledLink href="https://github.com/join">github.com</StyledLink>.</>,
+          <><strong>Repositories:</strong> A repository (or "repo") is a folder for your project, containing all its files and their revision history.</>,
+          <><strong>Cloning a Repository:</strong> To work on the code on your local machine, you "clone" it from GitHub.</>,
+          <><strong>Pushing Changes:</strong> "Pushing" sends changes from your local machine back up to the repository on GitHub.</>,
+          <><StyledLink href="https://docs.github.com/en/get-started">GitHub's Official "Getting Started" Guide</StyledLink></>,
       ]},
-      { type: 'paragraph', content: 'By leveraging GitHub, you can effectively manage versions of your generated code, collaborate with teams, and integrate seamlessly with your existing development workflows.' },
     ],
   },
   {
     name: 'Jira',
     content: [
-      { type: 'heading', content: 'Understanding Jira & Its Use in Our Application' },
-      { type: 'paragraph', content: "Jira is a powerful work management tool that we use for planning, tracking, and releasing software. It's central to our agile development process, helping us manage everything from large feature epics to individual tasks and bug fixes." },
-      { type: 'paragraph', content: "Within our application's context, understanding Jira is crucial for collaborating on generated projects. While direct integration for creating Jira tickets from our platform is a future enhancement, all project-related tasks, bugs, and feature developments are currently managed and tracked within our Jira instance." },
-      { type: 'subheading', content: 'Key Jira Concepts:' },
+      { type: 'heading', content: 'Integrating with Jira' },
+      { type: 'subheading', content: 'What is Jira?' },
+      { type: 'paragraph', content: "Jira is a project management tool by Atlassian, widely used for issue tracking and agile development. It helps organize tasks, track progress, and manage workflows." },
+      { type: 'subheading', content: 'How PromptToSoftware Uses Jira' },
       { type: 'list', content: [
-          "Issues: The fundamental building block in Jira. An issue can represent a task, a bug, a story, an epic, or any other piece of work that needs to be tracked.",
-          "Workflows: Issues in Jira move through a defined workflow (e.g., To Do, In Progress, In Review, Done). These workflows are customized to our team's process and help visualize progress.",
-          "Boards: We primarily use Scrum and Kanban boards in Jira to visualize our team's workflow, manage sprint backlogs, and track progress during iterations.",
-          <><strong>Epics, Stories, and Tasks:</strong>
-            <ul className="list-circle list-inside ml-4 text-gray-600 dark:text-gray-400">
-              <li><strong>Epics:</strong> Large bodies of work that can be broken down into a number of stories.</li>
-              <li><strong>Stories:</strong> User-centric descriptions of functionality that will be implemented.</li>
-              <li><strong>Tasks:</strong> Smaller, actionable items required to complete a story or larger piece of work.</li>
-            </ul>
-          </>,
-          "Integrations: Jira integrates with many other tools, including GitHub, to link code commits and pull requests directly to Jira issues, providing seamless traceability."
+          <><strong>Automatic Issue Generation:</strong> At the start of a new project, the AI analyzes the description and creates a full set of issues (tasks, stories, bugs) in your chosen Jira project.</>,
+          <><strong>Use Existing Issues:</strong> If you start a project and link an existing Jira project that already contains issues, the AI will skip the generation step and begin working on the issues already present.</>,
+          <><strong>Workflow Automation:</strong> As the AI works on an issue, it will automatically transition it through the workflow. It moves issues directly to your board's "Done" column category. Intermediate columns (like "In Review") will be skipped. Issues in these columns will be ignored by the AI.</>,
+          <><strong>Dynamic Updates:</strong> The AI may edit or delete issues as the project's requirements evolve or are better understood during development.</>,
+          <><strong>User Collaboration:</strong> You can freely add, edit, and transition issues in the Jira project alongside the AI. It's a collaborative environment.</>,
+          <><strong>Important Limitation:</strong> You can only have <strong>one active project</strong> linked to Jira at any given time. This is due to the nature of Jira's OAuth authentication tokens.</>,
       ]},
-      { type: 'subheading', content: 'Where to Learn More:' },
-      { type: 'heading', content: 'Understanding Project Billing' },
-      { type: 'paragraph', content: 'Project costs are primarily calculated based on the complexity and resource intensity required to generate your desired software. This includes factors such as:' },
+      { type: 'subheading', content: 'Core Concepts & Learning Resources' },
       { type: 'list', content: [
-          "Lines of Code Generated: More extensive projects with a higher volume of generated code will incur higher costs.",
-          'Addons Utilized: Specific addons (e.g., Android Build Support, Unity Engine Integration) add to the base cost due to their specialized requirements and additional processing. You can find more details in the "Addons" section.',
-          "AI Model Usage: The complexity of the AI models employed to fulfill your prompt and the computational resources consumed during the generation process."
+        <><strong>Account, Site, and Project:</strong> You need an Atlassian account, a Jira site (e.g., `your-company.atlassian.net`), and optionally a project within that site.</>,
+        <><strong>Issues:</strong> The fundamental units of work in Jira (e.g., a bug, a task, a story).</>,
+        <><StyledLink href="https://www.atlassian.com/software/jira/guides/getting-started/introduction#what-is-jira-software">Atlassian's "What is Jira?" Guide</StyledLink></>,
+      ]}
+    ]
+  },
+  {
+    name: 'Billing',
+    content: [
+      { type: 'heading', content: 'Understanding Billing and Costs' },
+      { type: 'paragraph', content: 'Funds are deducted from your account balance only while a project is actively running. Costs are broken down into two distinct categories.' },
+      { type: 'subheading', content: 'Cost Components' },
+      { type: 'list', content: [
+          <><strong>Runtime Cost:</strong> This is a flat rate charged for the time a project is running, measured in hours. It covers the computational resources required to operate the AI agent.</>,
+          <><strong>Inference Cost:</strong> This is the cost associated with making requests to AI models via OpenRouter. The cost varies depending on the specific model used and the number of tokens in the request and response. These charges are tracked and deducted from your balance periodically as the project runs.</>,
       ]},
-      { type: 'subheading', content: 'When Funds Are Taken Out:' },
-      { type: 'paragraph', content: 'Funds for project generation are deducted from your account balance *before* the generation process begins. This ensures that you have sufficient funds for the requested project. A clear cost breakdown will always be presented to you for confirmation prior to initiation.' },
-      { type: 'subheading', content: 'Adding Funds Through Ads:' },
-      { type: 'paragraph', content: "We offer an option to earn credits towards your project generations by watching short advertisements. Simply navigate to your 'Account' or 'Billing' settings, and look for the 'Watch Ads for Credits' option. The value of credits earned per ad will be clearly displayed. These credits are automatically applied to your account balance and can be used for any future project generation." },
-      { type: 'paragraph', content: 'This feature provides a flexible way to fund your projects, especially for smaller tasks or when experimenting with new ideas.' },
+      { type: 'subheading', content: 'Using Your Own API Keys' },
+      { type: 'paragraph', content: 'If you provide your own API key for a provider (e.g., OpenAI, Anthropic), the Inference Cost for any intelligence level using a model from that provider will be $0.00. You will be billed directly by your API key provider. The Runtime Cost will still apply.' },
+      { type: 'subheading', content: 'What Happens When Funds Run Out?' },
+      { type: 'paragraph', content: <>If your account balance reaches zero while one or more projects are running, <strong>all active projects will be stopped immediately.</strong> You can add more funds and restart the projects at any time.</> },
     ],
   },
 ];
