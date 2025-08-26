@@ -31,7 +31,8 @@ export const useUserProjects = (options?: UseUserProjectsOptions) => {
     queryKey: ['userProjects'],
     queryFn: api.listUserProjects,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchInterval: 1 * 60 * 1000,
     ...options, // Spread the options here
   });
 };
