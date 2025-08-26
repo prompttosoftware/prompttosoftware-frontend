@@ -12,7 +12,7 @@ import { serverFetch } from '@/lib/server-api';
  * Corresponds to your `useUserProjects` hook.
  */
 export async function fetchUserProjects(): Promise<Project[]> {
-    if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') return FAKE_PROJECTS;
+  if (process.env.NEXT_PUBLIC_FAKE_AUTH === 'true') return FAKE_PROJECTS;
 
   try {
     const res = await serverFetch('/projects');
