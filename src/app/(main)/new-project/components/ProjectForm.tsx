@@ -100,6 +100,10 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const { watch, reset } = methods;
 
   useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
+
+  useEffect(() => {
     // This effect runs once on the client to check localStorage and signal hydration is complete.
     if (!isEditMode) {
       try {

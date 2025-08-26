@@ -116,7 +116,7 @@ export default function InstallationManager() {
   };
 
   return (
-    <div className="p-4 rounded-md bg-card shadow-sm">
+    <div className="p-4 rounded-md bg-card border">
       <h3 className="text-md font-semibold text-card-foreground mb-2">Development Tools</h3>
       <p className="text-sm text-card-foreground mb-4">
         Select additional development tools to install globally. Basic tools like git and curl are always included.
@@ -142,7 +142,7 @@ export default function InstallationManager() {
         <h4 className="text-sm font-medium text-card-foreground mb-2">Additional Tools</h4>
         <div className="space-y-2">
           {fields.length === 0 ? (
-            <p className="text-sm text-muted">No additional tools selected.</p>
+            <p className="text-sm text-muted-foreground">No additional tools selected.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {fields.map((installation, index) => (
