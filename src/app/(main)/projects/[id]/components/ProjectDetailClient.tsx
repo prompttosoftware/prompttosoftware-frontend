@@ -23,7 +23,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
     initialData: initialProject,
     retry: 2,
     refetchOnWindowFocus: false,
-    refetchInterval: 5000,
+    refetchInterval: 0.5 * 60 * 1000,
     refetchIntervalInBackground: false,
   });
 
