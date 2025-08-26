@@ -182,6 +182,7 @@ export const api = {
    */
   listUserProjects: async (): Promise<Project[]> => {
     const response = await httpClient.get<Project[]>('/projects');
+    console.log('listUserProjects response: ' + JSON.stringify(response.data));
     return response.data;
   },
 

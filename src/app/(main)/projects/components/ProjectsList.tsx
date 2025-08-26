@@ -39,6 +39,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ initialProjects }) => {
 
   // Empty state if no projects are found
   if (!projects || projects.length === 0) {
+    console.log('No projects: ' + JSON.stringify(projects));
     return (
       <EmptyState
         title="No Projects Yet"
@@ -46,6 +47,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ initialProjects }) => {
       />
     );
   }
+
+  console.log('Projects: ' + JSON.stringify(projects));
 
   // Success state: render the project cards
   return (
