@@ -66,6 +66,20 @@ interface ProjectDetailsProps {
 }
 
 const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
+  const safeFormatDate = (dateString: string | undefined, formatStr: string): string => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      return format(date, formatStr);
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
   /**
    * Renders a single GitHub repository with its details.
    */
@@ -82,7 +96,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
           {repo.name || repo.url?.split('/').pop() || 'Unnamed Repository'}
         </a>
         <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline">{repo.type}</Badge>
+          <Badge variant="outline">{repo.type || 'unknown'}</Badge>
           {repo.isPrivate && <Badge variant="secondary">Private</Badge>}
           {repo.template && <Badge variant="secondary">{repo.template}</Badge>}
         </div>
@@ -93,7 +107,11 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
   /**
    * Renders the configured AI models, grouped by category.
    */
-  const renderModels = (models: Models) => {
+  const renderModels = (models: Models | undefined) => {
+    if (!models) {
+      return <p className="text-sm italic text-muted-foreground">No AI models configured.</p>;
+    }
+
     const categories = Object.entries(models).filter(
       ([, modelList]) => modelList && modelList.length > 0
     );
@@ -110,7 +128,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             <div className="mt-2 flex flex-wrap gap-2">
               {modelList?.map((model: Model, idx: React.Key | null | undefined) => (
                 <Badge key={idx} variant="outline" className="font-mono text-xs">
-                  {model.provider}/{model.model}
+                  {model.provider || '?'}/{model.model || '?'}
                 </Badge>
               ))}
             </div>
@@ -155,12 +173,12 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
           <InfoBlock
             icon={<CalendarDays className="h-4 w-4" />}
             label="Created"
-            value={format(new Date(project.createdAt), 'MMM d, yyyy')}
+            value={safeFormatDate(project.createdAt, 'MMM d, yyyy')}
           />
           <InfoBlock
             icon={<Clock className="h-4 w-4" />}
             label="Last Updated"
-            value={format(new Date(project.updatedAt), 'MMM d, yyyy, p')}
+            value={safeFormatDate(project.updatedAt, 'MMM d, yyyy, p')}
           />
         </div>
       </section>
@@ -175,12 +193,12 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             <InfoBlock
               icon={<DollarSign className="h-4 w-4" />}
               label="Max Cost"
-              value={`$${project.maxCost.toFixed(2)}`}
+              value={`$${(project.maxCost ?? 0).toFixed(2)}`}
             />
             <InfoBlock
               icon={<Timer className="h-4 w-4" />}
               label="Max Runtime"
-              value={project.maxRuntime ? `${project.maxRuntime} hours` : 'Not set'}
+              value={project.maxRuntime ? `${project.maxRuntime} seconds` : 'Not set'}
             />
             {project.useJira && (
               <InfoBlock
@@ -214,7 +232,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {project.repositories?.length > 0 ? (
+            {project.repositories && project.repositories.length > 0 ? (
               project.repositories.map(renderRepository)
             ) : (
               <p className="text-sm italic text-muted-foreground">No repositories linked.</p>
