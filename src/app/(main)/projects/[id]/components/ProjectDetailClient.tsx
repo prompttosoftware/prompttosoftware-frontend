@@ -12,6 +12,7 @@ import ProjectHeader from '@/app/(main)/projects/[id]/components/ProjectHeader';
 import ProjectHistory from '@/app/(main)/projects/[id]/components/ProjectHistory';
 import ProjectStatus from '@/app/(main)/projects/[id]/components/ProjectStatus';
 import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
+import ProjectDetails from './ProjectDetails';
 
 interface ProjectDetailClientProps {
   initialProject: Project;
@@ -93,10 +94,7 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
             name={currentProject.name}
             onDeleteClick={handleDeleteClick}
           />
-          <ProjectStatus
-            status={currentProject.status}
-            lastError={currentProject.lastError ?? null}
-          />
+          <ProjectDetails project={currentProject} />
           <ProjectActions
             projectStatus={currentProject.status}
             startProject={startProject}

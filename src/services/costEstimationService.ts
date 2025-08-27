@@ -11,8 +11,8 @@ type EstimationPipeline = (
 const ESTIMATION_CONFIG = {
   // Costs
   RATES: {
-    FLAT_RATE_PER_HOUR: 0.8, // Flat rate per hour in USD
-    HOURLY_AI_API_COST: 2,  // Hourly cost for external AI API usage
+    FLAT_RATE_PER_HOUR: 0.036 + 0.036 + 0.125, // Flat rate per hour in USD
+    HOURLY_AI_API_COST: 1,  // Hourly cost for external AI API usage
   },
   // ML Model settings
   MODEL: {
