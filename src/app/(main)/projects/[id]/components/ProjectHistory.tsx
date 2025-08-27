@@ -9,14 +9,39 @@ interface ProjectHistoryProps {
   history?: ProjectHistoryItem[];
 }
 
+/**
+ * Safely formats a timestamp string, returning a fallback if the date is invalid.
+ * @param timestamp - The date string, number, or Date object to format.
+ * @param formatString - The desired format string for date-fns.
+ * @returns The formatted date string or a fallback string.
+ */
+const safeFormatDate = (timestamp: string | number | Date, formatString: string): string => {
+  if (!timestamp) {
+    return 'No timestamp provided';
+  }
+  
+  try {
+    const date = new Date(timestamp);
+    // Check if the date is valid. isNaN(date) is a common way to check this.
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+    return format(date, formatString);
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return 'Invalid Date';
+  }
+};
+
+
 const HistoryItem = ({ item }: { item: ProjectHistoryItem }) => {
     const isUser = item.sender === 'user';
     const isAgent = item.sender === 'agent';
     const isSystem = item.sender === 'system';
 
     let containerClasses = 'flex';
-    let bubbleClasses = 'p-3 rounded-lg max-w-lg break-words text-sm'; // Increased max-width
-    let timestampClasses = 'text-xs mt-1'; // Base timestamp class
+    let bubbleClasses = 'p-3 rounded-lg max-w-lg break-words text-sm';
+    let timestampClasses = 'text-xs mt-1';
     let senderName = '';
 
     switch (item.type) {
@@ -26,11 +51,11 @@ const HistoryItem = ({ item }: { item: ProjectHistoryItem }) => {
         bubbleClasses += ' bg-blue-500 text-white';
         timestampClasses += ' text-right text-blue-200';
         senderName = 'You';
-        } else { // Agent or default sender
+        } else {
         containerClasses += ' justify-start';
         bubbleClasses += ' bg-gray-200 text-gray-800';
         timestampClasses += ' text-left text-gray-500';
-        senderName = isAgent ? 'Agent' : 'System'; // Fallback for agent messages from system or others
+        senderName = isAgent ? 'Agent' : 'System';
         }
         break;
     case 'status_update':
@@ -46,19 +71,22 @@ const HistoryItem = ({ item }: { item: ProjectHistoryItem }) => {
         senderName = 'Sensitive Request';
         break;
     case 'system_event':
-    default: // Default for any unknown or new types
+    default:
         containerClasses += ' justify-center';
         bubbleClasses += ' bg-gray-100 text-gray-700 text-center italic';
         timestampClasses += ' text-center text-gray-500';
         senderName = 'System Event';
         break;
     }
+
     return (
-        <div key={1} className={containerClasses}>
-        <div className={bubbleClasses}>
-            <p>{item.content}</p>
-            <p className="text-xs mt-1">{format(new Date(item.timestamp), 'PPpp')}</p>
-        </div>
+        // The `key` prop should be on the component instance in the map, not here. Removed `key={1}`.
+        <div className={containerClasses}>
+            <div className={bubbleClasses}>
+                <p>{item.content}</p>
+                {/* Use the new safe formatting function */}
+                <p className={timestampClasses}>{safeFormatDate(item.timestamp, 'PPpp')}</p>
+            </div>
         </div>
     );
 };
@@ -76,13 +104,27 @@ const ProjectHistory = ({ history = [] }: ProjectHistoryProps) => {
     }
   }, [history]);
 
-  const sortedHistory = [...history].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-  );
+  // Create a memoized or stable version of sorted history if performance is a concern
+  const sortedHistory = [...history].sort((a, b) => {
+    const dateA = new Date(a.timestamp);
+    const dateB = new Date(b.timestamp);
+
+    // Check for invalid dates
+    const aIsInvalid = isNaN(dateA.getTime());
+    const bIsInvalid = isNaN(dateB.getTime());
+
+    // Logic to handle invalid dates during sorting
+    if (aIsInvalid && bIsInvalid) return 0; // Keep original order if both are invalid
+    if (aIsInvalid) return 1;  // Push invalid 'a' to the end of the list
+    if (bIsInvalid) return -1; // Push invalid 'b' to the end of the list
+
+    // If both dates are valid, sort them normally
+    return dateA.getTime() - dateB.getTime();
+  });
 
   return (
     <div className="flex-grow p-4 overflow-hidden">
-        <ScrollArea className="h-full pr-4">
+        <ScrollArea ref={scrollAreaRef} className="h-full pr-4">
             {sortedHistory.length === 0 ? (
                 <div className="flex justify-center items-center h-full text-muted-foreground">
                     No history yet. Start by sending a message.
@@ -90,7 +132,7 @@ const ProjectHistory = ({ history = [] }: ProjectHistoryProps) => {
             ) : (
                 <div className="space-y-4">
                     {sortedHistory.map((item, index) => (
-                        <HistoryItem key={index} item={item} />
+                        <HistoryItem key={item.id || index} item={item} /> // Use a stable ID if available, otherwise index
                     ))}
                 </div>
             )}
