@@ -198,7 +198,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             <InfoBlock
               icon={<Timer className="h-4 w-4" />}
               label="Max Runtime"
-              value={project.maxRuntime ? `${project.maxRuntime} seconds` : 'Not set'}
+              value={project.maxRuntime ? `${project.maxRuntime} hours` : 'Not set'}
             />
             {project.useJira && (
               <InfoBlock

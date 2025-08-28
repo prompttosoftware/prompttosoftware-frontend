@@ -1,100 +1,229 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, parseISO, startOfMonth } from 'date-fns';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  TooltipProps,
+} from 'recharts';
+import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Transaction } from '@/types/transactions';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Transaction, TransactionType, TransactionStatus } from '@/types/transactions';
 import { formatCurrency } from '@/lib/formatters';
+
+// Define the structure of our processed data points for the chart
+interface ChartDataPoint {
+  date: string; // Formatted date for display (e.g., 'Aug 17')
+  fullDate: Date; // The original Date object for sorting
+  debit: number;
+  credit: number;
+  debitTransactions: Transaction[];
+  creditTransactions: Transaction[];
+}
 
 interface SpendingHistoryChartProps {
   transactions: Transaction[];
 }
 
+// 2. A custom, richer tooltip component
+const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+  if (active && payload && payload.length) {
+    const data: ChartDataPoint = payload[0].payload;
+
+    return (
+      <Card className="p-4 shadow-lg">
+        <CardHeader className="p-0 mb-2">
+          <CardTitle className="text-sm">{format(data.fullDate, 'MMMM do, yyyy')}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 text-sm">
+          {payload.map(pld => (
+            <div key={pld.dataKey}>
+              {pld.dataKey === 'debit' && data.debit > 0 && (
+                 <p style={{ color: pld.color }}>
+                  Total Debit: {formatCurrency(data.debit)} ({data.debitTransactions.length} txns)
+                </p>
+              )}
+               {pld.dataKey === 'credit' && data.credit > 0 && (
+                 <p style={{ color: pld.color }}>
+                  Total Credit: {formatCurrency(data.credit)} ({data.creditTransactions.length} txns)
+                </p>
+              )}
+            </div>
+          ))}
+          
+          <div className="mt-2 pt-2 border-t">
+            <h4 className="font-semibold mb-1 text-xs">Transactions:</h4>
+            <ul className="max-h-40 overflow-y-auto text-xs space-y-1">
+              {[...data.debitTransactions, ...data.creditTransactions].map(tx => (
+                <li key={tx._id} className="flex justify-between">
+                  <span>{tx.description}</span>
+                  <span className={tx.type === TransactionType.DEBIT ? 'text-destructive' : 'text-green-600'}>
+                    {tx.type === TransactionType.DEBIT ? '-' : '+'}
+                    {formatCurrency(tx.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return null;
+};
+
 const SpendingHistoryChart: React.FC<SpendingHistoryChartProps> = ({ transactions }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>('current');
   
-  const rawHistoricalData = useMemo(() => {
-    return transactions
-      .filter(tx => tx.type === 'debit' && tx.status === 'succeeded')
-      .map(tx => ({
-        amount: tx.amount,
-        originalDate: parseISO(tx.createdAt),
-      }))
-      .sort((a, b) => a.originalDate.getTime() - b.originalDate.getTime());
-  }, [transactions]);
+  // 3. State for new filters
+  const [visibleTypes, setVisibleTypes] = useState<TransactionType[]>([TransactionType.DEBIT, TransactionType.CREDIT]);
+  const [selectedStatus, setSelectedStatus] = useState<TransactionStatus>(TransactionStatus.SUCCEEDED);
 
-  const displayedData = useMemo(() => {
-    let filteredData = rawHistoricalData;
-  
-    if (selectedMonth !== 'all') {
-      const monthStart = selectedMonth === 'current' ? startOfMonth(new Date()) : parseISO(selectedMonth);
-      filteredData = rawHistoricalData.filter(item =>
-        item.originalDate.getMonth() === monthStart.getMonth() &&
-        item.originalDate.getFullYear() === monthStart.getFullYear()
-      );
-    }
-  
-    return filteredData.map(item => ({
-      date: format(item.originalDate, 'MMM dd'),
-      amount: item.amount
-    }));
-  }, [selectedMonth, rawHistoricalData]);
-  
-  const getMonthOptions = useMemo(() => {
-    if (!rawHistoricalData || rawHistoricalData.length === 0) return [];
+  const monthOptions = useMemo(() => {
+    if (!transactions || transactions.length === 0) return [];
     const monthMap = new Map<string, string>(); // 'YYYY-MM-01' -> 'Month Year'
-    rawHistoricalData.forEach(item => {
-      const startOfMonthlyDate = startOfMonth(item.originalDate);
+    transactions.forEach(tx => {
+      const startOfMonthlyDate = startOfMonth(parseISO(tx.createdAt));
       monthMap.set(format(startOfMonthlyDate, 'yyyy-MM-dd'), format(startOfMonthlyDate, 'MMMM yyyy'));
     });
     return Array.from(monthMap.entries())
       .sort((a, b) => parseISO(b[0]).getTime() - parseISO(a[0]).getTime());
-  }, [rawHistoricalData]);
+  }, [transactions]);
+
+  const chartData = useMemo(() => {
+    // First, filter transactions based on UI controls
+    let filteredTransactions = transactions.filter(tx => {
+      // Status filter
+      if (selectedStatus as string !== 'all' && tx.status !== selectedStatus) {
+        return false;
+      }
+      // Month filter
+      if (selectedMonth !== 'all') {
+        const monthStart = selectedMonth === 'current' ? startOfMonth(new Date()) : parseISO(selectedMonth);
+        const monthEnd = endOfMonth(monthStart);
+        return isWithinInterval(parseISO(tx.createdAt), { start: monthStart, end: monthEnd });
+      }
+      return true;
+    });
+
+    // 1. Aggregate data by day instead of plotting every transaction
+    const dailyAggregates = filteredTransactions.reduce<Record<string, ChartDataPoint>>((acc, tx) => {
+      const day = format(parseISO(tx.createdAt), 'yyyy-MM-dd');
+      
+      if (!acc[day]) {
+        acc[day] = {
+          date: format(parseISO(tx.createdAt), 'MMM dd'),
+          fullDate: parseISO(tx.createdAt),
+          debit: 0,
+          credit: 0,
+          debitTransactions: [],
+          creditTransactions: [],
+        };
+      }
+
+      if (tx.type === TransactionType.DEBIT) {
+        acc[day].debit += tx.amount;
+        acc[day].debitTransactions.push(tx);
+      } else if (tx.type === TransactionType.CREDIT) {
+        acc[day].credit += tx.amount;
+        acc[day].creditTransactions.push(tx);
+      }
+      
+      return acc;
+    }, {});
+
+    // Convert the aggregated object into a sorted array for the chart
+    return Object.values(dailyAggregates).sort((a, b) => a.fullDate.getTime() - b.fullDate.getTime());
+  }, [transactions, selectedMonth, selectedStatus]);
 
   return (
     <Card className="w-full max-w-7xl mx-auto">
-      <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle>Spending History</CardTitle>
-        <Select onValueChange={setSelectedMonth} value={selectedMonth}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Month" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="current">Current Month</SelectItem>
-            {getMonthOptions.map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-            <SelectItem value="all">All Time</SelectItem>
-          </SelectContent>
-        </Select>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+                <CardTitle>Spending History</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground mt-1">
+                    Debit: Funds removed from your balance. Credit: Funds added to your balance.
+                </CardDescription>
+            </div>
+            {/* 3. Filter controls */}
+            <div className="flex flex-col sm:flex-row gap-2 items-center">
+                 <Select onValueChange={(value) => setSelectedStatus(value as TransactionStatus)} value={selectedStatus}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
+                        <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Object.values(TransactionStatus).map(status => (
+                            <SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <Select onValueChange={setSelectedMonth} value={selectedMonth}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Select Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="current">Current Month</SelectItem>
+                        {monthOptions.map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                            {label}
+                        </SelectItem>
+                        ))}
+                        <SelectItem value="all">All Time</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+        <div className="flex items-center space-x-4 pt-4">
+            <div className="flex items-center space-x-2">
+                <Checkbox id="debit" checked={visibleTypes.includes(TransactionType.DEBIT)} onCheckedChange={(checked) => {
+                    setVisibleTypes(prev => checked ? [...prev, TransactionType.DEBIT] : prev.filter(t => t !== TransactionType.DEBIT))
+                }} />
+                <Label htmlFor="debit">Show Debits</Label>
+            </div>
+             <div className="flex items-center space-x-2">
+                <Checkbox id="credit" checked={visibleTypes.includes(TransactionType.CREDIT)} onCheckedChange={(checked) => {
+                    setVisibleTypes(prev => checked ? [...prev, TransactionType.CREDIT] : prev.filter(t => t !== TransactionType.CREDIT))
+                }} />
+                <Label htmlFor="credit">Show Credits</Label>
+            </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="w-full h-80">
-          {displayedData.length > 0 ? (
+        <div className="w-full h-96"> {/* Increased height for better visibility */}
+          {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={displayedData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                {/* 1. XAxis is now smart, showing one label per day */}
                 <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                <Tooltip 
-                  contentStyle={{ 
-                    background: 'hsl(var(--popover))', 
-                    color: 'hsl(var(--popover-foreground))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: 'var(--radius)',
-                  }}
-                  formatter={(value: number) => [formatCurrency(value), 'Spend']}
-                />
-                <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" dot={false} activeDot={{ r: 6 }} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => formatCurrency(value)} />
+                {/* 2. Use the custom tooltip */}
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                {/* 3. Conditionally render lines based on filters */}
+                {visibleTypes.includes(TransactionType.DEBIT) && (
+                    <Line type="monotone" name="Debit" dataKey="debit" stroke="hsl(var(--destructive))" dot={true} activeDot={{ r: 6 }} />
+                )}
+                {visibleTypes.includes(TransactionType.CREDIT) && (
+                     <Line type="monotone" name="Credit" dataKey="credit" stroke="hsl(var(--primary))" dot={true} activeDot={{ r: 6 }} />
+                )}
               </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              No spending data available for this period.
+              No transaction data available for the selected filters.
             </div>
           )}
         </div>

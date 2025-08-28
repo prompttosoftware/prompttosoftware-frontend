@@ -16,6 +16,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   
   return (
     <html lang="en" dir="ltr" className="h-full">
+      <meta name="apple-mobile-web-app-title" content="PTS" />
       <body className={`${inter.className} h-full bg-background text-foreground`}>
         <ErrorBoundary>
           <Providers >

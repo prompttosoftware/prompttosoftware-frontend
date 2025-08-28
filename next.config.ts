@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import withBundleAnalyzer from '@next/bundle-analyzer';
+import path from 'path';
 
 const bundleAnalyzerConfig = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -19,9 +20,11 @@ const nextConfig: NextConfig = {
   
   webpack(config) {
     config.module.rules.push({
-      test: /\.svg$/,
+      test: /\.svg$/i,
+      include: path.resolve(__dirname, 'src/lib/icons'),
       use: ['@svgr/webpack'],
     });
+
     return config;
   },
 };
