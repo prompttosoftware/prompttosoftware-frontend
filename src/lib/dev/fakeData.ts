@@ -66,8 +66,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     models: commonModels,
     installations: [
-      { ecosystem: 'npm', name: 'openai' },
-      { ecosystem: 'docker', name: 'node:18' },
+      { name: 'openai' },
+      { name: 'node:18' },
     ],
   },
   {
@@ -114,8 +114,8 @@ export const FAKE_PROJECTS: Project[] = [
       high: [{ provider: 'anthropic', model: 'claude-3-opus' }],
     },
     installations: [
-      { ecosystem: 'pip', name: 'slack_sdk' },
-      { ecosystem: 'docker', name: 'python:3.11' },
+      { name: 'slack_sdk' },
+      { name: 'python:3.11' },
     ],
   },
   {
@@ -158,8 +158,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     models: commonModels,
     installations: [
-      { ecosystem: 'docker', name: 'ffmpeg' },
-      { ecosystem: 'npm', name: 'fluent-ffmpeg' },
+      { name: 'ffmpeg' },
+      { name: 'fluent-ffmpeg' },
     ],
   },
   {
@@ -206,8 +206,8 @@ export const FAKE_PROJECTS: Project[] = [
       utility: [{ provider: 'openrouter', model: 'command-r+' }],
     },
     installations: [
-      { ecosystem: 'pip', name: 'pdfminer.six' },
-      { ecosystem: 'pip', name: 'spacy' },
+      { name: 'pdfminer.six' },
+      { name: 'spacy' },
     ],
   },
   {
@@ -250,8 +250,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     models: commonModels,
     installations: [
-      { ecosystem: 'npm', name: 'react' },
-      { ecosystem: 'npm', name: 'chart.js' },
+      { name: 'react' },
+      { name: 'chart.js' },
     ],
   },
   {
@@ -287,8 +287,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     models: commonModels,
     installations: [
-      { ecosystem: 'pip', name: 'pyyaml' },
-      { ecosystem: 'npm', name: 'dotenv' },
+      { name: 'pyyaml' },
+      { name: 'dotenv' },
     ],
   },
 ];
