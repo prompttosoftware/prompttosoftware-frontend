@@ -40,28 +40,22 @@ export const FAKE_PROJECTS: Project[] = [
     pendingSensitiveRequest: null,
     history: [
       {
-        id: 'hist_1',
-        projectId: 'proj_1',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
         sender: 'user',
         type: 'status_update',
         content: 'Started initial deployment',
       },
       {
-        id: 'hist_2',
-        projectId: 'proj_1',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
         sender: 'agent',
         type: 'message',
         content: 'Deployment succeeded. Preparing tasks.',
       },
       {
-        id: 'hist_3',
-        projectId: 'proj_1',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        timestamp: '',
         sender: 'system',
-        type: 'cost_update',
-        content: 'maxCost updated: $23.45',
+        type: 'usage_cost',
+        content: '',
       },
     ],
     models: commonModels,
@@ -93,16 +87,12 @@ export const FAKE_PROJECTS: Project[] = [
     pendingSensitiveRequest: null,
     history: [
       {
-        id: 'hist_4',
-        projectId: 'proj_2',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
         sender: 'user',
         type: 'status_update',
         content: 'Created project and configured secrets.',
       },
       {
-        id: 'hist_5',
-        projectId: 'proj_2',
         timestamp: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
         sender: 'system',
         type: 'system_event',
@@ -140,16 +130,12 @@ export const FAKE_PROJECTS: Project[] = [
     pendingSensitiveRequest: null,
     history: [
       {
-        id: 'hist_6',
-        projectId: 'proj_3',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
         sender: 'user',
         type: 'message',
         content: 'Run stopped. Preparing to stop.',
       },
       {
-        id: 'hist_7',
-        projectId: 'proj_3',
         timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
         sender: 'system',
         type: 'status_update',
@@ -185,16 +171,12 @@ export const FAKE_PROJECTS: Project[] = [
     pendingSensitiveRequest: null,
     history: [
       {
-        id: 'hist_8',
-        projectId: 'proj_4',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 29).toISOString(),
         sender: 'user',
         type: 'message',
         content: 'stopped QA testing.',
       },
       {
-        id: 'hist_9',
-        projectId: 'proj_4',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
         sender: 'system',
         type: 'status_update',
@@ -232,16 +214,12 @@ export const FAKE_PROJECTS: Project[] = [
     pendingSensitiveRequest: null,
     history: [
       {
-        id: 'hist_10',
-        projectId: 'proj_5',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
         sender: 'system',
         type: 'system_event',
         content: 'Deployment triggered.',
       },
       {
-        id: 'hist_11',
-        projectId: 'proj_5',
         timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
         sender: 'system',
         type: 'status_update',
@@ -277,8 +255,6 @@ export const FAKE_PROJECTS: Project[] = [
     pendingSensitiveRequest: null,
     history: [
       {
-        id: 'hist_12',
-        projectId: 'proj_6',
         timestamp: new Date().toISOString(),
         sender: 'user',
         type: 'sensitive_request',

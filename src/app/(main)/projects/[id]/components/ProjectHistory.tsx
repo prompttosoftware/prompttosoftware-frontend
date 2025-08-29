@@ -132,7 +132,7 @@ const ProjectHistory = ({ history = [] }: ProjectHistoryProps) => {
             ) : (
                 <div className="space-y-4">
                     {sortedHistory.map((item, index) => (
-                        <HistoryItem key={item.id || index} item={item} /> // Use a stable ID if available, otherwise index
+                        <HistoryItem key={index} item={item} /> // Use a stable ID if available, otherwise index
                     ))}
                 </div>
             )}

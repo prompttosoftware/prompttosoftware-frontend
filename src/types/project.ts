@@ -2,9 +2,9 @@ import * as z from 'zod';
 
 export interface HistoryItem {
   timestamp: string;
-  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event' | 'cost_update'; // Example types, adjust as needed
+  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event' | 'runtime_cost' | 'usage_cost';
   content: string;
-  sender?: 'user' | 'agent' | 'system'; // Optional sender for messages/system activities
+  sender?: 'user' | 'agent' | 'system';
 }
 
 export interface ProjectMessage {
@@ -148,18 +148,6 @@ export interface ExploreProjectsParams {
   limit?: number;
   sortBy?: 'stars' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
-}
-
-/**
- * Represents an item in a project's history log.
- */
-export interface HistoryItem {
-  id: string;
-  projectId: string;
-  timestamp: string;
-  sender?: 'user' | 'agent' | 'system';
-  type: 'message' | 'status_update' | 'sensitive_request' | 'system_event' | 'cost_update';
-  content: string;
 }
 
 // API Payload and Response Types
