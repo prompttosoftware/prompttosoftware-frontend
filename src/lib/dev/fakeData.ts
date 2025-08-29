@@ -34,6 +34,9 @@ export const FAKE_PROJECTS: Project[] = [
       { type: 'existing', url: 'https://github.com/example/ecommerce-ai-backend' },
     ],
     lastError: '',
+    currentlyDoing: 'Processing customer queries',
+    totalInputTokens: 125000,
+    totalOutputTokens: 87000,
     pendingSensitiveRequest: null,
     history: [
       {
@@ -84,6 +87,9 @@ export const FAKE_PROJECTS: Project[] = [
     stars: 9,
     repositories: [{ type: 'new', name: 'finance-bot', isPrivate: true }],
     lastError: '',
+    currentlyDoing: 'Pulling container image',
+    totalInputTokens: 22000,
+    totalOutputTokens: 16500,
     pendingSensitiveRequest: null,
     history: [
       {
@@ -129,6 +135,8 @@ export const FAKE_PROJECTS: Project[] = [
     stars: 34,
     repositories: [{ type: 'existing', url: 'https://github.com/example/video-transcoder' }],
     lastError: '',
+    totalInputTokens: 500,
+    totalOutputTokens: 200,
     pendingSensitiveRequest: null,
     history: [
       {
@@ -171,6 +179,9 @@ export const FAKE_PROJECTS: Project[] = [
     stars: 112,
     repositories: [{ type: 'existing', url: 'https://github.com/example/resume-parser' }],
     lastError: '',
+    currentlyDoing: 'Shutting down pipeline',
+    totalInputTokens: 45000,
+    totalOutputTokens: 32000,
     pendingSensitiveRequest: null,
     history: [
       {
@@ -216,6 +227,8 @@ export const FAKE_PROJECTS: Project[] = [
     stars: 21,
     repositories: [{ type: 'new', name: 'hr-dashboard', isPrivate: false }],
     lastError: 'Build step failed due to missing env variable.',
+    totalInputTokens: 500,
+    totalOutputTokens: 200,
     pendingSensitiveRequest: null,
     history: [
       {
@@ -258,6 +271,9 @@ export const FAKE_PROJECTS: Project[] = [
     stars: 0,
     repositories: [{ type: 'new', name: 'onboarding-agent', isPrivate: true }],
     lastError: '',
+    currentlyDoing: 'Waiting for env vars',
+    totalInputTokens: 31000,
+    totalOutputTokens: 15000,
     pendingSensitiveRequest: null,
     history: [
       {
