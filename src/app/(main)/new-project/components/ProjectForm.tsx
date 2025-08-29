@@ -51,12 +51,12 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
     return {
         description: project.description,
         maxRuntimeHours: project.maxRuntime ?? 0,
-        maxBudget: project.maxCost,
+        maxBudget: project.maxCost ?? 50, 
         githubRepositories: project.repositories ?? [],
         advancedOptions: {
             installations: project.installations ?? [],
             jiraLinked: project.useJira ?? false,
-            jiraProjectKey: project.jiraProjectKey,
+            jiraProjectKey: project.jiraProjectKey ?? '',
             aiModels: finalModels,
         },
     };
@@ -81,7 +81,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
     return {
       description: '',
       maxRuntimeHours: 24,
-      maxBudget: 500,
+      maxBudget: 50,
       githubRepositories: [],
       advancedOptions: {
         aiModels: createDefaultAiModels(),
@@ -119,17 +119,21 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   }, [isEditMode, reset]);
 
   useEffect(() => {
-    if (!isEditMode) {
-      const subscription = watch((value) => {
-        try {
-          localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(value));
-        } catch (error) {
-          console.error("Failed to save form draft to localStorage:", error);
-        }
-      });
-      return () => subscription.unsubscribe();
+    // This effect is only for saving drafts in create mode.
+    if (isEditMode) {
+      return; // Exit early
     }
-  }, [watch, isEditMode]);
+
+    const subscription = watch((value) => {
+      try {
+        localStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(value));
+      } catch (error) {
+        console.error("Failed to save form draft to localStorage:", error);
+      }
+    });
+    return () => subscription.unsubscribe();
+    
+  }, [isEditMode, watch]);
 
   if (isAuthLoading) {
     return <div className="p-8 text-center"><LoadingSpinner /></div>;
@@ -185,7 +189,11 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
             {isEditMode ? `Editing '${initialProjectData?.name}'` : 'Create a New Project'}
         </h1>
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={methods.handleSubmit(onSubmit, (errors) => {
+              console.error("Form validation failed:", errors);
+              toast.error('Please fix the errors before submitting.');
+            })}  
+            className="space-y-6">
             <ProjectDescription />
             <RepositoryManagement isEditing={isEditMode} />
             <BudgetAndRuntime />

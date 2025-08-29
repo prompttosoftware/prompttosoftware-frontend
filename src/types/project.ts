@@ -70,7 +70,6 @@ export interface Models {
 }
 
 export interface Installation {
-  ecosystem: string;
   name: string;
 }
 
@@ -260,7 +259,7 @@ export const formSchema = z.object({
       backup: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
     }),
     installations: z.array(
-      z.object({ ecosystem: z.string().min(1), name: z.string().min(1) })
+      z.object({ name: z.string().min(1) })
     ).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
     jiraLinked: z.boolean(),
     jiraProjectKey: z.string().optional(),
