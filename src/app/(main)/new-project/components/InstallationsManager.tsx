@@ -55,7 +55,7 @@ const OPTIONAL_TOOLS = {
   ],
   'Database Tools': [
     { name: 'postgresql-client', description: 'PostgreSQL client tools' },
-    { name: 'mysql-client', description: 'MySQL client tools' },
+    { name: 'default-mysql-client', description: 'MySQL client tools' },
     { name: 'redis-tools', description: 'Redis client tools' },
     { name: 'sqlite3', description: 'SQLite database engine' },
   ],
@@ -176,7 +176,7 @@ export default function InstallationManager() {
                 Add Tools
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className='max-h-96 overflow-y-auto'>
               {Object.entries(OPTIONAL_TOOLS).map(([category, tools]) => (
                 <div key={category}>
                   <DropdownMenuLabel>
