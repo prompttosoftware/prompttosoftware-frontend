@@ -88,7 +88,10 @@ export interface Project {
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
   lastError?: string;
-  pendingSensitiveRequest?: any; // Define this more strictly if you know the structure
+  currentlyDoing?: string;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  pendingSensitiveRequest?: any;
   maxRuntime: number | null;
   maxCost: number;
   useJira?: boolean;

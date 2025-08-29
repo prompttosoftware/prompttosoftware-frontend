@@ -13,6 +13,9 @@ import {
   Github,
   BrainCircuit,
   Briefcase,
+  Cpu, // New Icon
+  LogIn, // New Icon
+  LogOut, // New Icon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -148,10 +151,22 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
         </section>
       )}
 
+      {/* --- Current Activity --- */}
+      {project.currentlyDoing && (
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 text-xl font-semibold text-card-foreground">
+            <Cpu className="h-5 w-5" /> Current Activity
+          </h2>
+          <p className="whitespace-pre-wrap break-words rounded-md bg-muted/50 p-4 font-mono text-sm text-muted-foreground">
+            {project.currentlyDoing}
+          </p>
+        </section>
+      )}
+
       {/* --- Overview Grid --- */}
       <section>
         <h2 className="text-xl font-semibold text-card-foreground mb-4">Overview</h2>
-        <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
           <InfoBlock icon={<Timer className="h-4 w-4" />} label="Current Status">
             <StatusIndicator status={project.status} />
           </InfoBlock>
@@ -179,6 +194,16 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             icon={<Clock className="h-4 w-4" />}
             label="Last Updated"
             value={safeFormatDate(project.updatedAt, 'MMM d, yyyy, p')}
+          />
+          <InfoBlock
+            icon={<LogIn className="h-4 w-4" />}
+            label="Input Tokens"
+            value={(project.totalInputTokens ?? 0).toLocaleString()}
+          />
+          <InfoBlock
+            icon={<LogOut className="h-4 w-4" />}
+            label="Output Tokens"
+            value={(project.totalOutputTokens ?? 0).toLocaleString()}
           />
         </div>
       </section>
