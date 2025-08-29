@@ -55,6 +55,20 @@ export interface GithubRepository {
   template?: Template;
 }
 
+/**
+ * Represents a Github repository as its stored in the backend.
+ */
+export interface IRepository {
+  _id?: any,
+  url?: string,
+  name?: string,
+  organization?: string,
+  isPrivate?: boolean,
+  baseBranch?: string,
+  forkUrl?: string,
+  template?: Template
+}
+
 export interface Model {
   provider: Provider | undefined;
   model: string;
@@ -99,7 +113,7 @@ export interface Project {
   completeIssues: number;
   incompleteIssues: number;
   description: string;
-  repositories: GithubRepository[];
+  repositories: IRepository[];
   history: HistoryItem[];
   stars: number;
   installations: Installation[];

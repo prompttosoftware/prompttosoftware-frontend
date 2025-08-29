@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Project, Status, statusConfig, GithubRepository, Models, Model } from '@/types/project';
+import { Project, Status, statusConfig, GithubRepository, Models, Model, IRepository } from '@/types/project';
 import {
   Star,
   AlertTriangle,
@@ -86,7 +86,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
   /**
    * Renders a single GitHub repository with its details.
    */
-  const renderRepository = (repo: GithubRepository, index: number) => (
+  const renderRepository = (repo: IRepository, index: number) => (
     <div key={index} className="flex items-center gap-3 rounded-md border p-3">
       <Github className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
       <div className="flex-grow">
@@ -99,7 +99,6 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
           {repo.name || repo.url?.split('/').pop() || 'Unnamed Repository'}
         </a>
         <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline">{repo.type || 'unknown'}</Badge>
           {repo.isPrivate && <Badge variant="secondary">Private</Badge>}
           {repo.template && <Badge variant="secondary">{repo.template}</Badge>}
         </div>

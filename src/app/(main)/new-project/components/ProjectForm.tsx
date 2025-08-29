@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import { Project, ProjectFormData, formSchema, Model, Provider } from '@/types/project';
+import { Project, ProjectFormData, formSchema, Model, Provider, GithubRepository, IRepository } from '@/types/project';
 import { DEFAULT_MODELS } from '@/lib/data/models';
 
 import { Button } from '@/components/ui/button';
@@ -48,11 +48,25 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         });
     }
 
+    // Map each repository from the project model to the form data model.
+    const mappedRepositories = project.repositories?.map((repo: IRepository): GithubRepository => ({
+        // Set type to 'existing' if a URL is present, otherwise 'new'.
+        type: repo.url ? 'existing' : 'new',
+        
+        // Map all the common fields.
+        url: repo.url,
+        name: repo.name,
+        organization: repo.organization,
+        isPrivate: repo.isPrivate,
+        forkUrl: repo.forkUrl,
+        template: repo.template,
+    })) ?? [];
+
     return {
         description: project.description,
         maxRuntimeHours: project.maxRuntime ?? 0,
         maxBudget: project.maxCost ?? 50, 
-        githubRepositories: project.repositories ?? [],
+        githubRepositories: mappedRepositories,
         advancedOptions: {
             installations: project.installations ?? [],
             jiraLinked: project.useJira ?? false,
