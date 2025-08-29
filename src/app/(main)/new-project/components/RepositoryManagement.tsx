@@ -56,7 +56,7 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
         // If we're editing, only disable inputs for items that existed initially
         const shouldDisableInputs = isEditing && index < initialFieldCountRef.current;
         
-        return field.type === 'new' ? (
+        return field.type === 'new' && !isEditing ? (
           <NewRepositoryFields
             key={field.id}
             index={index}
@@ -78,7 +78,7 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
             type="button" 
             onClick={addNewRepo} 
             variant="default"
-            disabled={isAtMaxRepos}
+            disabled={isAtMaxRepos || isEditing}
             data-testid="add-new-repo-button"
           >
             Add New Repo

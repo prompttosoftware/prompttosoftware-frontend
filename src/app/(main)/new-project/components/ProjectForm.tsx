@@ -52,9 +52,9 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         description: project.description,
         maxRuntimeHours: project.maxRuntime ?? 0,
         maxBudget: project.maxCost,
-        githubRepositories: project.repositories,
+        githubRepositories: project.repositories ?? [],
         advancedOptions: {
-            installations: project.installations,
+            installations: project.installations ?? [],
             jiraLinked: project.useJira ?? false,
             jiraProjectKey: project.jiraProjectKey,
             aiModels: finalModels,

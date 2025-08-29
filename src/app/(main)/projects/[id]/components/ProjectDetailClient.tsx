@@ -104,7 +104,6 @@ export default function ProjectDetailClient({ initialProject }: ProjectDetailCli
         {/* --- History/Chat Panel --- */}
         <div className="flex flex-col h-[60vh] bg-card border rounded-lg">
           <ProjectHistory history={currentProject.history} />
-          <MessageInput sendMessage={sendMessage} />
         </div>
       </div>
       {/* --- Confirmation Dialog --- */}

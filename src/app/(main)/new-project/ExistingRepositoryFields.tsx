@@ -53,7 +53,6 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
           {...register(`githubRepositories.${index}.url`)}
           placeholder="e.g., https://github.com/username/repo"
           aria-invalid={isInvalid}
-          disabled={disableInputs}
         />
         {isInvalid && urlError?.message && (
           <p className="text-destructive text-xs mt-1">{String(urlError.message)}</p>
