@@ -7,8 +7,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'PromptToSoftware',
-  description: 'An AI-powered software development platform designed to bring your ideas to life.',
+  title: 'PromptToSoftware: An Experimental AI Agent for Developers',
+  description: 'An affordable, hands-free AI partner that autonomously codes, tests, and commits to GitHub. Take a break, push your own commits, or focus on other tasks—it works without you.',
 };
 
 // src/app/layout.tsx

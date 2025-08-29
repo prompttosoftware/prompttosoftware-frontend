@@ -38,9 +38,14 @@ interface SpendingHistoryChartProps {
 const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     const data: ChartDataPoint = payload[0].payload;
+    const MAX_TOOLTIP_TRANSACTIONS = 10; // Enforce a max for responsiveness
+
+    const allTransactions = [...data.debitTransactions, ...data.creditTransactions];
+    const displayedTransactions = allTransactions.slice(0, MAX_TOOLTIP_TRANSACTIONS);
+    const remainingCount = allTransactions.length - displayedTransactions.length;
 
     return (
-      <Card className="p-4 shadow-lg">
+      <Card className="p-4 shadow-lg bg-background">
         <CardHeader className="p-0 mb-2">
           <CardTitle className="text-sm">{format(data.fullDate, 'MMMM do, yyyy')}</CardTitle>
         </CardHeader>
@@ -48,31 +53,37 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
           {payload.map(pld => (
             <div key={pld.dataKey}>
               {pld.dataKey === 'debit' && data.debit > 0 && (
-                 <p style={{ color: pld.color }}>
+                <p style={{ color: pld.color }}>
                   Total Debit: {formatCurrency(data.debit)} ({data.debitTransactions.length} txns)
                 </p>
               )}
-               {pld.dataKey === 'credit' && data.credit > 0 && (
-                 <p style={{ color: pld.color }}>
+              {pld.dataKey === 'credit' && data.credit > 0 && (
+                <p style={{ color: pld.color }}>
                   Total Credit: {formatCurrency(data.credit)} ({data.creditTransactions.length} txns)
                 </p>
               )}
             </div>
           ))}
-          
+
           <div className="mt-2 pt-2 border-t">
             <h4 className="font-semibold mb-1 text-xs">Transactions:</h4>
-            <ul className="max-h-40 overflow-y-auto text-xs space-y-1">
-              {[...data.debitTransactions, ...data.creditTransactions].map(tx => (
-                <li key={tx._id} className="flex justify-between">
-                  <span>{tx.description}</span>
-                  <span className={tx.type === TransactionType.DEBIT ? 'text-destructive' : 'text-green-600'}>
+            {/* FIX: Removed max-h, overflow, and onWheel to disable scrolling */}
+            <ul className="text-xs space-y-1">
+              {displayedTransactions.map(tx => (
+                <li key={tx._id} className="flex justify-between items-center gap-2">
+                  <span className="truncate" title={tx.description}>{tx.description}</span>
+                  <span className={`flex-shrink-0 ${tx.type === TransactionType.DEBIT ? 'text-destructive' : 'text-green-600'}`}>
                     {tx.type === TransactionType.DEBIT ? '-' : '+'}
                     {formatCurrency(tx.amount)}
                   </span>
                 </li>
               ))}
             </ul>
+            {remainingCount > 0 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                ... and {remainingCount} more transaction(s)
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -204,7 +215,7 @@ const SpendingHistoryChart: React.FC<SpendingHistoryChartProps> = ({ transaction
         <div className="w-full h-96"> {/* Increased height for better visibility */}
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <LineChart data={chartData} margin={{ top: 5, right: 20, left: 30, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 {/* 1. XAxis is now smart, showing one label per day */}
                 <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
