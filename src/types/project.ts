@@ -110,7 +110,10 @@ export interface Project {
   maxCost: number;
   useJira?: boolean;
   jiraProjectKey?: string;
+  lifetimeRuntime: number;
+  lifetimeCost: number;
   runtime: number;
+  cost: number;
   completeIssues: number;
   incompleteIssues: number;
   description: string;

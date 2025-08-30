@@ -6,11 +6,9 @@ import { useGlobalErrorStore } from '@/store/globalErrorStore';
 import { Project } from '@/types/project';
 import ConfirmationDialog from '@/app/(main)/components/ConfirmationDialog';
 import { toast } from 'sonner';
-import MessageInput from '@/app/(main)/projects/[id]/components/MessageInput';
 import ProjectActions from '@/app/(main)/projects/[id]/components/ProjectActions';
 import ProjectHeader from '@/app/(main)/projects/[id]/components/ProjectHeader';
 import ProjectHistory from '@/app/(main)/projects/[id]/components/ProjectHistory';
-import ProjectStatus from '@/app/(main)/projects/[id]/components/ProjectStatus';
 import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
 import ProjectDetails from './ProjectDetails';
 

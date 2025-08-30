@@ -43,19 +43,23 @@ const HistoryItem = ({ item }: { item: ProjectHistoryItem }) => {
     let bubbleClasses = 'p-3 rounded-lg max-w-lg break-words text-sm';
     let timestampClasses = 'text-xs mt-1';
     let senderName = '';
+    if (isUser) {
+      senderName = 'You';
+      containerClasses += ' justify-start';
+    } else 
+    if (isAgent) {
+       senderName = 'Agent';
+       containerClasses += ' justify-end';
+    }
 
     switch (item.type) {
     case 'message':
         if (isUser) {
-        containerClasses += ' justify-end';
         bubbleClasses += ' bg-blue-500 text-white';
         timestampClasses += ' text-right text-blue-200';
-        senderName = 'You';
         } else {
-        containerClasses += ' justify-start';
         bubbleClasses += ' bg-gray-200 text-gray-800';
         timestampClasses += ' text-left text-gray-500';
-        senderName = isAgent ? 'Agent' : 'System';
         }
         break;
     case 'status_update':
@@ -132,7 +136,9 @@ const ProjectHistory = ({ history = [] }: ProjectHistoryProps) => {
             ) : (
                 <div className="space-y-4">
                     {sortedHistory.map((item, index) => (
-                        <HistoryItem key={index} item={item} /> // Use a stable ID if available, otherwise index
+                      item.content && (
+                        <HistoryItem key={index} item={item} />
+                      )
                     ))}
                 </div>
             )}

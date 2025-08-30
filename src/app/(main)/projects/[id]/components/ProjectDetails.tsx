@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Project, Status, statusConfig, GithubRepository, Models, Model, IRepository } from '@/types/project';
+import { Project, Status, statusConfig, IRepository, Models, Model } from '@/types/project';
 import {
   Star,
   AlertTriangle,
@@ -13,13 +13,61 @@ import {
   Github,
   BrainCircuit,
   Briefcase,
-  Cpu, // New Icon
-  LogIn, // New Icon
-  LogOut, // New Icon
+  Cpu,
+  LogIn,
+  LogOut,
+  Hourglass, // New Icon for session stats
+  History,   // New Icon for lifetime stats
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+// --- Helper Functions ---
+
+/**
+ * Formats a duration in seconds to a human-readable HH:MM:SS format.
+ * e.g., 90 -> "00:01:30"
+ */
+const formatSecondsToHMS = (seconds: number): string => {
+  if (isNaN(seconds) || seconds < 0) return '00:00:00';
+  const h = Math.floor(seconds / 3600)
+    .toString()
+    .padStart(2, '0');
+  const m = Math.floor((seconds % 3600) / 60)
+    .toString()
+    .padStart(2, '0');
+  const s = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${h}:${m}:${s}`;
+};
+
+/**
+ * Formats a long duration in seconds into a compact, readable string.
+ * e.g., 90000 -> "1d 1h"
+ */
+const formatLifetimeDuration = (totalSeconds: number): string => {
+  if (isNaN(totalSeconds) || totalSeconds < 0) return 'N/A';
+  if (totalSeconds < 60) return `${Math.round(totalSeconds)}s`;
+  if (totalSeconds < 3600) return `${Math.round(totalSeconds / 60)}m`;
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.round((totalSeconds % 3600) / 60);
+
+  if (hours < 24) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+
+  if (remainingHours === 0) {
+    return `${days}d`;
+  }
+
+  return `${days}d ${remainingHours}h`;
+};
 
 // --- Helper Components ---
 
@@ -196,13 +244,24 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
           />
           <InfoBlock
             icon={<LogIn className="h-4 w-4" />}
-            label="Input Tokens"
+            label="Total Input Tokens"
             value={(project.totalInputTokens ?? 0).toLocaleString()}
           />
           <InfoBlock
             icon={<LogOut className="h-4 w-4" />}
-            label="Output Tokens"
+            label="Total Output Tokens"
             value={(project.totalOutputTokens ?? 0).toLocaleString()}
+          />
+          {/* --- NEW LIFETIME STATS --- */}
+          <InfoBlock
+            icon={<History className="h-4 w-4" />}
+            label="Lifetime Runtime"
+            value={formatLifetimeDuration(project.lifetimeRuntime ?? 0)}
+          />
+          <InfoBlock
+            icon={<DollarSign className="h-4 w-4" />}
+            label="Lifetime Cost"
+            value={`$${(project.lifetimeCost ?? 0).toFixed(2)}`}
           />
         </div>
       </section>
@@ -214,16 +273,31 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-8 md:grid-cols-2">
           <div className="space-y-6">
-            <InfoBlock
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Max Cost"
-              value={`$${(project.maxCost ?? 0).toFixed(2)}`}
-            />
-            <InfoBlock
-              icon={<Timer className="h-4 w-4" />}
-              label="Max Runtime"
-              value={project.maxRuntime ? `${project.maxRuntime} hours` : 'Not set'}
-            />
+            {/* --- UPDATED SESSION STATS --- */}
+            <InfoBlock icon={<Hourglass className="h-4 w-4" />} label="Session Cost">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-lg font-semibold text-card-foreground">
+                  {`$${(project.cost ?? 0).toFixed(2)}`}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  / {`$${project.maxCost.toFixed(2)}`}
+                </span>
+              </div>
+            </InfoBlock>
+            <InfoBlock icon={<Hourglass className="h-4 w-4" />} label="Session Runtime">
+              {project.maxRuntime !== null ? (
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-lg font-semibold text-card-foreground">
+                    {formatSecondsToHMS(project.runtime ?? 0)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">/ {project.maxRuntime} hours</span>
+                </div>
+              ) : (
+                <span className="text-lg font-semibold text-card-foreground">
+                  {formatSecondsToHMS(project.runtime ?? 0)} (No limit)
+                </span>
+              )}
+            </InfoBlock>
             {project.useJira && (
               <InfoBlock
                 icon={<Briefcase className="h-4 w-4" />}

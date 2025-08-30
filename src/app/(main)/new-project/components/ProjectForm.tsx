@@ -18,6 +18,7 @@ import ProjectDescription from './ProjectDescription';
 import RepositoryManagement from './RepositoryManagement';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 // --- 1. Define a unique key for localStorage ---
 const FORM_DRAFT_KEY = 'new-project-form-draft';
@@ -83,6 +84,7 @@ interface ProjectFormProps {
 
 export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading: isAuthLoading } = useAuth();
 
@@ -96,7 +98,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
     return {
       description: '',
       maxRuntimeHours: 24,
-      maxBudget: 50,
+      maxBudget: 20,
       githubRepositories: [],
       advancedOptions: {
         aiModels: createDefaultAiModels(),
@@ -161,7 +163,6 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const isJiraGloballyLinked = user.integrations?.jira?.isLinked ?? false;
 
   const onSubmit = async (data: ProjectFormData) => {
-    console.log(JSON.stringify(data, null, 2));
       setIsSubmitting(true);
       try {
           if (isEditMode && projectId) {
@@ -169,6 +170,9 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
               toast.success('Project updated successfully!');
               // --- 4. Clear the draft upon successful submission ---
               localStorage.removeItem(FORM_DRAFT_KEY);
+              queryClient.setQueryData(['project', updatedProject._id], updatedProject);
+              queryClient.invalidateQueries({ queryKey: ['projects'] });
+              
               router.push(`/projects/${updatedProject._id}`);
               router.refresh();
           } else {
@@ -176,6 +180,9 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
               toast.success('Project created successfully!');
               // --- 4. Clear the draft upon successful submission ---
               localStorage.removeItem(FORM_DRAFT_KEY);
+
+              queryClient.setQueryData(['project', createdProject._id], createdProject);
+              queryClient.invalidateQueries({ queryKey: ['projects'] });
               router.push(`/projects/${createdProject._id}`);
           }
       } catch (error) {

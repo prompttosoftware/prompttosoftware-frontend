@@ -40,7 +40,7 @@ const ProfileButton = () => {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full profile-button">
+        <Button variant="ghost" className="relative border h-8 w-8 rounded-full profile-button">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.avatarUrl || '/avatars/01.png'} alt="User Avatar" />
             <AvatarFallback>{initial}</AvatarFallback>
