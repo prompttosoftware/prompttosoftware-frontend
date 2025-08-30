@@ -54,6 +54,7 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         type: repo.url ? 'existing' : 'new',
         
         // Map all the common fields.
+        _id: repo._id,
         url: repo.url,
         name: repo.name,
         organization: repo.organization,
@@ -160,6 +161,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const isJiraGloballyLinked = user.integrations?.jira?.isLinked ?? false;
 
   const onSubmit = async (data: ProjectFormData) => {
+    console.log(JSON.stringify(data, null, 2));
       setIsSubmitting(true);
       try {
           if (isEditMode && projectId) {

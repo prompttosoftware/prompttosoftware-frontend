@@ -46,6 +46,7 @@ export type Template = "android-empty-activity-compose" | "ios-multiplatform";
  * Represents a single GitHub repository linked to a project.
  */
 export interface GithubRepository {
+  _id?: any;
   type: 'new' | 'existing';
   name?: string; // For 'new'
   isPrivate?: boolean; // For 'new'
@@ -237,6 +238,7 @@ export const formSchema = z.object({
   githubRepositories: z.array(
     z.union([
       z.object({ 
+        _id: z.any().optional(),
         type: z.literal('new'), 
         name: z.string().min(1, 'Name is required.'), 
         isPrivate: z.boolean(), 
@@ -245,6 +247,7 @@ export const formSchema = z.object({
         template: z.enum(["android-empty-activity-compose", "ios-multiplatform"]).optional(),
       }),
       z.object({ 
+        _id: z.any().optional(),
         type: z.literal('existing'), 
         url: z.string().url('Invalid URL.').min(1, 'URL is required.'),
         __justAdded: z.boolean().optional()
