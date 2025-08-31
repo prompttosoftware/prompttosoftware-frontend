@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
 import { ExternalLink } from 'lucide-react';
+import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
 
 export function LoginContent() {
   const router = useRouter();
@@ -144,13 +145,26 @@ export function LoginContent() {
             <p className="text-sm text-muted-foreground">
               Integrates with GitHub, Jira, OpenRouter, and more.
             </p>
-            <button
-              onClick={() => window.open('/privacy', '_blank')}
-              className="text-xs text-muted-foreground hover:underline flex items-center"
-            >
-              Privacy Policy
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </button>
+            <div className="flex items-center space-x-4">
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:underline flex items-center"
+              >
+                Terms of Service
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:underline flex items-center"
+              >
+                Privacy Policy
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+            </div>
           </div>
         </div>
 
@@ -162,59 +176,19 @@ export function LoginContent() {
       </main>
 
       {/* Features Section - Below the fold */}
-      <section id="features" className="py-20 bg-secondary/50">
+      <section id="how-it-works" className="py-20 bg-secondary/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">A Hands-Free Development Cycle</h2>
-            <p className="mt-4 text-lg text-muted-foreground">From idea to complete software project, powered by AI.</p>
-          </div>
-
-          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-2">
-            
-            {/* Feature Card 1 (Slightly tweaked) */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-card-foreground">From Idea to Repository</h3>
-              <p className="mt-2 text-muted-foreground">
-                Describe a project in any language or framework. The system autonomously creates repositories, writes code, runs tests, and even researches solutions—all without your intervention.
-              </p>
-            </div>
-
-            {/* Feature Card 2 (Unchanged) */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-card-foreground">Enhance Existing Projects</h3>
-              <p className="mt-2 text-muted-foreground">
-                Point the AI to your existing GitHub repositories to continue development, add features, or fix bugs. It works alongside you, committing code and updating Jira tickets as it progresses.
-              </p>
-            </div>
-            
-            {/* Feature Card 3 (Unchanged) */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-card-foreground">Full Control & Flexibility</h3>
-              <p className="mt-2 text-muted-foreground">
-                Choose the exact AI models for different tasks, from cost-effective small models to powerful frontier models. You can even bring your own API keys to use your preferred providers.
-              </p>
-            </div>
-
-            {/* Feature Card 4 (NEW - Replaces "Any Language") */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-xl font-semibold text-card-foreground">Orchestrate Full-Stack Applications</h3>
-              <p className="mt-2 text-muted-foreground">
-                A single project can span multiple repositories. Our AI agent works concurrently on your frontend, backend, mobile apps, games, etc., understanding the complete architecture to ensure all components integrate perfectly.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Expectation Setting Section */}
-      <section className="py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-card border border-border rounded-lg p-8">
-            <h3 className="text-xl font-semibold text-center text-card-foreground">An Experimental Developer Tool</h3>
-            <p className="mt-4 text-muted-foreground">
-              PromptToSoftware is undergoing continuous improvement. AI-generated code can vary in quality and may require human oversight and refinement. We recommend reviewing the completed project to understand its structure and logic. Your feedback is invaluable as we build the future of automated development.
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
+              A Hands-Free Development Cycle
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              From idea to a living project, powered by AI.
             </p>
           </div>
+          
+          <ProjectLifecycleAccordion />
+
         </div>
       </section>
 
@@ -234,20 +208,37 @@ export function LoginContent() {
               <GitHubLogoIcon className="w-8 h-8 mr-3" />
               Get Started with GitHub
             </button>
-            <button
-              onClick={() => window.open('/privacy', '_blank')}
-              className="text-xs text-muted-foreground hover:underline flex items-center"
-            >
-              Privacy Policy
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </button>
+            <div className="flex items-center space-x-4">
+               <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:underline flex items-center"
+              >
+                Terms of Service
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:underline flex items-center"
+              >
+                Privacy Policy
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
       <footer className="bg-background">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} PromptToSoftware, LLC. All rights reserved.
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-center text-sm text-muted-foreground">
+            <span>&copy; {new Date().getFullYear()} PromptToSoftware, LLC. All rights reserved.</span>
+            <div className="flex items-center space-x-4 mt-2 sm:mt-0">
+                <a href="/terms" className="hover:underline">Terms of Service</a>
+                <a href="/privacy" className="hover:underline">Privacy Policy</a>
+            </div>
         </div>
       </footer>
     </div>
