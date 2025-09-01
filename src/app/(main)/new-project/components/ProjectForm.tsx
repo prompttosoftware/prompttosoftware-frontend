@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import { Project, ProjectFormData, formSchema, Model, Provider, GithubRepository, IRepository } from '@/types/project';
+import { Project, ProjectFormData, formSchema, Model, Provider, GithubRepository, IRepository, TestLevel, RequestType } from '@/types/project';
 import { DEFAULT_MODELS } from '@/lib/data/models';
 
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,8 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
             jiraLinked: project.useJira ?? false,
             jiraProjectKey: project.jiraProjectKey ?? '',
             aiModels: finalModels,
+            testLevel: project.testLevel ?? 'standard',
+            requestType: project.requestType ?? 'auto',
         },
     };
 };
@@ -104,6 +106,8 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
         aiModels: createDefaultAiModels(),
         installations: [],
         jiraLinked: false,
+        testLevel: 'standard' as TestLevel,
+        requestType: 'auto' as RequestType,
       },
     };
   }, [isEditMode, initialProjectData]);

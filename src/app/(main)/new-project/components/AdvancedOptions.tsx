@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import ModelSelection from './ModelSelection';
 import InstallationManager from './InstallationsManager';
 import JiraIntegration from './JiraIntegration';
+import DevelopmentSettings from './DevelopmentSettings';
 
 interface AdvancedOptionsProps {
   isEditing: boolean;
@@ -25,6 +26,7 @@ export default function AdvancedOptions({ isEditing, isJiraGloballyLinked }: Adv
   return (
     <div className="space-y-6 border-t pt-6">
       <h2 className="text-xl font-semibold text-card-foreground">Advanced Options</h2>
+      <DevelopmentSettings />
       <ModelSelection />
       <InstallationManager />
       <JiraIntegration isJiraGloballyLinked={isJiraGloballyLinked} />

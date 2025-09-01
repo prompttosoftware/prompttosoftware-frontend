@@ -37,6 +37,8 @@ export interface ProjectFormData {
     installations: { name: string }[];
     jiraLinked: boolean;
     jiraProjectKey?: string;
+    testLevel: TestLevel,
+    requestType: RequestType,
   };
 }
 
@@ -89,6 +91,8 @@ export interface Installation {
 }
 
 export type Provider = "google" | "openrouter" | "openai" | "groq" | "anthropic" | "deepseek";
+export type TestLevel = 'standard' | 'none' | 'required';
+export type RequestType = 'bug' | 'change' | 'production' | 'dev' | 'auto';
 
 /**
  * Represents the full details of a project.
@@ -122,6 +126,8 @@ export interface Project {
   stars: number;
   installations: Installation[];
   models: Models;
+  testLevel: TestLevel,
+  requestType: RequestType,
 }
 
 // An interface for the populated user data
@@ -271,5 +277,7 @@ export const formSchema = z.object({
     ).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
     jiraLinked: z.boolean(),
     jiraProjectKey: z.string().optional(),
+    testLevel: z.enum(['standard', 'none', 'required']).default('standard'),
+    requestType: z.enum(['bug', 'change', 'production', 'dev', 'auto' ]).default('auto'),
   }),
 });
