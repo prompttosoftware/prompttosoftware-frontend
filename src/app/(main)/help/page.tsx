@@ -57,6 +57,26 @@ const helpMenuItems: HelpMenuItem[] = [
       ]},
       { type: 'subheading', content: 'Advanced Options' },
       { type: 'list', content: [
+        <><strong>Development Configuration:</strong> These options control how the AI manages development workflow and testing.
+          <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
+            <li><strong>Test Level:</strong> Determines how strictly tests are required.
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
+                <li><strong>Standard:</strong> The system decides when and where tests are useful. Recommended for most projects.</li>
+                <li><strong>Required:</strong> Every change must include tests. The AI will not proceed without them. Best for production-critical projects.</li>
+                <li><strong>None:</strong> No tests will be written. Suitable only for prototypes or experiments where speed is more important than reliability.</li>
+              </ul>
+            </li>
+            <li><strong>Request Type:</strong> Defines the nature of the work so the AI can adjust its approach and level of scrutiny.
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
+                <li><strong>Automatic:</strong> The AI automatically decides the correct type (bug fix, feature, etc.). Recommended for most users.</li>
+                <li><strong>Change Request:</strong> For new features or alterations to existing functionality.</li>
+                <li><strong>Bug Fix:</strong> Focuses the AI specifically on diagnosing and fixing issues in the codebase.</li>
+                <li><strong>Production Task:</strong> For changes that need to be deployed to production. Work here has higher scrutiny and stricter validation.</li>
+                <li><strong>Development Task:</strong> For internal work, experiments, or refactoring. Useful for non-production projects.</li>
+              </ul>
+            </li>
+          </ul>
+        </>,
         <><strong>AI Model Selection:</strong> Different tasks use different "intelligence levels" to optimize for cost and performance. While the default models are recommended, you can customize them.
             <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
                 <li><strong>Recommendation:</strong> Use models with at least a 120k token context window for Medium, High, and Super levels.</li>

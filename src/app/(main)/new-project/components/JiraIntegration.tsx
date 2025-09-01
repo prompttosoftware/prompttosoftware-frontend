@@ -20,7 +20,7 @@ export default function JiraIntegration({ isJiraGloballyLinked }: JiraIntegratio
       {/* Disclaimer */}
       {isJiraGloballyLinked && (
         <div className="mb-4 p-3 border rounded-md">
-          <p className="text-sm text-muted">
+          <p className="text-sm text-muted-foreground">
             <strong>Important:</strong> Only one project can use Jira integration at a time. 
             These settings cannot be changed once the project is created.
           </p>
