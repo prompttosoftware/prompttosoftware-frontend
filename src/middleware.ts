@@ -20,16 +20,16 @@ export function middleware(request: NextRequest) {
   
   try {
     // Check for the auth cookie
-    // const authCookie = request.cookies.get('test-access');
-    // const isAuthenticated = authCookie?.value === 'allowed';
+    const authCookie = request.cookies.get('test-access');
+    const isAuthenticated = authCookie?.value === 'allowed';
     
-    // // Only redirect if not authenticated
-    // if (!isAuthenticated) {
-    //   // Preserve the original URL for redirect after auth
-    //   const comingSoonUrl = new URL('/coming-soon', request.url);
-    //   comingSoonUrl.searchParams.set('returnTo', pathname);
-    //   return NextResponse.redirect(comingSoonUrl);
-    // }
+    // Only redirect if not authenticated
+    if (!isAuthenticated) {
+      // Preserve the original URL for redirect after auth
+      const comingSoonUrl = new URL('/coming-soon', request.url);
+      comingSoonUrl.searchParams.set('returnTo', pathname);
+      return NextResponse.redirect(comingSoonUrl);
+    }
 
     if (request.nextUrl.pathname === '/') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
