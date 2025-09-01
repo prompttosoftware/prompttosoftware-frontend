@@ -66,6 +66,8 @@ export const FAKE_PROJECTS: Project[] = [
       { name: 'openai' },
       { name: 'node:18' },
     ],
+    testLevel: 'none',
+    requestType: 'auto',
   },
   {
     _id: 'proj_2',
@@ -113,6 +115,8 @@ export const FAKE_PROJECTS: Project[] = [
       { name: 'slack_sdk' },
       { name: 'python:3.11' },
     ],
+    testLevel: 'none',
+    requestType: 'auto',
   },
   {
     _id: 'proj_3',
@@ -156,6 +160,8 @@ export const FAKE_PROJECTS: Project[] = [
       { name: 'ffmpeg' },
       { name: 'fluent-ffmpeg' },
     ],
+    testLevel: 'none',
+    requestType: 'change',
   },
   {
     _id: 'proj_4',
@@ -203,6 +209,8 @@ export const FAKE_PROJECTS: Project[] = [
       { name: 'pdfminer.six' },
       { name: 'spacy' },
     ],
+    testLevel: 'none',
+    requestType: 'bug',
   },
   {
     _id: 'proj_5',
@@ -246,6 +254,8 @@ export const FAKE_PROJECTS: Project[] = [
       { name: 'react' },
       { name: 'chart.js' },
     ],
+    testLevel: 'standard',
+    requestType: 'dev',
   },
   {
     _id: 'proj_6',
@@ -284,6 +294,8 @@ export const FAKE_PROJECTS: Project[] = [
       { name: 'pyyaml' },
       { name: 'dotenv' },
     ],
+    testLevel: 'required',
+    requestType: 'production',
   },
 ];
 
