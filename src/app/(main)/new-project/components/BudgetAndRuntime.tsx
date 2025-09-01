@@ -30,6 +30,7 @@ export default function BudgetAndRuntime() {
           placeholder="e.g., 24"
           {...register('maxRuntimeHours', { valueAsNumber: true })}
           className="mt-1"
+          maxLength={3}
         />
         {errors.maxRuntimeHours && (
           <p className="mt-2 text-sm text-red-600">{errors.maxRuntimeHours.message}</p>
@@ -50,9 +51,10 @@ export default function BudgetAndRuntime() {
         <Input
           id="maxBudget"
           type="number"
-          placeholder="e.g., 500.00"
+          placeholder="e.g., 500"
           {...register('maxBudget', { valueAsNumber: true })}
           className="mt-1"
+          maxLength={3}
         />
         {errors.maxBudget && <p className="mt-2 text-sm text-red-600">{errors.maxBudget.message}</p>}
       </div>

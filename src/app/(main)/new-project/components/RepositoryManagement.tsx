@@ -32,13 +32,13 @@ export default function RepositoryManagement({ isEditing }: RepositoryManagement
 
   const addNewRepo = () => {
     if (isAtMaxRepos) return;
-    const newItem = { type: 'new' as const, name: '', isPrivate: false };
+    const newItem = { type: 'new' as const, name: '', isPrivate: false, tags: [] };
     append(newItem);
   };
 
   const addExistingRepo = () => {
     if (isAtMaxRepos) return;
-    const newItem = { type: 'existing' as const, url: '' };
+    const newItem = { type: 'existing' as const, url: '', tags: [] };
     append(newItem);
   };
 

@@ -72,7 +72,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
     <div className="flex flex-col gap-4 p-4 rounded-md">
       {/* Provider Dropdown */}
       <div>
-        <Label htmlFor={`${providerFieldName}`} className="mb-2 block text-sm font-medium text-gray-700">
+        <Label htmlFor={`${providerFieldName}`} className="mb-2 block text-sm font-medium text-card-foreground">
           Provider
         </Label>
         <Controller
@@ -96,7 +96,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
                       <div className="flex items-center justify-between w-full">
                         <span>{provider.label}</span>
                         {!isAvailable && (
-                          <span className="text-xs text-gray-500 ml-2">(No API key)</span>
+                          <span className="text-xs text-muted-foreground ml-2">(No API key)</span>
                         )}
                       </div>
                     </SelectItem>
@@ -122,7 +122,7 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
 
       {/* Model Name Input */}
       <div>
-        <Label htmlFor={`${modelNameFieldName}`} className="mb-2 block text-sm font-medium text-gray-700">
+        <Label htmlFor={`${modelNameFieldName}`} className="mb-2 block text-sm font-medium text-card-foreground">
           Model Name
         </Label>
         <Input
@@ -131,12 +131,13 @@ export const SingleModelInput: React.FC<SingleModelInputProps> = ({
           placeholder="e.g., gpt-4, claude-3-opus-20240229"
           {...register(modelNameFieldName as `advancedOptions.aiModels.${SingleModelInputProps['level']}.${number}.model`)}
           className="w-full"
+          maxLength={400}
         />
       </div>
 
       {/* Loading state from the auth hook */}
       {authLoading && (
-        <div className="text-sm text-gray-500">Loading available providers...</div>
+        <div className="text-sm text-muted-foreground">Loading available providers...</div>
       )}
     </div>
   );

@@ -159,6 +159,7 @@ export function PaymentModal() {
                   data-testid="choose-amount-input"
                   className="pl-7 bg-input placeholder:text-muted-foreground text-card-foreground"
                   required
+                  maxLength={3}
                 />
               </div>
             </div>

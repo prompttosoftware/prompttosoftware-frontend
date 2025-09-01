@@ -150,6 +150,7 @@ export const AddApiKeyButton: React.FC<AddApiKeyButtonProps> = ({
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your API key"
               required
+              maxLength={5000}
             />
           </div>
 
@@ -351,7 +352,7 @@ export const ApiKeyManager: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDeleteApiKey(key.provider)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-destructive"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

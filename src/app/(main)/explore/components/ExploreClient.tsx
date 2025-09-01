@@ -73,11 +73,11 @@ export default function ExploreClient({ initialData, initialParams }: ExploreCli
         <input
           type="text"
           placeholder="Search projects by name..."
-          // Added h-10 for consistent height
           className="flex-grow p-3 h-10 border rounded-md bg-input focus:ring"
           id="explore-search-input"
           value={filters.query}
           onChange={handleSearchChange}
+          maxLength={500}
         />
         <Select
           value={`${filters.sortBy}-${filters.sortOrder}`}

@@ -62,6 +62,7 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         isPrivate: repo.isPrivate,
         forkUrl: repo.forkUrl,
         template: repo.template,
+        tags: repo.tags,
     })) ?? [];
 
     return {

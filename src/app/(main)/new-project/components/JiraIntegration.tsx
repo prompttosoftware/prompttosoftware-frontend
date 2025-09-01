@@ -55,6 +55,7 @@ export default function JiraIntegration({ isJiraGloballyLinked }: JiraIntegratio
             {...register('advancedOptions.jiraProjectKey')}
             placeholder="e.g., PROJ"
             className="mt-1 max-w-xs"
+            maxLength={10}
           />
           <p className="text-xs text-card-foreground mt-1">
             If left blank, a new Jira project will be created.

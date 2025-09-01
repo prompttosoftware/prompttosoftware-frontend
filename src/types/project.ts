@@ -56,6 +56,7 @@ export interface GithubRepository {
   organization?: string;
   forkUrl?: string;
   template?: Template;
+  tags?: string[];
 }
 
 /**
@@ -69,7 +70,8 @@ export interface IRepository {
   isPrivate?: boolean,
   baseBranch?: string,
   forkUrl?: string,
-  template?: Template
+  template?: Template,
+  tags?: string[],
 }
 
 export interface Model {
@@ -254,11 +256,13 @@ export const formSchema = z.object({
         organization: z.string().optional(),
         forkUrl: z.string().optional(),
         template: z.enum(["android-empty-activity-compose", "ios-multiplatform"]).optional(),
+        tags: z.array(z.string()).optional(),
       }),
       z.object({ 
         _id: z.any().optional(),
         type: z.literal('existing'), 
         url: z.string().url('Invalid URL.').min(1, 'URL is required.'),
+        tags: z.array(z.string()).optional(),
         __justAdded: z.boolean().optional()
       }),
     ]),

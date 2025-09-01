@@ -47,6 +47,7 @@ export default function ProjectDescription() {
         {...register('description')}
         className="mt-1 block bg-input placeholder:text-muted-foreground text-card-foreground w-full rounded-md border focus:ring sm:text-sm p-3"
         placeholder="Describe the software you want to build..."
+        maxLength={100000}
       />
       {errors.description && (
         <p className="mt-2 text-sm text-destructive">{errors.description.message}</p>
