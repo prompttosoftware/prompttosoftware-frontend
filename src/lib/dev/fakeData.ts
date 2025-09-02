@@ -1,4 +1,5 @@
 import { UserProfile } from '@/types/auth';
+import { Banner } from '@/types/banner';
 import { SavedCard } from '@/types/payments';
 import { Model, Project } from '@/types/project';
 
@@ -839,4 +840,19 @@ export const FAKE_TRANSACTIONS: Transaction[] = [
     createdAt: new Date('2024-12-01T20:00:00Z').toISOString(),
     updatedAt: new Date('2024-12-01T20:00:00Z').toISOString(),
   },
+];
+
+export const FAKE_ANNOUNCEMENTS: Banner[] = [
+    {
+        _id: 'fake-id-10',
+        message: 'Welcome to our newly launched platform! We are excited to have you.',
+    },
+    {
+        _id: 'fake-id-20',
+        message: 'Maintenance scheduled for tonight from 2 AM to 4 AM UTC.',
+    },
+    {
+        _id: 'fake-id-30',
+        message: '📢 Our annual summer sale is now live! Use code SUMMER25 for 25% off.',
+    },
 ];

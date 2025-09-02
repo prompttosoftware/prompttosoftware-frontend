@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProjectFormData } from '@/types/project';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
 
 export default function BudgetAndRuntime() {
   const { register, formState: { errors } } = useFormContext<ProjectFormData>();
@@ -13,17 +12,14 @@ export default function BudgetAndRuntime() {
     <TooltipProvider>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="maxRuntimeHours">Max Runtime (Hours)</Label>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-            </TooltipTrigger>
-            <TooltipContent>
-              The maximum number of hours this project is allowed to run before stopping automatically. This resets each time the project is started.
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Label htmlFor="maxRuntimeHours">Max Runtime (Hours)</Label>
+          </TooltipTrigger>
+          <TooltipContent>
+            The maximum number of hours this project is allowed to run before stopping automatically. This resets each time the project is started.
+          </TooltipContent>
+        </Tooltip>
         <Input
           id="maxRuntimeHours"
           type="number"
@@ -37,17 +33,14 @@ export default function BudgetAndRuntime() {
         )}
       </div>
       <div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="maxBudget">Max Budget ($)</Label>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-            </TooltipTrigger>
-            <TooltipContent>
-              The maximum budget in USD that this project can use before being stopped. This resets each time the project is started.
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Label htmlFor="maxBudget">Max Budget ($)</Label>
+          </TooltipTrigger>
+          <TooltipContent>
+            The maximum budget in USD that this project can use before being stopped. This resets each time the project is started.
+          </TooltipContent>
+        </Tooltip>
         <Input
           id="maxBudget"
           type="number"

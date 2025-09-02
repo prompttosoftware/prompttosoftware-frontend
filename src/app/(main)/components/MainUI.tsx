@@ -19,9 +19,10 @@ import AppHeader from '@/app/(main)/components/AppHeader';
 
 interface MainUIProps {
   children: React.ReactNode;
+  banners?: Banner[];
 }
 
-export default function MainUI({ children }: MainUIProps) {
+export default function MainUI({ children, banners }: MainUIProps) {
   // All state and hooks that were in the layout now live here.
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -43,9 +44,9 @@ export default function MainUI({ children }: MainUIProps) {
   }, [error, clearError]);
 
   useEffect(() => {
-    const initialBanners: Banner[] = [];
-    initBanners(initialBanners);
-  }, []); // Empty dependency array to run only once
+    // Pass the banners prop to the store, defaulting to an empty array if undefined.
+    initBanners(banners ?? []);
+  }, [banners, initBanners]);
 
   const handleTutorialComplete = () => {
     setShowTutorial(false);
@@ -69,7 +70,7 @@ export default function MainUI({ children }: MainUIProps) {
           <AppHeader onMobileNavOpen={() => setIsMobileNavOpen(true)} />
 
           {hasActiveBanner && (
-            <div className="p-4 flex-shrink-0">
+            <div className="p-3 flex-shrink-0">
               <BannerDisplay />
             </div>
           )}

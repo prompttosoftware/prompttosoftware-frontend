@@ -1,6 +1,6 @@
 export interface Banner {
-    id: string; // Unique identifier for dismissal
+    _id: string;
     message: string;
-    type?: 'info' | 'success' | 'warning'; // For different styling
-    dismissible: boolean;
+    createdAt?: string; // Optional field for creation date
+    updatedAt?: string; // Optional field for update date
 }
