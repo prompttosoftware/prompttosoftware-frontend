@@ -38,6 +38,7 @@ interface TabsTriggerProps {
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;
+  type?: "button" | "submit" | "reset" | undefined;
   onClick?: () => void;
 }
 

@@ -64,18 +64,18 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
       {(fields || []).map((field, index) => (
         <div
           key={field.id}
-          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-card rounded-lg shadow-sm"
+          className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-card rounded-lg border"
+          id="model-select-card"
         >
           <div className="flex-1 w-full">
             <SingleModelInput
-              register={control.register}
               index={index}
               level={level}
               field={field}
             />
           </div>
           <Button
-            variant="destructive"
+            variant="ghost"
             size="icon"
             onClick={() => handleDeleteModel(index)}
             className="self-end sm:self-auto"
@@ -87,8 +87,8 @@ export const IntelligenceLevelModelSelector: React.FC<IntelligenceLevelModelSele
       ))}
       <Button 
         onClick={handleAddModel} 
-        variant="outline" 
-        className="w-full"
+        variant="ghost" 
+        className="w-full sm:w-auto"
         disabled={isAtMaxModels}
       >
         <PlusCircle className="mr-2 h-4 w-4" />

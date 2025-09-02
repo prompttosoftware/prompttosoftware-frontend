@@ -190,13 +190,13 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
               queryClient.invalidateQueries({ queryKey: ['projects'] });
               router.push(`/projects/${createdProject._id}`);
           }
-      } catch (error) {
+      } catch (error: any) {
           console.error('Project submission failed:', error);
           const action = isEditMode ? 'update' : 'create';
 
           let errorMessage = `Failed to ${action} project.`;
 
-          const backendMessage = (error as any)?.response?.data?.message;
+          const backendMessage = error.response?.data?.message;
 
           if (typeof backendMessage === 'string') {
               errorMessage = backendMessage;

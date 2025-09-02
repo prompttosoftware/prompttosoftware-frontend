@@ -89,15 +89,17 @@ export const ExistingRepositoryFields: React.FC<ExistingRepositoryFieldsProps> =
 
       {/* Tags Input Section */}
       <div className="mt-4">
-        <Label htmlFor={`tags-input-existing-${index}`}>Tags (Optional)</Label>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-          </TooltipTrigger>
-          <TooltipContent>
-            The tags will be used during development to ensure consistency. Tags are also created automatically.
-          </TooltipContent>
-        </Tooltip>
+        <div className="flex items-center gap-2">
+          <Label htmlFor={`tags-input-existing-${index}`}>Tags (Optional)</Label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              The tags will be used during development to ensure consistency. Tags are also created automatically.
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <div className="flex items-center gap-2 mt-1">
           <Input
             id={`tags-input-existing-${index}`}

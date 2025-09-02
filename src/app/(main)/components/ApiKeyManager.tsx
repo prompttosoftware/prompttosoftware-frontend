@@ -52,7 +52,7 @@ const PROVIDERS = [
 interface AddApiKeyButtonProps {
   onApiKeyAdded?: (provider: string) => void;
   excludeProviders?: string[];
-  variant?: 'default' | 'outline' | 'secondary';
+  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
 }

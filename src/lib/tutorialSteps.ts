@@ -93,17 +93,10 @@ export const tutorialSteps: TutorialStep[] = [
     position: 'bottom',
   },
   {
-    id: 'new-project-model-select',
-    title: 'Customize AI Models',
-    description: 'You can choose specific AI models for different tasks to balance cost and performance.',
-    targetSelector: '#model-select-utility', // Target the first dropdown in the models section
-    position: 'right',
-  },
-  {
     id: 'new-project-model-section',
-    title: 'Select a Model and Provider',
-    description: 'Here you can customize the model and provider. You can also add multiple models.',
-    targetSelector: '#model-select-card', // Target the first dropdown in the models section
+    title: 'Customize AI Models',
+    description: 'You can choose specific AI models for different tasks to balance cost and performance. You can also add multiple models.',
+    targetSelector: '#model-select-card',
     position: 'top',
     disableBeacon: true
   },
