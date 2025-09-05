@@ -39,6 +39,8 @@ export interface ProjectFormData {
     jiraProjectKey?: string;
     testLevel: TestLevel,
     requestType: RequestType,
+    devMode: DevMode,
+    singleIssue: boolean,
   };
 }
 
@@ -95,6 +97,7 @@ export interface Installation {
 export type Provider = "google" | "openrouter" | "openai" | "groq" | "anthropic" | "deepseek";
 export type TestLevel = 'standard' | 'none' | 'required';
 export type RequestType = 'bug' | 'change' | 'production' | 'dev' | 'auto';
+export type DevMode = 'auto' | 'general_purpose' | 'write_test_repeat';
 
 /**
  * Represents the full details of a project.
@@ -130,6 +133,8 @@ export interface Project {
   models: Models;
   testLevel: TestLevel,
   requestType: RequestType,
+  devMode: DevMode,
+  singleIssue: boolean,
 }
 
 // An interface for the populated user data
@@ -283,5 +288,7 @@ export const formSchema = z.object({
     jiraProjectKey: z.string().optional(),
     testLevel: z.enum(['standard', 'none', 'required']).default('standard'),
     requestType: z.enum(['bug', 'change', 'production', 'dev', 'auto' ]).default('auto'),
+    devMode: z.enum(['auto', 'general_purpose', 'write_test_repeat']).default('general_purpose'),
+    singleIssue: z.boolean()
   }),
 });

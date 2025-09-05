@@ -69,6 +69,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     testLevel: 'none',
     requestType: 'auto',
+    devMode: 'general_purpose',
+    singleIssue: false,
   },
   {
     _id: 'proj_2',
@@ -118,6 +120,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     testLevel: 'none',
     requestType: 'auto',
+    devMode: 'general_purpose',
+    singleIssue: false,
   },
   {
     _id: 'proj_3',
@@ -163,6 +167,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     testLevel: 'none',
     requestType: 'change',
+    devMode: 'general_purpose',
+    singleIssue: false,
   },
   {
     _id: 'proj_4',
@@ -212,6 +218,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     testLevel: 'none',
     requestType: 'bug',
+    devMode: 'general_purpose',
+    singleIssue: false,
   },
   {
     _id: 'proj_5',
@@ -257,6 +265,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     testLevel: 'standard',
     requestType: 'dev',
+    devMode: 'general_purpose',
+    singleIssue: false,
   },
   {
     _id: 'proj_6',
@@ -297,6 +307,8 @@ export const FAKE_PROJECTS: Project[] = [
     ],
     testLevel: 'required',
     requestType: 'production',
+    devMode: 'general_purpose',
+    singleIssue: false,
   },
 ];
 

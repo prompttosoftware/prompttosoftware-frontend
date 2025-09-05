@@ -158,8 +158,6 @@ export const api = {
    * Corresponds to: POST /api/projects
    */
   createProject: async (payload: ProjectFormData): Promise<Project> => {
-      // The backend now returns the full project object directly on creation.
-      // We expect a response like: { id: "...", name: "...", ... }
       const response = await httpClient.post<Project>("/projects", payload);
       return response.data;
   },

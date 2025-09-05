@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import { Project, ProjectFormData, formSchema, Model, Provider, GithubRepository, IRepository, TestLevel, RequestType } from '@/types/project';
+import { Project, ProjectFormData, formSchema, Model, Provider, GithubRepository, IRepository, TestLevel, RequestType, DevMode } from '@/types/project';
 import { DEFAULT_MODELS } from '@/lib/data/models';
 
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import RepositoryManagement from './RepositoryManagement';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 
 // --- 1. Define a unique key for localStorage ---
 const FORM_DRAFT_KEY = 'new-project-form-draft';
@@ -77,6 +78,8 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
             aiModels: finalModels,
             testLevel: project.testLevel ?? 'standard',
             requestType: project.requestType ?? 'auto',
+            devMode: project.devMode ?? 'general_purpose',
+            singleIssue: project.singleIssue ?? false,
         },
     };
 };
@@ -109,6 +112,8 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
         jiraLinked: false,
         testLevel: 'standard' as TestLevel,
         requestType: 'auto' as RequestType,
+        devMode: 'general_purpose' as DevMode,
+        singleIssue: false
       },
     };
   }, [isEditMode, initialProjectData]);
@@ -193,8 +198,15 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
       } catch (error: any) {
           console.error('Project submission failed:', error);
           const action = isEditMode ? 'update' : 'create';
-
           let errorMessage = `Failed to ${action} project.`;
+
+          if (axios.isAxiosError(error) && (error.code === 'ECONNABORTED' || error.message.includes('timeout'))) {
+              errorMessage = 'The request timed out. Please check your network connection and try again.';
+              toast.error(errorMessage);
+              // Redirect to the projects page
+              router.push('/projects');
+              return; // Exit the function to prevent further execution
+          }
 
           const backendMessage = error.response?.data?.message;
 
@@ -203,7 +215,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
           } else if (error instanceof Error) {
               errorMessage = error.message;
           }
-          
+
           toast.error(errorMessage);
       } finally {
           setIsSubmitting(false);
