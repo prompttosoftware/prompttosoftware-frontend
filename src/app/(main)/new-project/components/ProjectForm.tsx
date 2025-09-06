@@ -71,6 +71,9 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         maxRuntimeHours: project.maxRuntime ?? 0,
         maxBudget: project.maxCost ?? 50, 
         githubRepositories: mappedRepositories,
+        experiment: project.experiment ?? false,
+        maxExperiments: project.maxExperiments ?? 20,
+        criteria: project.criteria ?? [],
         advancedOptions: {
             installations: project.installations ?? [],
             jiraLinked: project.useJira ?? false,
@@ -106,6 +109,9 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
       maxRuntimeHours: 24,
       maxBudget: 20,
       githubRepositories: [],
+      experiment: false,
+      maxExperiments: 20,
+      criteria: [],
       advancedOptions: {
         aiModels: createDefaultAiModels(),
         installations: [],

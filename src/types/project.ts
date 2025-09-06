@@ -32,6 +32,9 @@ export interface ProjectFormData {
   maxRuntimeHours: number;
   maxBudget: number;
   githubRepositories: GithubRepository[];
+  experiment: boolean;
+  maxExperiments: number;
+  criteria?: Criteria[];
   advancedOptions: {
     aiModels: Models;
     installations: { name: string }[];
@@ -94,6 +97,24 @@ export interface Installation {
   name: string;
 }
 
+export interface Criteria {
+    id: string;
+    description: string;
+}
+
+export interface Plan {
+    id: string;
+    description: string;
+    report: string;
+    results: Result[]; 
+}
+
+export interface Result {
+    criteriaId: string;
+    reason: string;
+    score: number;
+}
+
 export type Provider = "google" | "openrouter" | "openai" | "groq" | "anthropic" | "deepseek";
 export type TestLevel = 'standard' | 'none' | 'required';
 export type RequestType = 'bug' | 'change' | 'production' | 'dev' | 'auto';
@@ -135,6 +156,10 @@ export interface Project {
   requestType: RequestType,
   devMode: DevMode,
   singleIssue: boolean,
+  experiment: boolean;
+  maxExperiments: number;
+  criteria?: Criteria[],
+  plans?: Plan[];
 }
 
 // An interface for the populated user data
@@ -272,6 +297,12 @@ export const formSchema = z.object({
       }),
     ]),
   ),
+  experiment: z.boolean(),
+  maxExperiments: z.number().min(1, 'At least one experiment is required.').max(1000, 'A maximum of 1000 experiments is allowed.'),
+  criteria: z.array(z.object({
+    id: z.string(),
+    description: z.string(),
+  })).max(10, 'A maximum of 10 criteria are allowed.').optional(),
   advancedOptions: z.object({
     aiModels: z.object({
       utility: z.array(z.object({ provider: z.string(), model: z.string() })).default([]),
