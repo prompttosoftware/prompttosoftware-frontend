@@ -115,6 +115,7 @@ export default function BudgetAndRuntime() {
               <Input
                 id="maxExperiments"
                 type="number"
+                defaultValue={20}
                 placeholder="e.g., 20"
                 {...register('maxExperiments', { valueAsNumber: true })}
                 className="mt-1"
@@ -127,7 +128,7 @@ export default function BudgetAndRuntime() {
             {/* Criteria Management */}
             <div className="space-y-3">
               <div>
-                <Label className="text-base">Success Criteria</Label>
+                <Label className="text-base">Success Criteria (Optional)</Label>
                 <p className="text-sm text-muted-foreground">
                   Define up to {MAX_CRITERIA} criteria to evaluate the experiment's success.
                 </p>

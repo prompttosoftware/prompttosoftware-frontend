@@ -319,7 +319,7 @@ export const formSchema = z.object({
     jiraProjectKey: z.string().optional(),
     testLevel: z.enum(['standard', 'none', 'required']).default('standard'),
     requestType: z.enum(['bug', 'change', 'production', 'dev', 'auto' ]).default('auto'),
-    devMode: z.enum(['auto', 'general_purpose', 'write_test_repeat']).default('general_purpose'),
+    devMode: z.enum(['auto', 'general_purpose', 'write_test_repeat']).default('write_test_repeat'),
     singleIssue: z.boolean()
   }),
 });

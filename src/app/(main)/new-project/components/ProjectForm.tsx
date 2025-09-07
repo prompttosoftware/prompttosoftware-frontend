@@ -81,7 +81,7 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
             aiModels: finalModels,
             testLevel: project.testLevel ?? 'standard',
             requestType: project.requestType ?? 'auto',
-            devMode: project.devMode ?? 'general_purpose',
+            devMode: project.devMode ?? 'write_test_repeat',
             singleIssue: project.singleIssue ?? false,
         },
     };

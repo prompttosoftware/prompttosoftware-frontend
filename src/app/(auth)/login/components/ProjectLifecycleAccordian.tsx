@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Sparkles, GitBranch, RefreshCw, DollarSign } from 'lucide-react';
+import { ChevronDown, Sparkles, GitBranch, RefreshCw, DollarSign, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const lifecycleSteps = [
@@ -11,15 +11,23 @@ const lifecycleSteps = [
     title: '1. Define & Launch',
     content: (
       <>
-        <p className="mb-4">
-          Describe your project in any language or framework. Our autonomous system handles the rest—creating repositories, writing code, running tests, and even researching solutions.
-        </p>
-        <p className="mb-4">
-          You have full control to choose the exact AI models for different tasks, from cost-effective options to powerful frontier models.
-        </p>
-        <div className="mt-4 rounded-lg bg-muted p-4 border">
+        <ul className="space-y-4 mb-6 pl-2"> 
+          <li className="flex gap-3">
+            <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+            <span>
+              Describe your project in any language or framework. Our autonomous system handles the rest—creating repositories, writing code, running tests, and even researching solutions.
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+            <span>
+              You have full control to choose the exact AI models for different tasks, from cost-effective options to powerful frontier models.
+            </span>
+          </li>
+        </ul>
+        <div className="rounded-lg bg-muted p-4 border">
+          {/* This pricing box was already well-structured, so we leave it as is. */}
           <div className="flex items-center gap-3 mb-3">
-            <DollarSign className="h-6 w-6 text-primary flex-shrink-0" />
             <h4 className="text-lg font-semibold text-card-foreground">Transparent, Usage-Based Pricing</h4>
           </div>
           <ul className="space-y-2 text-card-foreground text-sm list-disc pl-5">
@@ -50,17 +58,26 @@ const lifecycleSteps = [
     icon: GitBranch,
     title: '2. Collaborate & Iterate',
     content: (
-      <>
-        <p className="mb-4">
-          The AI works alongside you and your team. Point it to existing GitHub repositories to add features or fix bugs. It commits code, opens pull requests, and updates Jira tickets just like a human developer.
-        </p>
-        <p className="mb-4">
-          If you move a Jira ticket to "In Progress," the AI won't touch it. It pulls the latest code before every task, ensuring it's always up-to-date with your team's changes.
-        </p>
-        <p>
-          A single project can span multiple repositories. The AI works concurrently on your frontend, backend, mobile apps, games, etc., understanding the complete architecture to ensure all components work together.
-        </p>
-      </>
+      <ul className="space-y-4 mb-6 pl-2"> 
+        <li className="flex gap-3">
+          <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+          <span>
+            The AI works alongside you and your team. Point it to existing GitHub repositories to add features or fix bugs. It commits code, opens pull requests, and updates Jira tickets just like a human developer.
+          </span>
+        </li>
+        <li className="flex gap-3">
+          <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+          <span>
+            If you move a Jira ticket to "In Progress," the AI won't touch it. It pulls the latest code before every task, ensuring it's always up-to-date with your team's changes.
+          </span>
+        </li>
+        <li className="flex gap-3">
+          <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+          <span>
+            A single project can span multiple repositories. The AI works concurrently on your frontend, backend, mobile apps, games, etc., understanding the complete architecture to ensure all components work together.
+          </span>
+        </li>
+      </ul>
     ),
   },
   {
@@ -69,15 +86,25 @@ const lifecycleSteps = [
     title: '3. Evolve & Maintain',
     content: (
       <>
-        <p className="mb-4">
-          Your project is a living entity. When development is complete, you can restart the agent at any time with a new description to request specific features, general improvements, or bug fixes.
-        </p>
-        <p className="mb-4">
-          If your project is linked to Jira, the AI will automatically pick up any new tickets you've added or moved back to the "To Do" column—no need to even change the project description.
-        </p>
-        <p className="mt-4 text-primary/90 font-medium">
-          We embrace creative freedom. Our system is designed to be unconstrained, letting the AI attempt ambitious tasks. This might lead to 'AI jank'—unexpected but often innovative results. We give you the freedom to build anything, no matter how ambitious.
-        </p>
+        <ul className="space-y-4 mb-6 pl-2"> 
+          <li className="flex gap-3">
+            <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+            <span>
+              Your project is a living entity. When development is complete, you can restart the agent at any time with a new description to request specific features, general improvements, or bug fixes.
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+            <span>
+              If your project is linked to Jira, the AI will automatically pick up any new tickets you've added or moved back to the "To Do" column—no need to even change the project description.
+            </span>
+          </li>
+        </ul>
+        <div className="mt-6 text-card-foreground bg-primary/10 p-4 rounded-md border border-primary/20">
+          <p>
+            <span className="font-semibold text-primary">We embrace creative freedom.</span> Our system is designed to be unconstrained, letting the AI attempt ambitious tasks. This might lead to 'AI jank'—unexpected but often innovative results. We give you the freedom to build anything, no matter how ambitious.
+          </p>
+        </div>
       </>
     ),
   },
@@ -101,7 +128,7 @@ export function ProjectLifecycleAccordion() {
               className="w-full flex justify-between items-center p-6 text-left"
             >
               <div className="flex items-center gap-4">
-                <step.icon className="w-7 h-7 text-primary" />
+                <step.icon className="w-6 h-6 text-primary" strokeWidth={1.75} />
                 <h3 className="text-xl font-semibold text-card-foreground">
                   {step.title}
                 </h3>
@@ -120,7 +147,7 @@ export function ProjectLifecycleAccordion() {
               )}
             >
               <div className="overflow-hidden">
-                <div className="px-6 pb-6 pt-0 text-muted-foreground">
+                <div className="px-6 pb-6 pt-0 text-card-foreground leading-relaxed">
                   {step.content}
                 </div>
               </div>

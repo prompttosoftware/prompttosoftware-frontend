@@ -12,15 +12,15 @@ const ESTIMATION_CONFIG = {
   // Costs
   RATES: {
     FLAT_RATE_PER_HOUR: 0.036 + 0.036 + 0.125, // Flat rate per hour in USD
-    HOURLY_AI_API_COST: 1,  // Hourly cost for external AI API usage
+    HOURLY_AI_API_COST: 0.5,  // Hourly cost for external AI API usage
   },
   // ML Model settings
   MODEL: {
     // This model outputs positive, neutral, and negative scores.
     NAME: 'Xenova/distilbert-base-multilingual-cased-sentiments-student',
     // We will combine these scores into a single value to estimate complexity.
-    MIN_ESTIMATED_DURATION: 4,  // hours, for a purely positive (simple) project
-    MAX_ESTIMATED_DURATION: 24, // hours, for a purely negative (complex) project
+    MIN_ESTIMATED_DURATION: 0.5,  // hours, for a purely positive (simple) project
+    MAX_ESTIMATED_DURATION: 12, // hours, for a purely negative (complex) project
     // Weights to convert sentiment labels into a single complexity score.
     // Higher weight = simpler. Lower/negative weight = more complex.
     SENTIMENT_WEIGHTS: {
@@ -33,7 +33,7 @@ const ESTIMATION_CONFIG = {
   HEURISTICS: {
     // --- 3. More Extensive Heuristics ---
     BASE_WORDS_PER_HOUR: 20, // Base calculation: 1 hour for every 20 words
-    MINIMUM_DURATION: 2,     // Minimum duration in hours for any project
+    MINIMUM_DURATION: 1,     // Minimum duration in hours for any project
     COMPLEXITY_KEYWORDS: {
       // Keywords that increase the complexity score
       'complex': 3, 'advanced': 3, 'intricate': 3, 'sophisticated': 3,
