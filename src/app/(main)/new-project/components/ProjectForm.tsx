@@ -118,7 +118,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
         jiraLinked: false,
         testLevel: 'standard' as TestLevel,
         requestType: 'auto' as RequestType,
-        devMode: 'general_purpose' as DevMode,
+        devMode: 'write_test_repeat' as DevMode,
         singleIssue: false
       },
     };
