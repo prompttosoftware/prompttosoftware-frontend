@@ -48,8 +48,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   // State
   const [input, setInput] = useState('');
   const [settings, setSettings] = useState<ChatSettings>({
-    provider: 'openai',
-    model: 'gpt-4-turbo',
+    provider: 'openrouter',
+    model: 'qwen/qwen-turbo',
     temperature: 0.7,
     top_k: 40,
     analysisId: initialAnalysisId,
@@ -61,7 +61,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     // When an existing chat is loaded, update the UI settings to match it.
     if (data?.chat) {
       setSettings({
-        provider: data.chat.model.provider || 'openai',
+        provider: data.chat.model.provider || 'openrouter',
         model: data.chat.model.model,
         temperature: data.chat.temperature || 0.7,
         top_k: data.chat.top_k || 40,
