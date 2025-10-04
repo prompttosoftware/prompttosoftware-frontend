@@ -5,7 +5,10 @@ export interface TutorialStep {
   targetSelector?: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
   disableBeacon?: boolean;
+  device?: 'mobile' | 'desktop' | 'all';
 }
+
+export const TUTORIAL_CONTEXT_COOKIE = 'tutorial_context';
 
 export const tutorialSteps: TutorialStep[] = [
   // --- Section 1: Introduction & Dashboard ---
@@ -26,6 +29,12 @@ export const tutorialSteps: TutorialStep[] = [
   },
 
   // --- Section 2: Exploration ---
+  {
+    id: 'new-explore-expand',
+    title: 'Expand Nav Bar',
+    description: 'Next let\'s navigate to the explore page.',
+    targetSelector: '#mobile-nav-toggle-button',
+  },
   {
     id: 'nav-explore',
     title: 'Explore Projects',
@@ -48,7 +57,14 @@ export const tutorialSteps: TutorialStep[] = [
     position: 'bottom',
   },
 
+  
   // --- Section 3: Project Creation ---
+  {
+    id: 'new-project-expand',
+    title: 'Expand Nav Bar',
+    description: 'Next let\'s navigate to the new project page.',
+    targetSelector: '#mobile-nav-toggle-button',
+  },
   {
     id: 'nav-new-project',
     title: 'Create a New Project',
@@ -134,3 +150,44 @@ export const tutorialSteps: TutorialStep[] = [
     position: 'bottom',
   },
 ];
+
+export const repoAnalysisTutorialSteps: TutorialStep[] = [
+  {
+    id: 'welcome-repo-analysis',
+    title: 'Welcome to Repo Analysis!',
+    description: "Let's walk through how to analyze an existing repository.",
+    position: 'center',
+  },
+  {
+    id: 'repo-analysis-select',
+    title: 'Select Your Repository',
+    description: 'Start by choosing the repository you want to analyze from this list.',
+    targetSelector: '#repo-selection-component', // Example selector
+    position: 'bottom',
+  },
+  {
+    id: 'repo-analysis-start-button',
+    title: 'Begin Analysis',
+    description: 'Once you have selected a repo, click here to start the analysis process.',
+    targetSelector: '#start-analysis-button', // Example selector
+    position: 'right',
+  },
+  // ... add more steps specific to this flow
+];
+
+/**
+ * Retrieves the appropriate tutorial steps based on a context string.
+ * @param context - The context, usually from a cookie (e.g., 'default', 'repo_analysis').
+ * @returns An array of TutorialStep objects.
+ */
+export const getTutorialForContext = (context: string | undefined): TutorialStep[] => {
+  switch (context) {
+    case 'repo_analysis':
+      console.log('Loading repo analysis tutorial');
+      return repoAnalysisTutorialSteps;
+    case 'default':
+    default:
+      console.log('Loading default tutorial');
+      return tutorialSteps;
+  }
+};

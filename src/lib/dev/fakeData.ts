@@ -1,7 +1,9 @@
+import { Analysis, Node } from '@/types/analysis';
 import { UserProfile } from '@/types/auth';
 import { Banner } from '@/types/banner';
+import { Chat, ChatMessage } from '@/types/chat';
 import { SavedCard } from '@/types/payments';
-import { Model, Project } from '@/types/project';
+import { DesiredStatus, Model, Project, Status } from '@/types/project';
 
 const commonModels = {
   utility: [{ provider: 'openai', model: 'gpt-3.5-turbo' } as Model],
@@ -71,6 +73,7 @@ export const FAKE_PROJECTS: Project[] = [
     requestType: 'auto',
     devMode: 'general_purpose',
     singleIssue: false,
+    cascade: false,
     experiment: false,
     maxExperiments: 20,
   },
@@ -124,6 +127,7 @@ export const FAKE_PROJECTS: Project[] = [
     requestType: 'auto',
     devMode: 'general_purpose',
     singleIssue: false,
+    cascade: false,
     experiment: false,
     maxExperiments: 20,
   },
@@ -173,6 +177,7 @@ export const FAKE_PROJECTS: Project[] = [
     requestType: 'change',
     devMode: 'general_purpose',
     singleIssue: false,
+    cascade: false,
     experiment: false,
     maxExperiments: 20,
   },
@@ -226,6 +231,7 @@ export const FAKE_PROJECTS: Project[] = [
     requestType: 'bug',
     devMode: 'general_purpose',
     singleIssue: false,
+    cascade: false,
     experiment: false,
     maxExperiments: 20,
   },
@@ -275,6 +281,7 @@ export const FAKE_PROJECTS: Project[] = [
     requestType: 'dev',
     devMode: 'general_purpose',
     singleIssue: false,
+    cascade: false,
     experiment: false,
     maxExperiments: 20,
   },
@@ -320,6 +327,7 @@ export const FAKE_PROJECTS: Project[] = [
     devMode: 'general_purpose',
     singleIssue: false,
     experiment: false,
+    cascade: false,
     maxExperiments: 20,
   },
 ];
@@ -336,8 +344,6 @@ export const FAKE_USER: UserProfile = {
     jira: { isLinked: false },
   },
   apiKeys: [
-    { provider: 'OPENAI', api_key: 'sk-xxxxxx' },
-    { provider: 'GOOGLE', api_key: 'AIzaSyxxxxxx' },
   ],
   starredProjects: [],
   accountStatus: 'healthy',
@@ -880,3 +886,204 @@ export const FAKE_ANNOUNCEMENTS: Banner[] = [
         message: '📢 Our annual summer sale is now live! Use code SUMMER25 for 25% off.',
     },
 ];
+
+// Helper function to get a date a bit in the past
+const getPastDate = (days: number): Date => {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d;
+};
+
+const date1 = getPastDate(5);
+const date2 = getPastDate(2);
+const date3 = getPastDate(0.5);
+
+// --- Fake Node Data ---
+
+const fakeFileNode1: Node = {
+    name: 'src/components/UserList.tsx',
+    isContainer: false,
+    description: 'Component for displaying a list of users. Contains performance issues.',
+    externalDependencies: ['react', 'axios'],
+    internalDependencies: ['src/api/users.ts', 'src/types/user.ts'],
+    potentialBugs: ['Off-by-one error in pagination logic'],
+    styleIssues: ['Missing JSDoc comments', 'Long function definitions'],
+    securityConcerns: [],
+    incompleteCode: [],
+    performanceConcerns: ['Unnecessary re-renders with large data sets'],
+    createdAt: date1,
+    updatedAt: date2,
+};
+
+const fakeFileNode2: Node = {
+    name: 'server/auth/authService.js',
+    isContainer: false,
+    description: 'Service for handling user authentication and token generation.',
+    externalDependencies: ['express', 'jsonwebtoken', 'bcrypt'],
+    internalDependencies: [],
+    potentialBugs: [],
+    styleIssues: [],
+    securityConcerns: ['Uses hardcoded secret key for JWT signing'],
+    incompleteCode: [],
+    performanceConcerns: [],
+    createdAt: date2,
+    updatedAt: date3,
+};
+
+const fakeContainerNode: Node = {
+    name: 'API interaction',
+    isContainer: true,
+    description: 'Contains all API interaction logic.',
+    children: [
+        {
+            name: 'src/api/users.ts',
+            isContainer: false,
+            description: 'API functions for user management.',
+            externalDependencies: ['axios'],
+            internalDependencies: [],
+            potentialBugs: [],
+            styleIssues: [],
+            securityConcerns: ['No input validation on POST requests'],
+            incompleteCode: [],
+            performanceConcerns: [],
+            createdAt: date1,
+            updatedAt: date1,
+        }
+    ],
+    createdAt: date1,
+    updatedAt: date2,
+};
+
+// --- Fake Analysis Array ---
+
+export const FAKE_ANALYSIS_ARRAY: Analysis[] = [
+    {
+        _id: 'analysis-001',
+        userId: 'test-user-id-1',
+        projectId: 'project-frontend-01',
+        repository: 'git@github.com:devuser/web-app.git',
+        cost: 4.50,
+        descriptions: [fakeContainerNode, fakeFileNode1],
+        testReport: {
+            content: '95% code coverage. 4 failed tests in UserList.tsx.',
+        },
+        buildReport: {
+            content: 'Build successful. Warnings: 10.',
+        },
+        status: 'error' as Status,
+        desiredStatus: 'stopped' as DesiredStatus,
+        createdAt: date1,
+        updatedAt: date2,
+    },
+    {
+        _id: 'analysis-002',
+        userId: 'test-user-id-2',
+        projectId: 'project-backend-02',
+        repository: 'git@gitlab.com:prompttosoftware/api-service.git',
+        cost: 2.15,
+        descriptions: [fakeFileNode2],
+        runReport: {
+            content: 'Analysis runtime: 120 seconds. No critical errors found during execution.',
+        },
+        status: 'running' as Status,
+        desiredStatus: 'running' as DesiredStatus,
+        createdAt: date2,
+        updatedAt: date3,
+    },
+    {
+        _id: 'analysis-003',
+        userId: 'test-user-id-1',
+        projectId: 'project-frontend-01',
+        repository: 'git@github.com:devuser/web-app.git',
+        cost: 0.00,
+        descriptions: [],
+        status: 'pending' as Status,
+        desiredStatus: 'running' as DesiredStatus,
+        createdAt: date3,
+        updatedAt: date3,
+    }
+];
+
+export const FAKE_CHATS: Chat[] = [
+    {
+        _id: 'chat_1',
+        userId: 'user_123',
+        repository: 'openai/gpt-3',
+        model: { model: 'gpt-4-turbo', provider: 'openrouter' },
+        cost: 0.015,
+        name: 'useEffect hook help',
+        activeMessageId: 'msg_3',
+        createdAt: new Date('2023-10-26T10:00:00Z'),
+        updatedAt: new Date('2023-10-26T10:05:00Z'),
+    },
+    {
+        _id: 'chat_2',
+        userId: 'user_123',
+        repository: 'facebook/react',
+        analysisId: '3802ev353',
+        model: { model: 'claude-3-opus', provider: 'openrouter' },
+        cost: 0.022,
+        name: 'Capital of France',
+        activeMessageId: 'msg_6',
+        createdAt: new Date('2023-10-27T11:00:00Z'),
+        updatedAt: new Date('2023-10-27T11:10:00Z'),
+    },
+];
+
+export const FAKE_MESSAGES_BY_CHAT: Record<string, ChatMessage[]> = {
+    'chat_1': [
+        {
+            _id: 'msg_1',
+            chatId: 'chat_1',
+            sender: 'user',
+            content: 'How do I use the useEffect hook?',
+            parentMessageId: null,
+            branchIndex: 0,
+            totalBranches: 1,
+            createdAt: new Date('2023-10-26T10:00:00Z'),
+        },
+        {
+            _id: 'msg_2',
+            chatId: 'chat_1',
+            sender: 'ai',
+            content: 'The `useEffect` hook lets you perform side effects in function components. Here is an example...',
+            parentMessageId: 'msg_1',
+            branchIndex: 0,
+            totalBranches: 2, // It has a sibling now
+            createdAt: new Date('2023-10-26T10:01:00Z'),
+        },
+        {
+            _id: 'msg_3', // An alternative response (branch 2)
+            chatId: 'chat_1',
+            sender: 'ai',
+            content: 'You can think of `useEffect` as `componentDidMount`, `componentDidUpdate`, and `componentWillUnmount` combined.',
+            parentMessageId: 'msg_1',
+            branchIndex: 1,
+            totalBranches: 2,
+            createdAt: new Date('2023-10-26T10:05:00Z'),
+        },
+    ],
+    'chat_2': [
+        {
+            _id: 'msg_5',
+            chatId: 'chat_2',
+            sender: 'user',
+            content: 'What is the capital of France?',
+            parentMessageId: null,
+            branchIndex: 0,
+            totalBranches: 1,
+            createdAt: new Date('2023-10-27T11:00:00Z'),
+        },
+        {
+            _id: 'msg_6',
+            chatId: 'chat_2',
+            sender: 'ai',
+            content: 'The capital of France is Paris.',
+            reasoning: 'I know this so not much reasoning is required. I will give the user the direct answer.',
+            parentMessageId: 'msg_5',
+            branchIndex: 0,
+            totalBranches: 1,
+            createdAt: new Date('2023-10-27T11:01:00Z'),
+        },
+    ],
+};

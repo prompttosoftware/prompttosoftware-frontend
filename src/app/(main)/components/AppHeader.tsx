@@ -17,6 +17,7 @@ export default function AppHeader({ onMobileNavOpen }: { onMobileNavOpen: () => 
     <header className="sticky top-0 h-16 bg-background border flex items-center justify-between px-4 md:px-8 z-30 flex-shrink-0">
       <div className="flex items-center">
         <button
+          id="mobile-nav-toggle-button"
           className="md:hidden p-2 mr-2"
           onClick={onMobileNavOpen}
           aria-label="Open navigation"

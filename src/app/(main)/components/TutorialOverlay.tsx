@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { tutorialSteps } from '@/lib/tutorialSteps';
+import { getTutorialForContext, TUTORIAL_CONTEXT_COOKIE, TutorialStep, tutorialSteps } from '@/lib/tutorialSteps';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { logger } from '@/utils/logger';
@@ -21,6 +21,35 @@ const beaconStyles = `
 interface TutorialOverlayProps {
   onComplete: () => void;
 }
+
+// --- Helper Hook for Media Queries ---
+const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    window.addEventListener('resize', listener);
+    return () => window.removeEventListener('resize', listener);
+  }, [matches, query]);
+
+  return matches;
+};
+
+// --- Helper function to get a cookie by name ---
+const getCookie = (name: string): string | undefined => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+};
+
+// --- Helper function to clear a cookie ---
+const clearCookie = (name: string) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
 
 const useTrackedElement = (selector: string | null | undefined) => {
   const [element, setElement] = useState<Element | null>(null);
@@ -113,7 +142,9 @@ const useTrackedElement = (selector: string | null | undefined) => {
 const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
   const { isActive, start: startTutorial, end: endTutorial } = useTutorialStore();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const popoverRef = useRef<HTMLDivElement>(null); // Ref to measure the popover itself
+  const [activeSteps, setActiveSteps] = useState<TutorialStep[]>([]);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)'); // Mobile breakpoint at 768px
 
   // Check if tutorial should start
   useEffect(() => {
@@ -130,21 +161,57 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
     };
   }, [endTutorial]);
 
+  // --- Select the correct tutorial on mount and start if needed ---
+  useEffect(() => {
+    const hasCompleted = localStorage.getItem(TUTORIAL_COMPLETED_KEY);
+    if (!hasCompleted) {
+      const context = getCookie(TUTORIAL_CONTEXT_COOKIE);
+      const steps = getTutorialForContext(context);
+      setActiveSteps(steps);
+
+      const firstValidStepIndex = findNextValidStep(0, steps);
+      if (firstValidStepIndex !== -1) {
+        setCurrentStepIndex(firstValidStepIndex);
+        startTutorial();
+      } else {
+        // No valid steps for this device, so just complete it.
+        finishTutorial(true); 
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startTutorial]);
+
+  // --- Helper function to find the next valid step for the current device ---
+  const findNextValidStep = (startIndex: number, steps: TutorialStep[]): number => {
+    for (let i = startIndex; i < steps.length; i++) {
+      const step = steps[i];
+      const device = step.device || 'all';
+      if (device === 'all') return i;
+      if (device === 'mobile' && isMobile) return i;
+      if (device === 'desktop' && !isMobile) return i;
+    }
+    return -1; // No more valid steps found
+  };
+
   const currentStep = isActive ? tutorialSteps[currentStepIndex] : null;
   const { rect, isFinding } = useTrackedElement(currentStep?.targetSelector);
 
-  const handleNext = () => {
-    if (currentStepIndex < tutorialSteps.length - 1) {
-      setCurrentStepIndex(prev => prev + 1);
+   const handleNext = () => {
+    const nextValidIndex = findNextValidStep(currentStepIndex + 1, activeSteps);
+    if (nextValidIndex !== -1) {
+      setCurrentStepIndex(nextValidIndex);
     } else {
       finishTutorial();
     }
   };
 
-  const finishTutorial = () => {
-    localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true');
-    endTutorial(); // 4. Set global state to false
-    onComplete();
+  const finishTutorial = (silent = false) => {
+    if (!silent) {
+        localStorage.setItem(TUTORIAL_COMPLETED_KEY, 'true');
+        onComplete();
+    }
+    clearCookie(TUTORIAL_CONTEXT_COOKIE); // Clear the context cookie
+    endTutorial();
   };
 
   if (!isActive || !currentStep || isFinding) {
@@ -161,11 +228,13 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
 
   const isLastStep = currentStepIndex === tutorialSteps.length - 1;
   const shouldShowNextButton = currentStep.disableBeacon || isCenteredStep;
+  const totalSteps = activeSteps.filter(step => (step.device || 'all') === 'all' || (step.device === 'mobile' && isMobile) || (step.device === 'desktop' && !isMobile)).length;
+  const currentStepNumber = activeSteps.slice(0, currentStepIndex + 1).filter(step => (step.device || 'all') === 'all' || (step.device === 'mobile' && isMobile) || (step.device === 'desktop' && !isMobile)).length;
 
   const PopoverContent = (
     <>
       <button
-        onClick={finishTutorial}
+        onClick={() => finishTutorial()}
         className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-popover-foreground"
         aria-label="Skip tutorial"
       >
@@ -175,7 +244,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
       <p className="text-sm text-popover-foreground">{currentStep.description}</p>
       <div className="mt-4 flex items-center justify-between">
         <span className="text-xs font-medium text-popover-foreground">
-          Step {currentStepIndex + 1} of {tutorialSteps.length}
+          Step {currentStepNumber} of {totalSteps}
         </span>
         {shouldShowNextButton ? (
           <Button onClick={handleNext}>{isLastStep ? 'Finish' : 'Next'}</Button>

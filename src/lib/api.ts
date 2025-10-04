@@ -1,8 +1,10 @@
 import { setupHttpClientInterceptors, httpClient } from '@/lib/httpClient';
 import { paymentsService } from '@/services/paymentsService';
+import { Analysis, AnalysisFormData, GetAnalysisResponse } from '@/types/analysis';
 
 // Auth Types
 import { UserProfile, AuthResponse } from '@/types/auth';
+import { CreateChatInput, CreateChatResponse, PaginationParams, GetChatResponse, SendMessageInput, SendMessageResponse, RegenerateResponseInput, RegenerateResponse, SwitchBranchInput, SwitchBranchResponse, Chat, EditMessageInput, EditMessageResponse } from '@/types/chat';
 import { SavedCard } from '@/types/payments';
 
 // Project Types
@@ -34,7 +36,6 @@ export interface ApiKeyPayload {
 
 export { paymentsService };
 
-// Generic/Utility Types from your original file
 export interface PaginatedResponse<T> {
  data: T[];
  page: number;
@@ -152,7 +153,6 @@ export const api = {
 
  // project lifecycle
   /**
-   * --- MODIFIED ---
    * Creates a new project and initiates its start-up process.
    * The payload is now the complete form data.
    * Corresponds to: POST /api/projects
@@ -163,7 +163,6 @@ export const api = {
   },
 
   /**
-   * --- NEW ---
    * Updates an existing project's details.
    * The payload is the complete form data.
    * Corresponds to: PUT /api/projects/:projectId
@@ -366,6 +365,145 @@ export const api = {
     const response = await httpClient.post<{ data: { stars: number } }>(`/projects/${projectId}/unstar`);
     return response.data.data;
   },
+
+  /**
+   * Fetches the complete data for a single analysis by its ID.
+   * Corresponds to: GET /analysis/:analysisId
+   * @param analysisId - The ID of the project to fetch.
+   */
+  getAnalysisById: async (analysisId: string): Promise<Analysis> => {
+    const response = await httpClient.get<GetAnalysisResponse>(`/analysis/${analysisId}`);
+    return response.data.data;
+  },
+
+  /**
+   * Fetches the list of projects for the currently logged-in user.
+   * Corresponds to: GET /analysis/user
+   */
+  listUserAnalysis: async (): Promise<Analysis[]> => {
+    const response = await httpClient.get<{ data: Analysis[] }>('/analysis/user');
+    return response.data.data;
+  },
+
+  /**
+   * Deletes a analysis by its ID.
+   * DELETE /analysis/:analysisId
+   */
+  deleteAnalysis: async (analysisId: string): Promise<ProjectActionResponse> => {
+    const response = await httpClient.delete<ProjectActionResponse>(`/analysis/${analysisId}`);
+    return response.data;
+  },
+
+  /**
+   * Creates a new analysis and initiates its start-up process.
+   * Corresponds to: POST /analysis
+   */
+  createAnalysis: async (payload: AnalysisFormData): Promise<Analysis> => {
+      const response = await httpClient.post<Analysis>("/analysis", payload);
+      return response.data;
+  },
+
+  /**
+   * Reruns an analysis, which creates a new one and starts it.
+   * Corresponds to: POST /analysis/:analysisId/rerun
+   */
+  rerunAnalysis: async (analysisId: string, payload?: AnalysisFormData): Promise<Analysis> => {
+      const response = await httpClient.post<Analysis>(`/analysis/${analysisId}/rerun`, payload);
+      return response.data;
+  },
+
+  // --- Chat API Methods ---
+    chat: {
+        /**
+         * Creates a new chat session and sends the first message.
+         * Corresponds to: POST /chats
+         * @param payload - The initial data for creating the chat.
+         */
+        createChat: async (payload: CreateChatInput): Promise<CreateChatResponse> => {
+            const response = await httpClient.post<CreateChatResponse>("/chats", payload);
+            return response.data;
+        },
+
+        /**
+         * Fetches all chat sessions for the user with pagination.
+         * Corresponds to: GET /chats
+         * @param params - Pagination parameters (page, limit).
+         */
+        getAllChats: async (params: PaginationParams): Promise<PaginatedResponse<Chat>> => {
+            const response = await httpClient.get<PaginatedResponse<Chat>>('/chats', { params });
+            return response.data;
+        },
+
+        /**
+         * Fetches a single chat session and its full message history for the active branch.
+         * Corresponds to: GET /chats/:chatId
+         * @param chatId - The ID of the chat to fetch.
+         */
+        getChatHistory: async (chatId: string): Promise<GetChatResponse> => {
+            const response = await httpClient.get<GetChatResponse>(`/chats/${chatId}`);
+            return response.data;
+        },
+
+        /**
+         * Deletes an entire chat session.
+         * Corresponds to: DELETE /chats/:chatId
+         * @param chatId - The ID of the chat to delete.
+         */
+        deleteChat: async (chatId: string): Promise<void> => {
+            await httpClient.delete(`/chats/${chatId}`);
+        },
+
+        /**
+         * Sends a new message in an existing chat.
+         * Corresponds to: POST /chats/:chatId/messages
+         */
+        sendMessage: async (chatId: string, payload: SendMessageInput): Promise<SendMessageResponse> => {
+            const response = await httpClient.post<SendMessageResponse>(`/chats/${chatId}/messages`, payload);
+            return response.data;
+        },
+
+        /**
+         * Regenerates an AI response from a specific point in the conversation, creating a new branch.
+         * Corresponds to: POST /chats/:chatId/regenerate
+         */
+        regenerateResponse: async (chatId: string, payload: RegenerateResponseInput): Promise<RegenerateResponse> => {
+            const response = await httpClient.post<RegenerateResponse>(`/chats/${chatId}/regenerate`, payload);
+            return response.data;
+        },
+
+        /**
+         * Edits a user's message, creating a new branch and getting a new AI response.
+         * Corresponds to: PUT /chats/:chatId/messages/:messageId
+         * @param chatId - The ID of the chat.
+         * @param messageId - The ID of the user message to edit.
+         * @param payload - The new content and optional model parameters.
+         */
+        editUserMessage: async (chatId: string, messageId: string, payload: EditMessageInput): Promise<EditMessageResponse> => {
+            const response = await httpClient.put<EditMessageResponse>(`/chats/${chatId}/messages/${messageId}`, payload);
+            return response.data;
+        },
+
+        /**
+         * Switches the active conversation to a different message branch.
+         * Corresponds to: PUT /chats/:chatId/switch-branch
+         * @param chatId - The ID of the chat.
+         * @param payload - Specifies the parent message and the new branch index to activate.
+         */
+        switchBranch: async (chatId: string, payload: SwitchBranchInput): Promise<SwitchBranchResponse> => {
+            const response = await httpClient.put<SwitchBranchResponse>(`/chats/${chatId}/switch-branch`, payload);
+            return response.data;
+        },
+        
+        /**
+         * Deletes a message and its entire branch of descendants.
+         * Corresponds to: DELETE /chats/messages/:messageId
+         * @param messageId - The ID of the message at the root of the branch to delete.
+         */
+        deleteMessage: async (messageId: string): Promise<void> => {
+            // Note: The route from your definition is /messages/:messageId, not nested under a chat ID.
+            await httpClient.delete(`/chats/messages/${messageId}`);
+        }
+    }
 };
 
 // Setup interceptors should be called once in the app's entry point

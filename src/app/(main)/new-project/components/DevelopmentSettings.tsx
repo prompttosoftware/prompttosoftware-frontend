@@ -32,11 +32,13 @@ export default function DevelopmentSettings() {
   const requestTypeValue = watch('advancedOptions.requestType');
   const devModeValue = watch('advancedOptions.devMode');
   const singleIssueValue = watch('advancedOptions.singleIssue');
+  const cascadeValue = watch('advancedOptions.cascade');
   
   const initialTestLevel = defaultValues?.advancedOptions?.testLevel;
   const initialRequestType = defaultValues?.advancedOptions?.requestType;
   const initialDevMode = defaultValues?.advancedOptions?.devMode;
   const initialSingleIssue = defaultValues?.advancedOptions?.singleIssue;
+  const initialCascade = defaultValues?.advancedOptions?.cascade;
   
   const selectedTestLevel = testLevelOptions.find(opt => opt.value === testLevelValue);
   const selectedRequestType = requestTypeOptions.find(opt => opt.value === requestTypeValue);
@@ -156,6 +158,26 @@ export default function DevelopmentSettings() {
                 </Label>
                 <p className="text-xs text-muted-foreground">
                   One issue is used for the entire project.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Optimization</Label>
+            <div className="flex items-start space-x-3 rounded-md border p-4">
+              <Checkbox
+                id="cascade"
+                checked={cascadeValue}
+                defaultChecked={initialCascade}
+                onCheckedChange={(checked) => setValue('advancedOptions.cascade', !!checked)}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="cascade" className="font-medium">
+                  Cascade
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Write all the code for new repositories in parallel before testing.
                 </p>
               </div>
             </div>

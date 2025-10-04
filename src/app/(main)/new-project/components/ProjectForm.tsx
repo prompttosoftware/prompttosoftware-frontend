@@ -83,6 +83,7 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
             requestType: project.requestType ?? 'auto',
             devMode: project.devMode ?? 'write_test_repeat',
             singleIssue: project.singleIssue ?? false,
+            cascade: project.cascade ?? true,
         },
     };
 };
@@ -119,7 +120,8 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
         testLevel: 'standard' as TestLevel,
         requestType: 'auto' as RequestType,
         devMode: 'write_test_repeat' as DevMode,
-        singleIssue: false
+        singleIssue: false,
+        cascade: true,
       },
     };
   }, [isEditMode, initialProjectData]);
@@ -234,6 +236,11 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
         <h1 className="text-2xl font-bold mb-6">
             {isEditMode ? `Editing '${initialProjectData?.name}'` : 'Create a New Project'}
         </h1>
+        <div className="bg-secondary/20 border border-secondary rounded-lg p-3 mb-6">
+            <p className="text-sm text-muted-foreground">
+                A project establishes an <strong>autonomous AI developer</strong> capable of writing code, running tests, and managing repositories based on your description. Once started, the AI works independently. All collaboration (code and issue management) is handled through <strong>GitHub</strong> and linked <strong>Jira</strong> accounts.
+            </p>
+        </div>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit, (errors) => {
               console.error("Form validation failed:", errors);

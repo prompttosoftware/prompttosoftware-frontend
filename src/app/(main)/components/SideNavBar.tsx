@@ -11,14 +11,18 @@ import {
   QuestionMarkCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Cog6ToothIcon, // Import the settings icon
-} from '@heroicons/react/24/outline'; // Using outline icons
+  Cog6ToothIcon,
+  ClipboardDocumentCheckIcon,
+  ChatBubbleOvalLeftEllipsisIcon,
+} from '@heroicons/react/24/outline';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'New Project', href: '/new-project', icon: PlusIcon },
   { name: 'Projects', href: '/projects', icon: FolderIcon },
+  { name: 'Analysis', href: '/analysis', icon: ClipboardDocumentCheckIcon },
+  { name: 'Chat', href: '/chat/new', icon: ChatBubbleOvalLeftEllipsisIcon },
   { name: 'Explore', href: '/explore', icon: RocketLaunchIcon },
   { name: 'Help', href: '/help', icon: QuestionMarkCircleIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
@@ -41,12 +45,18 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
     setIsExpanded(!isExpanded);
   };
 
+  const handleNavigationClick = () => {
+    if (isMobileNavOpen) {
+      setIsMobileNavOpen(false);
+    }
+  };
+
   return (
     <Tooltip.Provider>
       {/* Mobile overlay */}
       {isMobileNavOpen && (
         <div
-          className="fixed inset-0 bg-popover z-40 md:hidden"
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsMobileNavOpen(false)}
           aria-hidden="true"
         ></div>
@@ -91,6 +101,7 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 href={item.href}
                 className="flex items-center p-3 rounded-lg text-sm font-medium justify-start text-foreground transition-colors duration-200 focus:outline-none focus:ring"
                 aria-label={item.name}
+                onClick={handleNavigationClick}
                 {...(
                   item.name === 'New Project' ? { 'id': 'nav-link-new-project' } :
                   item.name === 'Explore' ? { id: 'nav-link-explore' } :

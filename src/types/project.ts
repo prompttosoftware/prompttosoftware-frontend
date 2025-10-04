@@ -14,6 +14,7 @@ export interface ProjectMessage {
 }
 
 export type Status = 'pending' | 'running' | 'stopped' | 'error' | 'starting' | 'stopping';
+export type DesiredStatus = 'running' | 'stopped';
 export interface ProjectStatus {
   id: string;
   projectId: string;
@@ -44,6 +45,7 @@ export interface ProjectFormData {
     requestType: RequestType,
     devMode: DevMode,
     singleIssue: boolean,
+    cascade: boolean,
   };
 }
 
@@ -156,6 +158,7 @@ export interface Project {
   requestType: RequestType,
   devMode: DevMode,
   singleIssue: boolean,
+  cascade: boolean;
   experiment: boolean;
   maxExperiments: number;
   criteria?: Criteria[],
@@ -320,6 +323,7 @@ export const formSchema = z.object({
     testLevel: z.enum(['standard', 'none', 'required']).default('standard'),
     requestType: z.enum(['bug', 'change', 'production', 'dev', 'auto' ]).default('auto'),
     devMode: z.enum(['auto', 'general_purpose', 'write_test_repeat']).default('write_test_repeat'),
-    singleIssue: z.boolean()
+    singleIssue: z.boolean(),
+    cascade: z.boolean(),
   }),
 });

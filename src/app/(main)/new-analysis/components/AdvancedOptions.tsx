@@ -2,17 +2,10 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import ModelSelection from './ModelSelection';
-import InstallationManager from './InstallationsManager';
-import JiraIntegration from './JiraIntegration';
-import DevelopmentSettings from './DevelopmentSettings';
+import ModelSelection from '../../new-project/components/ModelSelection';
+import InstallationManager from '../../new-project/components/InstallationsManager';
 
-interface AdvancedOptionsProps {
-  isEditing: boolean;
-  isJiraGloballyLinked: boolean;
-}
-
-export default function AdvancedOptions({ isEditing, isJiraGloballyLinked }: AdvancedOptionsProps) {
+export default function AdvancedOptions() {
   const [show, setShow] = useState(false);
 
   if (!show) {
@@ -28,10 +21,8 @@ export default function AdvancedOptions({ isEditing, isJiraGloballyLinked }: Adv
       <Button type="button" onClick={() => setShow(false)} variant="secondary" className="w-full" id="advanced-options-toggle">
         Hide Advanced Options
       </Button>
-      <DevelopmentSettings />
       <ModelSelection />
       <InstallationManager />
-      <JiraIntegration isJiraGloballyLinked={isJiraGloballyLinked} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
 import { ExternalLink } from 'lucide-react';
 import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
+import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
 
 export function LoginContent() {
   const router = useRouter();
@@ -75,6 +76,9 @@ export function LoginContent() {
       
       // Clear success messages and navigate
       useSuccessMessageStore.getState().clearMessage();
+
+      document.cookie = `${TUTORIAL_CONTEXT_COOKIE}=default; path=/; max-age=300`;
+      // document.cookie = `${TUTORIAL_CONTEXT_COOKIE}=repo_analysis; path=/; max-age=300`;
       
       // Replace the current URL to remove the code parameter and navigate
       router.replace('/dashboard');
