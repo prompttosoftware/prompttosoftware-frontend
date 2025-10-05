@@ -30,12 +30,13 @@ export const useChatActions = (chatId?: string) => {
         onSuccess: (data) => {
             invalidateChatsList();
             // Pre-populate the cache for the new chat to avoid a loading flash on redirect
+            console.log(`Create chat response: ${JSON.stringify(data)}`);
             const newChatResponse: GetChatResponse = {
                 chat: data.chat,
                 messages: [data.userMessage, data.aiResponse],
             };
-            queryClient.setQueryData(['chat', data.chat._id], newChatResponse);
-            router.push(`/chat/${data.chat._id}`);
+            queryClient.setQueryData(['chat', data.chat?._id], newChatResponse);
+            router.push(`/chat/${data.chat?._id}`);
             toast.success('New chat created!');
         },
         onError: (error) => {

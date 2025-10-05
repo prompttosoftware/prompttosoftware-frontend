@@ -52,10 +52,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = ({ initialChats }) => {
       />
     );
   }
-
-  const allChats = data?.pages
-  .flatMap(page => page.data ?? [])
-  .filter(Boolean) ?? [];
+  
+  const allChats = data?.pages.flatMap(page => page.data ?? []) ?? [];
 
   if (allChats.length === 0) {
     return (
