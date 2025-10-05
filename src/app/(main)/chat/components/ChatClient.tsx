@@ -84,7 +84,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight });
     }
-  }, [data?.messages, createChat.isPending, sendMessage.isPending, mutations.regenerateResponse.isPending]);
+  }, [data?.messages, createChat.isPending, sendMessage.isPending, mutations.regenerateResponse?.isPending]);
 
   useEffect(() => {
     if (isError) {
@@ -150,7 +150,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     };
 
   const messages = data?.messages ?? [];
-  const isResponding = createChat.isPending || sendMessage.isPending || mutations.regenerateResponse.isPending;
+  const isResponding = createChat.isPending || sendMessage.isPending || mutations.regenerateResponse?.isPending;
 
   const displayedMessages = [...messages];
   if (optimisticMessage) {
@@ -173,7 +173,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       <main className="flex flex-1 flex-col">
         <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 md:p-6">
           <div className="mx-auto max-w-4xl space-y-8">
-          {messages.length === 0 ? (
+          {displayedMessages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground py-20">
               <Bot className="h-12 w-12 mb-4 opacity-50" />
               <p className="text-lg font-medium">No messages yet</p>

@@ -89,7 +89,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
                 autoFocus
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveEdit} disabled={mutations.editMessage.isPending}>
+                <Button size="sm" onClick={handleSaveEdit} disabled={mutations.editMessage?.isPending}>
                   {mutations.editMessage.isPending ? 'Saving...' : 'Save & Submit'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -133,7 +133,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
               <Tooltip>
                 <TooltipTrigger asChild>
                   {/* Disable edit button while another mutation is running */}
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)} disabled={mutations.editMessage.isPending || mutations.regenerateResponse.isPending}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)} disabled={mutations.editMessage?.isPending || mutations.regenerateResponse?.isPending}>
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit message</span>
                   </Button>
@@ -146,7 +146,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
               <Tooltip>
                 <TooltipTrigger asChild>
                   {/* Disable regenerate button while a mutation is running */}
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRegenerate} disabled={mutations.regenerateResponse.isPending || mutations.editMessage.isPending}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRegenerate} disabled={mutations.regenerateResponse?.isPending || mutations.editMessage?.isPending}>
                     <RefreshCw className="h-4 w-4" />
                     <span className="sr-only">Regenerate response</span>
                   </Button>
