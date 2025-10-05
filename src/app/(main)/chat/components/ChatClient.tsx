@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useChat } from '@/hooks/useChat';
 import { useChatActions } from '@/hooks/useChatActions';
-import { GetChatResponse, ChatSettings } from '@/types/chat';
+import { GetChatResponse, ChatSettings, ChatMessage as ChatMessageType } from '@/types/chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
 import ChatSidebar from './ChatSidebar';
@@ -47,6 +47,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
   // State
   const [input, setInput] = useState('');
+  const [optimisticMessage, setOptimisticMessage] = useState<ChatMessageType | null>(null);
   const [settings, setSettings] = useState<ChatSettings>({
     provider: 'openrouter',
     model: 'qwen/qwen-turbo',
@@ -75,6 +76,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     // The createChat mutation hook handles the redirect, so we just need to update the chatId state
     if (createChat.data?.chat._id) {
         setChatId(createChat.data.chat._id);
+        setOptimisticMessage(null);
     }
   }, [createChat.data]);
 
@@ -96,23 +98,42 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     if (!content || isResponding) return;
 
     if (chatId === 'new') {
-        try {
-        await createChat.mutateAsync({
-            repository: 'your-github/repository-name',
-            initialContent: content,
-            systemPrompt: systemPrompt || undefined,
-            analysisId: settings.analysisId,
-            model: { primary: settings.model },
-            temperature: settings.temperature,
-            top_k: settings.top_k,
-        });
-
+        const tempUserMessage: ChatMessageType = {
+            _id: `optimistic-${Date.now()}`, // Temporary unique ID
+            chatId: 'new',
+            sender: 'user',
+            content: content,
+            createdAt: new Date(),
+            parentMessageId: null,
+            branchIndex: 0,
+            totalBranches: 0
+        };
+        
+        // 1. Update UI immediately
+        setOptimisticMessage(tempUserMessage);
         setInput('');
 
-        } catch (error) {
-            console.error("Mutation failed in component:", error);
-        }
+        try {
+            // 2. Call the mutation in the background
+            await createChat.mutateAsync({
+                repository: 'your-github/repository-name',
+                initialContent: content,
+                systemPrompt: systemPrompt || undefined,
+                analysisId: settings.analysisId,
+                model: { primary: settings.model },
+                temperature: settings.temperature,
+                top_k: settings.top_k,
+            });
+            // On success, the useEffect for createChat.data will handle the redirect
+            // and the component state will reset, clearing the optimistic message.
 
+        } catch (error) {
+            // 3. Rollback on failure
+            console.error("Create chat mutation failed:", error);
+            toast.error("Failed to send message. Please try again.");
+            setOptimisticMessage(null); // Remove the failed message from UI
+            setInput(content); // Optional: Repopulate the input so user doesn't lose their text
+        }
     } else {
         try {
         await sendMessage.mutateAsync({
@@ -130,6 +151,11 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
   const messages = data?.messages ?? [];
   const isResponding = createChat.isPending || sendMessage.isPending || mutations.regenerateResponse.isPending;
+
+  const displayedMessages = [...messages];
+  if (optimisticMessage) {
+      displayedMessages.push(optimisticMessage);
+  }
 
   if (isLoading && chatId !== 'new') {
     return <div className="p-8"><SkeletonLoader className="h-[80vh] w-full" /></div>;
@@ -155,12 +181,13 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
             </div>
           ) : (
             <>
-              {messages.map((msg) => (
+              {displayedMessages.map((msg) => (
                 <ChatMessage
                   key={msg._id}
                   chatId={chatId}
                   message={msg}
-                  mutations={mutations}
+                  // Disable actions for the optimistic message
+                  mutations={msg._id.startsWith('optimistic-') ? {} as any : mutations}
                 />
               ))}
               {isResponding && <ThinkingMessage />}
