@@ -95,31 +95,38 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     const content = input.trim();
     if (!content || isResponding) return;
 
-    const mutationCallbacks = {
-      onSuccess: () => {
-        setInput('');
-      },
-    };
-
     if (chatId === 'new') {
-      createChat.mutate({
-        repository: 'your-github/repository-name',
-        initialContent: content,
-        systemPrompt: systemPrompt || undefined,
-        analysisId: settings.analysisId,
-        model: { primary: settings.model },
-        temperature: settings.temperature,
-        top_k: settings.top_k,
-      }, mutationCallbacks);
+        try {
+        await createChat.mutateAsync({
+            repository: 'your-github/repository-name',
+            initialContent: content,
+            systemPrompt: systemPrompt || undefined,
+            analysisId: settings.analysisId,
+            model: { primary: settings.model },
+            temperature: settings.temperature,
+            top_k: settings.top_k,
+        });
+
+        setInput('');
+
+        } catch (error) {
+            console.error("Mutation failed in component:", error);
+        }
+
     } else {
-      sendMessage.mutate({
-        content: content,
-        systemPrompt: systemPrompt || undefined,
-        temperature: settings.temperature,
-        top_k: settings.top_k,
-      }, mutationCallbacks);
+        try {
+        await sendMessage.mutateAsync({
+            content: content,
+            systemPrompt: systemPrompt || undefined,
+            temperature: settings.temperature,
+            top_k: settings.top_k,
+        });
+        setInput('');
+        } catch (error) {
+        console.error("Send message failed in component:", error);
+        }
     }
-  };
+    };
 
   const messages = data?.messages ?? [];
   const isResponding = createChat.isPending || sendMessage.isPending || mutations.regenerateResponse.isPending;
