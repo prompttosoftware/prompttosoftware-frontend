@@ -58,6 +58,11 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
   // Hooks
   const { data: analysis, isLoading } = useAnalysis(initialAnalysis._id, {
     initialData: initialAnalysis,
+    // Enable refetching to get status updates for 'stopping' -> 'stopped'
+    refetchInterval: (data: any) =>
+  data?.status === 'pending' || data?.status === 'running' || data?.status === 'stopping'
+    ? 5000
+    : false,
   });
   const { deleteAnalysis, rerunAnalysis, stopAnalysis  } = useAnalysisActions(analysis?._id || initialAnalysis._id);
   const { showConfirmation, hideConfirmation } = useGlobalErrorStore();
@@ -76,7 +81,8 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
       "Delete Analysis",
       `Are you sure you want to delete the analysis for "${currentAnalysis.repository}"? This action cannot be undone.`,
       () => {
-        deleteAnalysis.mutate();
+        // The hook now handles success/error toasts and navigation
+        deleteAnalysis.mutate(); 
         hideConfirmation();
       }
     );
@@ -142,7 +148,7 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
           isDownloading={isDownloading}
           isDeleting={deleteAnalysis.isPending}
           isRerunning={rerunAnalysis.isPending}
-          isStopping={stopAnalysis.isPending}
+          isStopping={stopAnalysis.isPending || currentAnalysis.status === 'stopping'}
           status={currentAnalysis.status}
           analysisId={currentAnalysis._id}
         />

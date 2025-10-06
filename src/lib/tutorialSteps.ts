@@ -252,6 +252,6 @@ export const getTutorialForContext = (context: string | undefined): TutorialStep
     case 'default':
     default:
       console.log('Loading default tutorial');
-      return repoAnalysisTutorialSteps;
+      return tutorialSteps;
   }
 };

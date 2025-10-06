@@ -415,8 +415,9 @@ export const api = {
    * Reruns an analysis, which creates a new one and starts it.
    * Corresponds to: POST /analysis/:analysisId/rerun
    */
-  rerunAnalysis: async (analysisId: string, payload?: AnalysisFormData): Promise<void> => {
-      await httpClient.post<Analysis>(`/analysis/${analysisId}/rerun`, payload);
+  rerunAnalysis: async (analysisId: string, payload?: AnalysisFormData): Promise<Analysis> => {
+      const response = await httpClient.post<Analysis>(`/analysis/${analysisId}/rerun`, payload);
+      return response.data;
   },
 
   // --- Chat API Methods ---

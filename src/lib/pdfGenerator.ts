@@ -11,11 +11,17 @@ interface IssueTotals {
 }
 
 // --- PDF Layout Constants ---
-const MARGIN = 15;
-const FONT_SIZES = { h1: 22, h2: 16, h3: 12, body: 10, code: 8 };
-const LINE_SPACING = 8;
-const TOP_MARGIN = MARGIN + 15;
-
+const MARGIN = 36; // ~0.5 inch (standard for reports)
+const FONT_SIZES = {
+  h1: 20, // main section title
+  h2: 16, // subsection
+  h3: 12, // minor section / caption
+  body: 10, // standard paragraph text
+  code: 8,  // preformatted text
+};
+const LINE_SPACING = 5; // ~1.3x body size
+const SECTION_SPACING = 14; // vertical gap between sections
+const TOP_MARGIN = MARGIN + 24;
 
 /**
  * Manages the Y-cursor position and adds new pages as needed.
@@ -43,51 +49,59 @@ class PdfContext {
   }
 
   // Adds a text block and moves the cursor down.
-  addText(text: string | string[], options: any, additionalSpacing = LINE_SPACING) {
-    const textHeight = (this.doc.getTextDimensions(text as string, options).h);
-    this.checkPageBreak(textHeight);
-    this.doc.text(text, MARGIN, this.cursorY, options);
+  addText(text: string | string[], options: any = {}, additionalSpacing = LINE_SPACING) {
+    const lines = Array.isArray(text)
+        ? text
+        : this.doc.splitTextToSize(text, this.pageWidth - MARGIN * 2);
+    const textHeight = lines.length * (this.doc.getFontSize() * 0.35);
+    this.checkPageBreak(textHeight + additionalSpacing);
+    this.doc.text(lines, MARGIN, this.cursorY, options);
     this.cursorY += textHeight + additionalSpacing;
-  }
+   }
+
   
   // Adds a formatted code block.
-  addCodeBlock(text: string | undefined) {
-      if (!text || text.trim() === '') {
-          this.doc.setFont('helvetica', 'italic').setFontSize(FONT_SIZES.body);
-          this.addText('Not available.', {});
-          this.doc.setFont('helvetica', 'normal');
-          return;
-      }
-      this.doc.setFont('courier', 'normal').setFontSize(FONT_SIZES.code);
-      const lines = this.doc.splitTextToSize(text, this.pageWidth - MARGIN * 2 - 8);
-      const boxHeight = (lines.length * FONT_SIZES.code * 0.35) + 8;
-      
-      this.checkPageBreak(boxHeight);
-      this.doc.setFillColor(240, 240, 240);
-      this.doc.rect(MARGIN, this.cursorY, this.pageWidth - MARGIN * 2, boxHeight, 'F');
-      this.doc.setTextColor(50, 50, 50);
-      this.doc.text(lines, MARGIN + 4, this.cursorY + 5);
+  addCodeBlock(text?: string) {
+    const innerPadding = 4;
+    if (!text?.trim()) {
+        this.doc.setFont('helvetica', 'italic').setFontSize(FONT_SIZES.body);
+        this.addText('Not available.');
+        this.doc.setFont('helvetica', 'normal');
+        return;
+    }
 
-      this.cursorY += boxHeight + LINE_SPACING;
-      this.doc.setFont('helvetica', 'normal').setTextColor(0, 0, 0); // Reset font and color
-  }
+    this.doc.setFont('courier', 'normal').setFontSize(FONT_SIZES.code);
+    const lines = this.doc.splitTextToSize(text, this.pageWidth - MARGIN * 2 - innerPadding * 2);
+    const lineHeight = FONT_SIZES.code * 0.4;
+    const boxHeight = lines.length * lineHeight + innerPadding * 2;
+
+    this.checkPageBreak(boxHeight + LINE_SPACING);
+    this.doc.setFillColor(245, 245, 245);
+    this.doc.rect(MARGIN, this.cursorY, this.pageWidth - MARGIN * 2, boxHeight, 'F');
+    this.doc.setTextColor(50, 50, 50);
+    this.doc.text(lines, MARGIN + innerPadding, this.cursorY + innerPadding + lineHeight / 2);
+
+    this.cursorY += boxHeight + SECTION_SPACING / 2;
+    this.doc.setFont('helvetica', 'normal').setTextColor(0, 0, 0);
+    }
 }
 
 // --- PDF Section Renderers ---
 
 const addTitlePage = (ctx: PdfContext, analysis: Analysis) => {
-  const repoName = analysis.repository.split('/').slice(-2).join('/');
-  ctx.doc.setFontSize(FONT_SIZES.h1).setFont('helvetica', 'bold');
-  ctx.addText('Code Analysis Report', {}, 10);
-  ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'normal');
-  ctx.addText(repoName, {}, 8);
-  ctx.doc.setFontSize(FONT_SIZES.body);
-  ctx.addText(`Generated on: ${format(new Date(), 'MMM d, yyyy, p')}`, {});
-  ctx.cursorY += 10;
+    const repoName = analysis.repository.split('/').slice(-2).join('/');
+    ctx.doc.setFontSize(FONT_SIZES.h1).setFont('helvetica', 'bold');
+    ctx.addText('Code Analysis Report', {}, SECTION_SPACING / 2);
+    ctx.doc.setFontSize(FONT_SIZES.h3).setFont('helvetica', 'normal');
+    ctx.addText(repoName, {}, LINE_SPACING);
+    ctx.doc.setFontSize(FONT_SIZES.body);
+    ctx.addText(`Generated on: ${format(new Date(), 'MMM d, yyyy, p')}`, {});
+    ctx.cursorY += SECTION_SPACING;
 };
 
 const addIssueSummary = (ctx: PdfContext, issueTotals: IssueTotals | null) => {
   if (!issueTotals) return;
+  ctx.cursorY += SECTION_SPACING / 2;
   ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');
   ctx.addText('Issue Summary', {});
 
@@ -149,22 +163,27 @@ const addIssueSummary = (ctx: PdfContext, issueTotals: IssueTotals | null) => {
 
   ctx.cursorY = currentY + LINE_SPACING;
   ctx.doc.setFont('helvetica', 'normal').setTextColor(0, 0, 0); // Reset styles
+
+  ctx.cursorY += SECTION_SPACING;
 };
 
 
 const addReports = (ctx: PdfContext, analysis: Analysis) => {
-  ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');
-  ctx.addText('Reports', {});
+    ctx.cursorY += SECTION_SPACING / 2;   
+    ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');    
+    ctx.addText('Reports', {});
 
-  const renderReport = (title: string, content: string | undefined) => {
-    ctx.doc.setFontSize(FONT_SIZES.h3).setFont('helvetica', 'bold');
-    ctx.addText(title, {});
-    ctx.addCodeBlock(content);
-  };
+    const renderReport = (title: string, content: string | undefined) => {
+        ctx.doc.setFontSize(FONT_SIZES.h3).setFont('helvetica', 'bold');
+        ctx.addText(title, {});
+        ctx.addCodeBlock(content);
+        ctx.cursorY += 6;
+    };
 
-  renderReport('Build Report', analysis.buildReport?.content);
-  renderReport('Test Report', analysis.testReport?.content);
-  renderReport('Run Report', analysis.runReport?.content);
+    renderReport('Build Report', analysis.buildReport?.content);
+    renderReport('Test Report', analysis.testReport?.content);
+    renderReport('Run Report', analysis.runReport?.content);
+    ctx.cursorY += SECTION_SPACING;
 };
 
 const addFileDescriptions = (ctx: PdfContext, nodes: Node[]) => {
@@ -203,12 +222,15 @@ const addFileDescriptions = (ctx: PdfContext, nodes: Node[]) => {
     if (node.isContainer && node.children) {
       node.children.forEach(child => renderNode(child, level + 1));
     }
-  };
-  
-  ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');
-  ctx.addText('File Descriptions & Issues', {});
 
-  nodes.forEach(node => renderNode(node, 0));
+    };
+    ctx.cursorY += SECTION_SPACING / 2;
+    ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');
+    ctx.addText('File Descriptions & Issues', {});
+
+    nodes.forEach(node => renderNode(node, 0));
+
+    ctx.cursorY += SECTION_SPACING;
 };
 
 const addHeaderAndFooter = (doc: jsPDF, repoName: string) => {

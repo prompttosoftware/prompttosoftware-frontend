@@ -25,7 +25,7 @@ const AnalysisPage = async () => {
     <div className="container mx-auto p-4 md:p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Your Analyses</h1>
-        {isAuthenticated || process.env.NODE_ENV !== 'production' && (
+        {(isAuthenticated || process.env.NODE_ENV !== 'production') && (
           <Link href="/new-analysis" passHref>
             <Button data-testid="new-analysis-button">
               <PlusCircle className="mr-2 h-4 w-4" />
