@@ -16,6 +16,7 @@ import SuccessToast from '@/app/(main)/components/SuccessToast';
 import TutorialOverlay from '@/app/(main)/components/TutorialOverlay';
 import { Banner } from '@/types/banner';
 import AppHeader from '@/app/(main)/components/AppHeader';
+import { usePathname } from 'next/navigation';
 
 interface MainUIProps {
   children: React.ReactNode;
@@ -32,6 +33,9 @@ export default function MainUI({ children, banners }: MainUIProps) {
   const { error, clearError } = useGlobalErrorStore();
 
   const hasActiveBanner = useBannerStore(state => !!state.activeBanner);
+
+  const pathname = usePathname();
+  const isChatPage = pathname.startsWith('/chat') && !pathname.startsWith('/chat-history');
   
   useEffect(() => {
     if (error) {
@@ -54,11 +58,21 @@ export default function MainUI({ children, banners }: MainUIProps) {
 
   const navMarginClass = isNavExpanded ? 'ml-0 md:ml-64' : 'ml-0 md:ml-20';
 
+  const mainContentClass = isChatPage
+    ? 'flex flex-col flex-1 w-full min-w-0 overflow-hidden' // For chat page: viewport-height, no padding, no scroll
+    : 'flex-1 p-8';                         // For other pages: content-height, with padding
+
   return (
     <>
-      <Toaster position="top-center" richColors />
+      <Toaster
+        position="top-center"
+        richColors
+        toastOptions={{
+          className: 'border shadow-sm',
+        }}
+      />
       
-      <div className="flex min-h-screen bg-background text-foreground">
+      <div className="flex flex-col min-h-screen bg-background text-foreground">
         <SideNavBar
           isExpanded={isNavExpanded}
           setIsExpanded={setIsNavExpanded}
@@ -66,7 +80,7 @@ export default function MainUI({ children, banners }: MainUIProps) {
           setIsMobileNavOpen={setIsMobileNavOpen}
         />
 
-        <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${navMarginClass}`}>
+        <div className={`flex flex-col h-screen transition-all duration-300 ease-in-out ${navMarginClass}`}>
           <AppHeader onMobileNavOpen={() => setIsMobileNavOpen(true)} />
 
           {hasActiveBanner && (
@@ -75,7 +89,7 @@ export default function MainUI({ children, banners }: MainUIProps) {
             </div>
           )}
 
-          <main className="flex-1 p-8">{children}</main>
+          <main className={mainContentClass}>{children}</main>
         </div>
 
         {showTutorial && <TutorialOverlay onComplete={handleTutorialComplete} />}

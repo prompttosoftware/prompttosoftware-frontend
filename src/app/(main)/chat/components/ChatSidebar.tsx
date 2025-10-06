@@ -33,7 +33,7 @@ interface ChatSidebarProps {
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ settings, onSettingsChange, systemPrompt, onSystemPromptChange, analyses }) => {
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const handleSettingChange = (key: keyof ChatSettings, value: any) => {
     onSettingsChange({ ...settings, [key]: value });

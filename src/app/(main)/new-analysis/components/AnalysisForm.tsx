@@ -198,6 +198,7 @@ export default function AnalysisForm({ initialAnalysisData, initialProjects }: A
                     render={({ field }) => (
                       <Input
                         id="repository-input"
+                        data-testid="repo-selection-component"
                         placeholder="https://github.com/your-org/your-repo"
                         {...field}
                       />

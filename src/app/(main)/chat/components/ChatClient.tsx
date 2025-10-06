@@ -42,7 +42,6 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const { data, isLoading, isError, error } = useChat(chatId !== 'new' ? chatId : undefined, {
     initialData: initialChat ?? undefined,
   });
-  // Use the real hook, passing the current chatId
   const { createChat, sendMessage, ...mutations } = useChatActions(chatId !== 'new' ? chatId : undefined);
 
   // State
@@ -70,13 +69,24 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       });
       setSystemPrompt(data.chat.systemPrompt || '');
     }
-  }, [data]);
+  }, [data?.chat]);
 
   useEffect(() => {
-    // The createChat mutation hook handles the redirect, so we just need to update the chatId state
+    // When the real messages from the server are loaded/updated,
+    // we can clear our optimistic message. This prevents a temporary duplicate message
+    // from showing if the mutation succeeds and the query refetches.
+    if (optimisticMessage) {
+        setOptimisticMessage(null);
+    }
+    // We only want this to run when the server-side messages change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.messages]);
+
+  useEffect(() => {
+    // The createChat mutation hook handles the redirect. We just update the local chatId.
+    // The optimistic message is cleared because the component state is reset on navigation.
     if (createChat.data?.chat._id) {
         setChatId(createChat.data.chat._id);
-        setOptimisticMessage(null);
     }
   }, [createChat.data]);
 
@@ -84,7 +94,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight });
     }
-  }, [data?.messages, createChat.isPending, sendMessage.isPending, mutations.regenerateResponse?.isPending]);
+  }, [data?.messages, createChat.isPending, sendMessage.isPending, optimisticMessage]);
 
   useEffect(() => {
     if (isError) {
@@ -95,26 +105,27 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   // Handlers
   const handleSend = async () => {
     const content = input.trim();
-    if (!content || isResponding) return;
+    if (!content || isAnyMutationPending) return;
+
+    // Create an optimistic message to display immediately in the UI for all sends.
+    const tempUserMessage: ChatMessageType = {
+        _id: `optimistic-${Date.now()}`,
+        chatId: chatId, // 'new' or an existing ID
+        sender: 'user',
+        content: content,
+        createdAt: new Date(),
+        parentMessageId: null,
+        branchIndex: 0,
+        totalBranches: 0
+    };
+    
+    // 1. Update UI immediately
+    setOptimisticMessage(tempUserMessage);
+    setInput('');
 
     if (chatId === 'new') {
-        const tempUserMessage: ChatMessageType = {
-            _id: `optimistic-${Date.now()}`, // Temporary unique ID
-            chatId: 'new',
-            sender: 'user',
-            content: content,
-            createdAt: new Date(),
-            parentMessageId: null,
-            branchIndex: 0,
-            totalBranches: 0
-        };
-        
-        // 1. Update UI immediately
-        setOptimisticMessage(tempUserMessage);
-        setInput('');
-
         try {
-            // 2. Call the mutation in the background
+            // 2. Call the mutation to create a new chat.
             await createChat.mutateAsync({
                 repository: 'your-github/repository-name',
                 initialContent: content,
@@ -124,34 +135,41 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
                 temperature: settings.temperature,
                 top_k: settings.top_k,
             });
-            // On success, the useEffect for createChat.data will handle the redirect
+            // On success, the useEffect for createChat.data handles the redirect,
             // and the component state will reset, clearing the optimistic message.
-
         } catch (error) {
             // 3. Rollback on failure
             console.error("Create chat mutation failed:", error);
             toast.error("Failed to send message. Please try again.");
-            setOptimisticMessage(null); // Remove the failed message from UI
-            setInput(content); // Optional: Repopulate the input so user doesn't lose their text
+            setOptimisticMessage(null);
+            setInput(content); // Repopulate the input so user doesn't lose their text.
         }
     } else {
         try {
-        await sendMessage.mutateAsync({
-            content: content,
-            systemPrompt: systemPrompt || undefined,
-            temperature: settings.temperature,
-            top_k: settings.top_k,
-        });
-        setInput('');
+            // 2. Call the mutation to send a message to an existing chat.
+            await sendMessage.mutateAsync({
+                content: content,
+                systemPrompt: systemPrompt || undefined,
+                temperature: settings.temperature,
+                top_k: settings.top_k,
+            });
+            // On success, the useChat query will refetch. The new useEffect watching
+            // `data.messages` will then clear the optimistic message.
         } catch (error) {
-        console.error("Send message failed in component:", error);
+            // 3. Rollback on failure
+            console.error("Send message failed in component:", error);
+            toast.error("Failed to send message. Please try again.");
+            setOptimisticMessage(null);
+            setInput(content); // Repopulate input for consistency.
         }
     }
-    };
+  };
 
   const messages = data?.messages ?? [];
-  const isResponding = createChat.isPending || sendMessage.isPending || mutations.regenerateResponse?.isPending;
+  const isNewMessageResponding = createChat.isPending || sendMessage.isPending;
+  const isAnyMutationPending = isNewMessageResponding || mutations.regenerateResponse?.isPending;
 
+  // Combine server messages with the optimistic message for immediate UI feedback.
   const displayedMessages = [...messages];
   if (optimisticMessage) {
       displayedMessages.push(optimisticMessage);
@@ -162,7 +180,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   }
   
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-full w-full min-w-0 overflow-hidden">
       <ChatSidebar
         settings={settings}
         onSettingsChange={setSettings}
@@ -170,9 +188,9 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
         onSystemPromptChange={setSystemPrompt}
         analyses={analyses}
       />
-      <main className="flex flex-1 flex-col">
+      <main className="flex flex-1 flex-col w-full min-w-0">
         <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 md:p-6">
-          <div className="mx-auto max-w-4xl space-y-8">
+          <div className="w-full mx-auto max-w-4xl space-y-8">
           {displayedMessages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground py-20">
               <Bot className="h-12 w-12 mb-4 opacity-50" />
@@ -190,18 +208,18 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
                   mutations={msg._id.startsWith('optimistic-') ? {} as any : mutations}
                 />
               ))}
-              {isResponding && <ThinkingMessage />}
+              {isNewMessageResponding && <ThinkingMessage />}
             </>
           )}
         </div>
         </ScrollArea>
         <div className="border-t bg-background p-4 md:p-6">
-          <div className="mx-auto max-w-4xl">
+          <div className="w-full mx-auto max-w-4xl">
             <MessageInput
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onSend={handleSend}
-              disabled={isResponding}
+              disabled={isAnyMutationPending}
             />
           </div>
         </div>

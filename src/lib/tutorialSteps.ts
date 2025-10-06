@@ -34,6 +34,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: 'Expand Nav Bar',
     description: 'Next let\'s navigate to the explore page.',
     targetSelector: '#mobile-nav-toggle-button',
+    device: 'mobile'
   },
   {
     id: 'nav-explore',
@@ -64,6 +65,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: 'Expand Nav Bar',
     description: 'Next let\'s navigate to the new project page.',
     targetSelector: '#mobile-nav-toggle-button',
+    device: 'mobile'
   },
   {
     id: 'nav-new-project',
@@ -153,26 +155,88 @@ export const tutorialSteps: TutorialStep[] = [
 
 export const repoAnalysisTutorialSteps: TutorialStep[] = [
   {
-    id: 'welcome-repo-analysis',
-    title: 'Welcome to Repo Analysis!',
-    description: "Let's walk through how to analyze an existing repository.",
+    id: 'welcome',
+    title: 'Welcome to PromptToSoftware!',
+    description: 'This quick tour will guide you through starting your first analysis.',
     position: 'center',
+    disableBeacon: true,
+  },
+  {
+    id: 'dashboard-overview',
+    title: 'Your Dashboard',
+    description: 'This is your mission control. At a glance, you can see your account status, monthly spending, and any active projects.',
+    targetSelector: '#dashboard-stats-container',
+    position: 'top',
+    disableBeacon: true
+  },
+  {
+    id: 'new-analysis-expand',
+    title: 'Expand Nav Bar',
+    description: 'Next let\'s navigate to the analysis page.',
+    targetSelector: '#mobile-nav-toggle-button',
+    device: 'mobile'
+  },
+  {
+    id: 'nav-analysis',
+    title: 'Analysis Page',
+    description: 'Navigate to the analysis page.',
+    targetSelector: '#nav-link-analysis',
+    position: 'right',
+  },
+  {
+    id: 'new-analysis',
+    title: 'New Analysis',
+    description: 'Click the new button to create your first analysis.',
+    targetSelector: '[data-testid="new-analysis-button"]',
+    position: 'left',
   },
   {
     id: 'repo-analysis-select',
     title: 'Select Your Repository',
-    description: 'Start by choosing the repository you want to analyze from this list.',
-    targetSelector: '#repo-selection-component', // Example selector
+    description: 'Start by choosing the repository you want to analyze by entering its GitHub URL.',
+    targetSelector: '[data-testid="repo-selection-component"]',
     position: 'bottom',
   },
   {
-    id: 'repo-analysis-start-button',
-    title: 'Begin Analysis',
-    description: 'Once you have selected a repo, click here to start the analysis process.',
-    targetSelector: '#start-analysis-button', // Example selector
-    position: 'right',
+    id: 'new-analysis-advanced-toggle',
+    title: '3. Advanced Options',
+    description: 'For more control, click here to reveal advanced settings like AI model selection and tool installations.',
+    targetSelector: '#advanced-options-toggle',
+    position: 'bottom',
   },
-  // ... add more steps specific to this flow
+  {
+    id: 'new-analysis-model-section',
+    title: 'Customize AI Models',
+    description: 'You can choose specific AI models for different tasks to balance cost and performance. The medium model will perform the bulk of the work.',
+    targetSelector: '#model-select-card',
+    position: 'top',
+    disableBeacon: true
+  },
+  {
+    id: 'new-analysis-tools',
+    title: 'Install Specific Tools',
+    description: 'If your project needs a specific tool or package, you can ensure it\'s installed here.',
+    targetSelector: '[data-testid="add-tools-button"]',
+    position: 'bottom',
+  },
+
+  // --- Section 5: Completion ---
+  {
+    id: 'tutorial-finished',
+    title: 'You\'re All Set!',
+    description: 'You now know your way around. The next step is to add funds and start your first analysis. Good luck!',
+    position: 'center',
+    disableBeacon: true,
+  },
+
+  // --- Section 4: Billing Flow ---
+  {
+    id: 'nav-add-payment',
+    title: 'Add Funds to Your Account',
+    description: 'This is the final step. An analysis consumes funds to run. Click here to add your first payment.',
+    targetSelector: '[data-testid="add-payment-button"]', // This could be in your header or sidebar
+    position: 'bottom',
+  },
 ];
 
 /**
@@ -188,6 +252,6 @@ export const getTutorialForContext = (context: string | undefined): TutorialStep
     case 'default':
     default:
       console.log('Loading default tutorial');
-      return tutorialSteps;
+      return repoAnalysisTutorialSteps;
   }
 };

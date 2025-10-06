@@ -404,12 +404,19 @@ export const api = {
   },
 
   /**
+   * Stops an analysis.
+   * Corresponds to: POST /:analysisId/stop
+   */
+  stopAnalysis: async (analysisId: string): Promise<void> => {
+      await httpClient.post<Analysis>(`/analysis/${analysisId}/stop`);
+  },
+
+  /**
    * Reruns an analysis, which creates a new one and starts it.
    * Corresponds to: POST /analysis/:analysisId/rerun
    */
-  rerunAnalysis: async (analysisId: string, payload?: AnalysisFormData): Promise<Analysis> => {
-      const response = await httpClient.post<Analysis>(`/analysis/${analysisId}/rerun`, payload);
-      return response.data;
+  rerunAnalysis: async (analysisId: string, payload?: AnalysisFormData): Promise<void> => {
+      await httpClient.post<Analysis>(`/analysis/${analysisId}/rerun`, payload);
   },
 
   // --- Chat API Methods ---

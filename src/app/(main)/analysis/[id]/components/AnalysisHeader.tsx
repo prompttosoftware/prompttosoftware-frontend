@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Download, MessageSquare, MoreHorizontal, Play, Trash2 } from 'lucide-react';
+import { Download, MessageSquare, MoreHorizontal, Play, StopCircle, Trash2 } from 'lucide-react';
 import LoadingSpinner from '@/app/(main)/components/LoadingSpinner';
 import Link from 'next/link';
 import { TooltipTrigger, TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, Tooltip } from '@/components/ui/tooltip';
@@ -11,10 +11,13 @@ interface AnalysisHeaderProps {
   repository: string;
   onDeleteClick: () => void;
   onRerunClick: () => void;
+  onStopClick: () => void;
   onDownloadClick: () => void;
   isDownloading: boolean;
   isDeleting: boolean;
   isRerunning: boolean;
+  isStopping: boolean;
+  status: string;
   analysisId: string;
 }
 
@@ -22,11 +25,18 @@ const AnalysisHeader = ({
     repository, 
     onDeleteClick, 
     onRerunClick,
+    onStopClick,
     onDownloadClick,
     isDownloading,
     isDeleting, 
     isRerunning, 
-    analysisId }: AnalysisHeaderProps) => (
+    isStopping,
+    status,
+    analysisId 
+}: AnalysisHeaderProps) => {
+  const isActive = ['running', 'starting', 'pending'].includes(status);
+
+  return (
   <div className="flex justify-between items-start pb-4 border-b">
     <div>
         <h1 className="text-3xl font-bold text-card-foreground break-all">{repository.split('/').slice(-2).join('/')}</h1>
@@ -57,10 +67,17 @@ const AnalysisHeader = ({
         </Tooltip>
       </TooltipProvider>
       
-      <Button onClick={onRerunClick} disabled={isRerunning}>
-        {isRerunning ? <LoadingSpinner size="small" className="mr-2" /> : <Play className="mr-2 h-4 w-4" />}
-        Rerun
-      </Button>
+      {isActive ? (
+          <Button onClick={onStopClick} disabled={isStopping}>
+            {isStopping ? <LoadingSpinner size="small" className="mr-2" /> : <StopCircle className="mr-2 h-4 w-4" />}
+            Stop
+          </Button>
+        ) : (
+          <Button onClick={onRerunClick} disabled={isRerunning}>
+            {isRerunning ? <LoadingSpinner size="small" className="mr-2" /> : <Play className="mr-2 h-4 w-4" />}
+            Rerun
+          </Button>
+        )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" disabled={isDeleting || isDownloading}>
@@ -84,6 +101,7 @@ const AnalysisHeader = ({
       </DropdownMenu>
     </div>
   </div>
-);
+  );
+};
 
 export default AnalysisHeader;

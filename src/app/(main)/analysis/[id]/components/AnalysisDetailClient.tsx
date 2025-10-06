@@ -59,7 +59,7 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
   const { data: analysis, isLoading } = useAnalysis(initialAnalysis._id, {
     initialData: initialAnalysis,
   });
-  const { deleteAnalysis, rerunAnalysis } = useAnalysisActions(analysis?._id || initialAnalysis._id);
+  const { deleteAnalysis, rerunAnalysis, stopAnalysis  } = useAnalysisActions(analysis?._id || initialAnalysis._id);
   const { showConfirmation, hideConfirmation } = useGlobalErrorStore();
   
   const currentAnalysis = analysis || initialAnalysis;
@@ -84,6 +84,10 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
 
   const handleRerunClick = () => {
     rerunAnalysis.mutate(undefined);
+  };
+
+  const handleStopClick = () => {
+    stopAnalysis.mutate();
   };
 
   const handleNodeClick = (node: Node) => {
@@ -133,10 +137,13 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
           repository={currentAnalysis.repository}
           onDeleteClick={handleDeleteClick}
           onRerunClick={handleRerunClick}
+          onStopClick={handleStopClick}
           onDownloadClick={handleDownloadClick}
           isDownloading={isDownloading}
           isDeleting={deleteAnalysis.isPending}
           isRerunning={rerunAnalysis.isPending}
+          isStopping={stopAnalysis.isPending}
+          status={currentAnalysis.status}
           analysisId={currentAnalysis._id}
         />
         

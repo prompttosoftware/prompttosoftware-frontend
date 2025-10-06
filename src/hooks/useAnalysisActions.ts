@@ -40,9 +40,15 @@ export const useAnalysisActions = (analysisId: string) => {
     onSuccess: invalidateAnalysisQueries,
   });
 
+  const stopAnalysisMutation = useMutation({
+    mutationFn: () => api.stopAnalysis(analysisId),
+    onSuccess: invalidateAnalysisQueries,
+  });
+
   return {
     deleteAnalysis: deleteAnalysisMutation,
     rerunAnalysis: rerunAnalysisMutation,
-    createAnalysis: createAnalysisMutation
+    createAnalysis: createAnalysisMutation,
+    stopAnalysis: stopAnalysisMutation,
   };
 };

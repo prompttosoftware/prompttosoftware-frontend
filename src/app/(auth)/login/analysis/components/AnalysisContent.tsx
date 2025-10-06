@@ -5,86 +5,59 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
-import { ExternalLink } from 'lucide-react';
-import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
+import { 
+  ExternalLink,
+} from 'lucide-react';
 import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
+import AnalysisAccordion from './AnalysisAccordion';
 
-export function LoginContent() {
+export function GitHubAnalysisLandingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loginWithGithub } = useAuth();
-  
-  // Use ref to track if we've already processed the callback
   const callbackProcessed = useRef(false);
-  
-  // Local state for the login action's loading and error states
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const sessionExpired = searchParams.get('sessionExpired') === 'true';
 
-  // Simplified effect that doesn't depend on the callback function
   useEffect(() => {
-    console.log('Auth provider use effect...');
-    
-    // Prevent processing the same callback multiple times
-    if (callbackProcessed.current) {
-      return;
-    }
+    if (callbackProcessed.current) return;
 
-    // Clear any success messages from other pages
     useSuccessMessageStore.getState().clearMessage();
 
     const code = searchParams.get('code');
     const urlError = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
     
-    console.log(`error description: ${errorDescription}`);
-    
     if (code) {
-      console.log('Code found, processing callback...');
-      callbackProcessed.current = true; // Mark as processed
-      
-      // Clear URL parameters immediately to prevent re-processing
+      callbackProcessed.current = true;
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete('code');
       newUrl.searchParams.delete('state');
       window.history.replaceState({}, '', newUrl.toString());
-      
       handleGithubCallback(code);
     } else if (urlError) {
-      console.log(`Url error: ${urlError}`);
       const message = errorDescription
         ? decodeURIComponent(errorDescription).replace(/\+/g, ' ')
         : 'Access to your GitHub account was denied.';
       setError(`Authentication Failed: ${message}`);
     }
-  }, [searchParams]); // Remove handleGithubCallback from dependencies
+  }, [searchParams]);
 
   const handleGithubCallback = async (code: string) => {
-    console.log('Handling GitHub callback...');
-    if (code) {
-      console.log(`Code is valid in github callback.`);
-    }
-    
     setIsLoggingIn(true);
-    setError(null); // Clear previous errors before trying
-    
+    setError(null);
     try {
       await loginWithGithub(code);
-      console.log(`Login with github success, should navigate to dashboard.`);
-      
-      // Clear success messages and navigate
       useSuccessMessageStore.getState().clearMessage();
-
-      document.cookie = `${TUTORIAL_CONTEXT_COOKIE}=default; path=/; max-age=300`;
       
-      // Replace the current URL to remove the code parameter and navigate
+      // Set the tutorial context cookie specifically for the repo analysis flow
+      document.cookie = `${TUTORIAL_CONTEXT_COOKIE}=repo_analysis; path=/; max-age=300`;
+      
       router.replace('/dashboard');
-      
     } catch (err: any) {
-      console.log(`Error while logging in: ${err}`);
-      callbackProcessed.current = false; // Reset on error so user can try again
+      callbackProcessed.current = false;
       setError(err.message || 'An unknown error occurred during login.');
     } finally {
       setIsLoggingIn(false);
@@ -103,16 +76,16 @@ export function LoginContent() {
 
   return (
     <div className="bg-background text-foreground">
-      {/* Hero Section - Above the fold */}
+      {/* Hero Section */}
       <main className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-4xl text-center">
           
           <header className="mb-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-card-foreground">
-              Automate Software Development with AI
+              Understand Any GitHub Repo, Instantly
             </h1>
-            <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Welcome to <span className="font-semibold text-primary">prompttosoftware.com</span>. Describe your project, and our autonomous AI system will build, test, and deliver it directly to your GitHub repository.
+            <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+              Our AI agent performs a deep analysis of any codebase, identifying issues, documenting architecture, and even attempting to build and run the project. Get a comprehensive report in minutes.
             </p>
           </header>
 
@@ -142,30 +115,18 @@ export function LoginContent() {
                 className="w-full max-w-xs flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg"
               >
                 <GitHubLogoIcon className="w-8 h-8 mr-3" />
-                Sign in with GitHub
+                Analyze with GitHub
               </button>
             )}
             <p className="text-sm text-muted-foreground">
-              Integrates with GitHub, Jira, OpenRouter, and more.
+              Simple pay-as-you-go pricing. Analysis takes just 5-10 minutes.
             </p>
             <div className="flex items-center space-x-4">
-              <a
-                href="/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Terms of Service
-                <ExternalLink className="ml-1 h-3 w-3" />
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
+                Terms of Service <ExternalLink className="ml-1 h-3 w-3" />
               </a>
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Privacy Policy
-                <ExternalLink className="ml-1 h-3 w-3" />
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
+                Privacy Policy <ExternalLink className="ml-1 h-3 w-3" />
               </a>
             </div>
           </div>
@@ -178,29 +139,27 @@ export function LoginContent() {
         </div>
       </main>
 
-      {/* Features Section - Below the fold */}
-      <section id="how-it-works" className="py-20 bg-secondary/50">
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-secondary/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
-              A Hands-Free Development Cycle
+              A Complete Codebase X-Ray
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              From idea to a living project, powered by AI.
+              Go beyond static analysis. Our AI understands your code's purpose, structure, and health.
             </p>
           </div>
-          
-          <ProjectLifecycleAccordion />
-
+          <AnalysisAccordion />
         </div>
       </section>
 
       {/* Final CTA Section */}
       <section className="py-20 bg-secondary/50">
         <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Ready to Free Up Your Time?</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Ready to Decode Your Codebase?</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Stop supervising your AI. Start shipping finished features.
+            Get actionable insights and a complete architectural overview in less time than a coffee break.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center space-y-6">
             <button
@@ -209,32 +168,21 @@ export function LoginContent() {
               className="w-full max-w-xs inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg disabled:opacity-50"
             >
               <GitHubLogoIcon className="w-8 h-8 mr-3" />
-              Get Started with GitHub
+              Start Your Analysis
             </button>
             <div className="flex items-center space-x-4">
-               <a
-                href="/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Terms of Service
-                <ExternalLink className="ml-1 h-3 w-3" />
+               <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
+                Terms of Service <ExternalLink className="ml-1 h-3 w-3" />
               </a>
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Privacy Policy
-                <ExternalLink className="ml-1 h-3 w-3" />
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
+                Privacy Policy <ExternalLink className="ml-1 h-3 w-3" />
               </a>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="bg-background">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-center text-sm text-muted-foreground">
             <span>&copy; {new Date().getFullYear()} PromptToSoftware, LLC. All rights reserved.</span>

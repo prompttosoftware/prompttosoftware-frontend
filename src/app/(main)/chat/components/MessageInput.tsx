@@ -14,10 +14,10 @@ interface MessageInputProps {
 
 const MessageInput: React.FC<MessageInputProps> = ({ value, onChange, onSend, disabled }) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      onSend();
-    }
+    // if (e.key === 'Enter' && !e.shiftKey) {
+    //   e.preventDefault();
+    //   onSend();
+    // }
   };
 
   return (

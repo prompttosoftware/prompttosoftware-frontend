@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { getTutorialForContext, TUTORIAL_CONTEXT_COOKIE, TutorialStep, tutorialSteps } from '@/lib/tutorialSteps';
+import { getTutorialForContext, TUTORIAL_CONTEXT_COOKIE, TutorialStep } from '@/lib/tutorialSteps';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { logger } from '@/utils/logger';
@@ -193,7 +193,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
     return -1; // No more valid steps found
   };
 
-  const currentStep = isActive ? tutorialSteps[currentStepIndex] : null;
+  const currentStep = isActive ? activeSteps[currentStepIndex] : null;
   const { rect, isFinding } = useTrackedElement(currentStep?.targetSelector);
 
    const handleNext = () => {
@@ -226,7 +226,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete }) => {
     return null;
   }
 
-  const isLastStep = currentStepIndex === tutorialSteps.length - 1;
+  const isLastStep = currentStepIndex === activeSteps.length - 1;
   const shouldShowNextButton = currentStep.disableBeacon || isCenteredStep;
   const totalSteps = activeSteps.filter(step => (step.device || 'all') === 'all' || (step.device === 'mobile' && isMobile) || (step.device === 'desktop' && !isMobile)).length;
   const currentStepNumber = activeSteps.slice(0, currentStepIndex + 1).filter(step => (step.device || 'all') === 'all' || (step.device === 'mobile' && isMobile) || (step.device === 'desktop' && !isMobile)).length;

@@ -104,8 +104,9 @@ const SideNavBar: React.FC<SideNavBarProps> = ({
                 onClick={handleNavigationClick}
                 {...(
                   item.name === 'New Project' ? { 'id': 'nav-link-new-project' } :
-                  item.name === 'Explore' ? { id: 'nav-link-explore' } :
-                  item.name === 'Projects' ? { id: 'nav-link-projects' } :
+                  item.name === 'Explore' ? { 'id': 'nav-link-explore' } :
+                  item.name === 'Projects' ? { 'id': 'nav-link-projects' } :
+                  item.name === 'Analysis' ? { 'id': 'nav-link-analysis' } :
                   {}
                 )}
               >

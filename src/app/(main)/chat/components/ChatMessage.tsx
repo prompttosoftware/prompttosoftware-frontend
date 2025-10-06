@@ -13,6 +13,7 @@ import {
 import {
   Copy, ClipboardCopy, Pencil, RefreshCw, Trash2,
   ChevronLeft, ChevronRight, User, Bot,
+  Check,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import Reasoning from './Reasoning';
@@ -29,11 +30,32 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
+  const [copiedIcon, setCopiedIcon] = useState<{ standard: boolean; markdown: boolean }>({
+    standard: false,
+    markdown: false,
+  });
 
   const isUser = message.sender === 'user';
 
-  const handleCopy = (markdown: boolean) => {
-    navigator.clipboard.writeText(message.content);
+  const isRegenerating = 
+    !isUser &&
+    mutations.regenerateResponse?.isPending &&
+    mutations.regenerateResponse.variables?.parentMessageId === message.parentMessageId;
+
+  const handleCopy = (buttonKey: 'standard' | 'markdown') => {
+    // Determine which content to copy based on the button
+    const contentToCopy = buttonKey === 'standard' ? message.content : message.content; // assuming you'd modify this if you actually had a markdown string
+    
+    // For now, both copy the same content, but this separates the feedback
+    navigator.clipboard.writeText(contentToCopy);
+
+    // Set the corresponding copy state to true
+    setCopiedIcon(prev => ({ ...prev, [buttonKey]: true }));
+
+    // Revert the icon back to the original after a short delay (e.g., 1.5 seconds)
+    setTimeout(() => {
+      setCopiedIcon(prev => ({ ...prev, [buttonKey]: false }));
+    }, 1500);
   };
 
   const handleSaveEdit = () => {
@@ -73,7 +95,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className={`group flex items-start space-x-4 p-4 rounded-lg ${isUser ? '' : 'bg-muted/30'}`}>
+      <div className={`group flex border items-start space-x-4 p-4 rounded-lg ${isUser ? '' : 'bg-muted/30'}`}>
         <div className={`flex h-8 w-8 items-center justify-center rounded-full ${isUser ? 'bg-secondary' : 'bg-primary/10 text-primary'}`}>
           <Icon className="h-5 w-5" />
         </div>
@@ -94,6 +116,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
               </div>
+            </div>
+          ) : isRegenerating ? (
+            <div className="space-y-2 pt-1">
+              <div className="h-4 w-4/5 animate-pulse rounded-md bg-muted" />
+              <div className="h-4 w-2/3 animate-pulse rounded-md bg-muted" />
             </div>
           ) : (
             <article className="prose prose-sm max-w-none dark:prose-invert">
@@ -157,22 +184,34 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(false)}>
-                  <Copy className="h-4 w-4" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={`h-7 w-7 transition-colors ${copiedIcon.standard ? 'text-green-500 animate-pulse' : ''}`} 
+                  onClick={() => handleCopy('standard')}
+                >
+                  {copiedIcon.standard ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   <span className="sr-only">Copy</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent><p>Copy</p></TooltipContent>
+              <TooltipContent>{copiedIcon.standard ? <p>Copied!</p> : <p>Copy</p>}</TooltipContent>
             </Tooltip>
-            <Tooltip>
+            
+            {/* Copy as Markdown Button with Feedback */}
+            {/* <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(true)}>
-                  <ClipboardCopy className="h-4 w-4" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={`h-7 w-7 transition-colors ${copiedIcon.markdown ? 'text-green-500 animate-pulse' : ''}`} 
+                  onClick={() => handleCopy('markdown')}
+                >
+                  {copiedIcon.markdown ? <Check className="h-4 w-4" /> : <ClipboardCopy className="h-4 w-4" />}
                   <span className="sr-only">Copy as Markdown</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent><p>Copy as Markdown</p></TooltipContent>
-            </Tooltip>
+              <TooltipContent>{copiedIcon.markdown ? <p>Copied as Markdown!</p> : <p>Copy as Markdown</p>}</TooltipContent>
+            </Tooltip> */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleDelete}>
