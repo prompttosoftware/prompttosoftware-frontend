@@ -416,8 +416,8 @@ export const api = {
    * Corresponds to: POST /analysis/:analysisId/rerun
    */
   rerunAnalysis: async (analysisId: string, payload?: AnalysisFormData): Promise<Analysis> => {
-      const response = await httpClient.post<Analysis>(`/analysis/${analysisId}/rerun`, payload);
-      return response.data;
+      const response = await httpClient.post<{ data: Analysis }>(`/analysis/${analysisId}/rerun`, payload);
+      return response.data.data;
   },
 
   // --- Chat API Methods ---
