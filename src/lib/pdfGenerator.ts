@@ -23,6 +23,9 @@ const LINE_SPACING = 5; // ~1.3x body size
 const SECTION_SPACING = 14; // vertical gap between sections
 const TOP_MARGIN = MARGIN + 24;
 
+const fileIcon = new Image();
+fileIcon.src = '/file.png';
+
 /**
  * Manages the Y-cursor position and adds new pages as needed.
  */
@@ -59,9 +62,14 @@ class PdfContext {
     this.cursorY += textHeight + additionalSpacing;
    }
 
-  
-  // Adds a formatted code block.
-  addCodeBlock(text?: string) {
+    // Adds a new page and resets the cursor position.
+    addPage() {
+        this.doc.addPage();
+        this.cursorY = TOP_MARGIN;
+    }
+
+    // Adds a formatted code block that can span multiple pages with continuous borders.
+    addCodeBlock(text?: string) {
     const innerPadding = 4;
     if (!text?.trim()) {
         this.doc.setFont('helvetica', 'italic').setFontSize(FONT_SIZES.body);
@@ -71,19 +79,66 @@ class PdfContext {
     }
 
     this.doc.setFont('courier', 'normal').setFontSize(FONT_SIZES.code);
-    const lines = this.doc.splitTextToSize(text, this.pageWidth - MARGIN * 2 - innerPadding * 2);
+    const lines = this.doc.splitTextToSize(
+        text,
+        this.pageWidth - MARGIN * 2 - innerPadding * 2
+    );
     const lineHeight = FONT_SIZES.code * 0.4;
-    const boxHeight = lines.length * lineHeight + innerPadding * 2;
+    const usablePageHeight = this.pageHeight - MARGIN * 2;
+    const availableHeight = () => usablePageHeight - (this.cursorY - MARGIN);
 
-    this.checkPageBreak(boxHeight + LINE_SPACING);
-    this.doc.setFillColor(245, 245, 245);
-    this.doc.rect(MARGIN, this.cursorY, this.pageWidth - MARGIN * 2, boxHeight, 'F');
-    this.doc.setTextColor(50, 50, 50);
-    this.doc.text(lines, MARGIN + innerPadding, this.cursorY + innerPadding + lineHeight / 2);
+    let startLine = 0;
+    while (startLine < lines.length) {
+        const linesThatFit = Math.floor(
+        (availableHeight() - innerPadding * 2 - LINE_SPACING) / lineHeight
+        );
 
-    this.cursorY += boxHeight + SECTION_SPACING / 2;
+        if (linesThatFit <= 0) {
+        this.addPage();
+        continue;
+        }
+
+        const endLine = Math.min(startLine + linesThatFit, lines.length);
+        const chunk = lines.slice(startLine, endLine);
+        const boxHeight = chunk.length * lineHeight + innerPadding * 2;
+        const x = MARGIN;
+        const y = this.cursorY;
+        const boxWidth = this.pageWidth - MARGIN * 2;
+
+        // Background fill
+        this.doc.setFillColor(245, 245, 245);
+        this.doc.rect(x, y, boxWidth, boxHeight, 'F');
+
+        // Borders
+        this.doc.setDrawColor(200, 200, 200);
+        this.doc.setLineWidth(0.2);
+        // Always draw side borders
+        this.doc.line(x, y, x, y + boxHeight); // left
+        this.doc.line(x + boxWidth, y, x + boxWidth, y + boxHeight); // right
+        // Top border only for the first chunk
+        if (startLine === 0) this.doc.line(x, y, x + boxWidth, y);
+        // Bottom border only for the last chunk
+        if (endLine === lines.length) this.doc.line(x, y + boxHeight, x + boxWidth, y + boxHeight);
+
+        // Text
+        this.doc.setTextColor(50, 50, 50);
+        this.doc.text(
+        chunk,
+        x + innerPadding,
+        y + innerPadding + lineHeight / 2
+        );
+
+        this.cursorY += boxHeight + SECTION_SPACING / 2;
+        startLine = endLine;
+
+        if (startLine < lines.length && availableHeight() < lineHeight * 2) {
+        this.addPage();
+        }
+    }
+
     this.doc.setFont('helvetica', 'normal').setTextColor(0, 0, 0);
     }
+
 }
 
 // --- PDF Section Renderers ---
@@ -106,65 +161,43 @@ const addIssueSummary = (ctx: PdfContext, issueTotals: IssueTotals | null) => {
   ctx.addText('Issue Summary', {});
 
   const totalIssues = Object.values(issueTotals).reduce((sum, count) => sum + count, 0);
-  const head = [['Issue Type', 'Count']];
-  const body = [
-    ['Potential Bugs', issueTotals.potentialBugs],
-    ['Style Issues', issueTotals.styleIssues],
-    ['Security Concerns', issueTotals.securityConcerns],
-    ['Incomplete Code', issueTotals.incompleteCode],
-    ['Performance Concerns', issueTotals.performanceConcerns],
+  const data = [
+    { label: 'Potential Bugs', value: issueTotals.potentialBugs },
+    { label: 'Style Issues', value: issueTotals.styleIssues },
+    { label: 'Security Concerns', value: issueTotals.securityConcerns },
+    { label: 'Incomplete Code', value: issueTotals.incompleteCode },
+    { label: 'Performance Concerns', value: issueTotals.performanceConcerns },
   ];
-  const foot = [['Total Issues', totalIssues]];
 
-  // --- Manually draw the table ---
-  const tableStartY = ctx.cursorY;
-  const rowHeight = 10;
-  const cellPadding = 3;
-  const tableWidth = ctx.pageWidth - MARGIN * 2;
-  const col1Width = tableWidth * 0.75;
-  const col2Width = tableWidth * 0.25;
-  let currentY = tableStartY;
+  const rowHeight = 8;
+  const valueColumnX = ctx.pageWidth - MARGIN - 50; // X position for the right-aligned numbers
+  const rightEdgeX = ctx.pageWidth - MARGIN;
 
-  const drawRow = (rowData: (string | number)[], isHeader: boolean, isFooter: boolean) => {
-      ctx.checkPageBreak(rowHeight);
+  ctx.doc.setFontSize(FONT_SIZES.body).setFont('helvetica', 'normal');
 
-      // Set styles
-      if (isHeader) {
-          ctx.doc.setFillColor(40, 40, 40);
-          ctx.doc.rect(MARGIN, currentY, tableWidth, rowHeight, 'F');
-          ctx.doc.setFont('helvetica', 'bold');
-          ctx.doc.setTextColor(255, 255, 255);
-      } else {
-          ctx.doc.setFont('helvetica', isFooter ? 'bold' : 'normal');
-          ctx.doc.setTextColor(0, 0, 0);
-      }
+  data.forEach(item => {
+    ctx.checkPageBreak(rowHeight);
+    ctx.doc.text(item.label, MARGIN, ctx.cursorY);
+    ctx.doc.text(String(item.value), rightEdgeX, ctx.cursorY, { align: 'right' });
+    ctx.cursorY += rowHeight;
+  });
 
-      // Draw text
-      ctx.doc.text(String(rowData[0]), MARGIN + cellPadding, currentY + rowHeight / 2, { baseline: 'middle' });
-      ctx.doc.text(String(rowData[1]), MARGIN + col1Width + cellPadding, currentY + rowHeight / 2, { baseline: 'middle' });
-      
-      // Draw bottom line
-      ctx.doc.setDrawColor(200, 200, 200);
-      ctx.doc.line(MARGIN, currentY + rowHeight, MARGIN + tableWidth, currentY + rowHeight);
-      currentY += rowHeight;
-  };
+  ctx.cursorY += 4; // Add a small gap before the total
 
-  // Draw Header
-  drawRow(head[0], true, false);
-  // Draw Body
-  body.forEach(row => drawRow(row, false, false));
-  // Draw Footer
-  drawRow(foot[0], false, true);
+  // Separator line
+  ctx.doc.setDrawColor(200, 200, 200);
+  ctx.doc.setLineWidth(0.2);
+  ctx.doc.line(MARGIN, ctx.cursorY, rightEdgeX, ctx.cursorY);
+  ctx.cursorY += rowHeight;
 
-  // Draw vertical lines
-  ctx.doc.line(MARGIN, tableStartY, MARGIN, currentY); // Left border
-  ctx.doc.line(MARGIN + col1Width, tableStartY, MARGIN + col1Width, currentY); // Middle divider
-  ctx.doc.line(MARGIN + tableWidth, tableStartY, MARGIN + tableWidth, currentY); // Right border
-
-  ctx.cursorY = currentY + LINE_SPACING;
-  ctx.doc.setFont('helvetica', 'normal').setTextColor(0, 0, 0); // Reset styles
-
-  ctx.cursorY += SECTION_SPACING;
+  // Total row
+  ctx.checkPageBreak(rowHeight);
+  ctx.doc.setFont('helvetica', 'bold');
+  ctx.doc.text('Total Issues', MARGIN, ctx.cursorY);
+  ctx.doc.text(String(totalIssues), rightEdgeX, ctx.cursorY, { align: 'right' });
+  
+  ctx.cursorY += rowHeight + SECTION_SPACING;
+  ctx.doc.setFont('helvetica', 'normal'); // Reset font
 };
 
 
@@ -189,25 +222,37 @@ const addReports = (ctx: PdfContext, analysis: Analysis) => {
 const addFileDescriptions = (ctx: PdfContext, nodes: Node[]) => {
   const renderNode = (node: Node, level: number) => {
     const indent = ' '.repeat(level * 4);
-    
-    ctx.checkPageBreak(20);
-    ctx.doc.setFontSize(FONT_SIZES.h3).setFont('helvetica', 'bold');
-    ctx.addText(`${indent}${node.name}`, {}, 4);
+    const xOffset = MARGIN + level * 10;
 
+    ctx.checkPageBreak(25);
+
+    // --- File Name ---
+    ctx.doc.setFontSize(FONT_SIZES.h3).setFont('helvetica', 'bold');
+    ctx.addText(`${indent}${node.name}`, { xOffset }, 6);
+    
+    // --- File Description ---
     ctx.doc.setFont('helvetica', 'normal').setFontSize(FONT_SIZES.body);
-    if(node.description) {
-      const descLines = ctx.doc.splitTextToSize(`${indent}${node.description}`, ctx.pageWidth - MARGIN * 2);
-      ctx.addText(descLines, {});
+
+    if (node.description?.trim()) {
+      const descLines = ctx.doc.splitTextToSize(
+        `${indent}${node.description}`,
+        ctx.pageWidth - MARGIN * 2
+      );
+      ctx.addText(descLines, { xOffset }, 2);
     }
 
+    // --- File Issues ---
     const addIssueList = (title: string, items?: string[]) => {
       if (!items || items.length === 0) return;
       ctx.doc.setFontSize(FONT_SIZES.body).setFont('helvetica', 'bold');
-      ctx.addText(`${indent}  - ${title}:`, {}, 2);
+      ctx.addText(`${indent}  • ${title}:`, { xOffset }, 2);
       ctx.doc.setFont('helvetica', 'normal');
       items.forEach(item => {
-        const itemLines = ctx.doc.splitTextToSize(`${indent}    • ${item}`, ctx.pageWidth - MARGIN * 2);
-        ctx.addText(itemLines, {}, 2);
+        const itemLines = ctx.doc.splitTextToSize(
+          `${indent}      - ${item}`,
+          ctx.pageWidth - MARGIN * 2
+        );
+        ctx.addText(itemLines, { xOffset }, 1);
       });
     };
 
@@ -217,20 +262,38 @@ const addFileDescriptions = (ctx: PdfContext, nodes: Node[]) => {
     addIssueList('Incomplete Code', node.incompleteCode);
     addIssueList('Performance Concerns', node.performanceConcerns);
 
-    ctx.cursorY += 10;
+    // --- Handle Empty File ---
+    const hasData =
+      node.description?.trim() ||
+      (node.potentialBugs?.length ||
+        node.styleIssues?.length ||
+        node.securityConcerns?.length ||
+        node.incompleteCode?.length ||
+        node.performanceConcerns?.length);
 
+    if (!hasData) {
+      ctx.doc.setFont('helvetica', 'italic');
+      ctx.addText(`${indent}  No data available.`, { xOffset }, 2);
+    }
+
+    ctx.cursorY += 8;
+
+    // --- Recurse on children ---
     if (node.isContainer && node.children) {
       node.children.forEach(child => renderNode(child, level + 1));
     }
+  };
 
-    };
-    ctx.cursorY += SECTION_SPACING / 2;
-    ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');
-    ctx.addText('File Descriptions & Issues', {});
+  // --- Section Header ---
+  ctx.cursorY += SECTION_SPACING / 2;
+  ctx.doc.setFontSize(FONT_SIZES.h2).setFont('helvetica', 'bold');
+  ctx.addText('File Descriptions & Issues', {});
+  ctx.cursorY += 6;
 
-    nodes.forEach(node => renderNode(node, 0));
+  // --- Render Each Node ---
+  nodes.forEach(node => renderNode(node, 0));
 
-    ctx.cursorY += SECTION_SPACING;
+  ctx.cursorY += SECTION_SPACING;
 };
 
 const addHeaderAndFooter = (doc: jsPDF, repoName: string) => {

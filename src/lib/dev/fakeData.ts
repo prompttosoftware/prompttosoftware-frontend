@@ -954,6 +954,100 @@ const fakeContainerNode: Node = {
     updatedAt: date2,
 };
 
+const extendedFileNode1: Node = {
+  name: 'src/components/UserList.tsx',
+  isContainer: false,
+  description: `Component responsible for rendering dynamic user data within a paginated list.
+It includes filtering, sorting, and search functionality but currently lacks memoization and efficient re-render prevention.
+The logic is monolithic and would benefit from splitting into smaller, testable hooks.`,
+  externalDependencies: ['react', 'axios', 'react-query', 'zustand'],
+  internalDependencies: ['src/api/users.ts', 'src/types/user.ts', 'src/hooks/usePagination.ts'],
+  potentialBugs: [
+    'Pagination boundary condition may skip the final page when totalUsers % pageSize === 0.',
+    'Sorting state not persisted when refetching data, leading to inconsistent UX.',
+    'Concurrent fetch calls occasionally overwrite cached data in react-query.',
+  ],
+  styleIssues: [
+    'Missing return type annotations on multiple functions.',
+    'Inline styles used instead of CSS modules in some sections.',
+    'Exceeds recommended 200-line component limit (currently ~370 lines).',
+  ],
+  securityConcerns: [
+    'No sanitization applied on user input for search filter.',
+    'Sensitive API key found in environment variable reference without masking.',
+  ],
+  incompleteCode: [
+    'Placeholder TODO: "Implement debounce for search input" still present.',
+    'Unimplemented prop type validation for `UserCard` child component.',
+  ],
+  performanceConcerns: [
+    'Re-renders triggered on each keystroke due to uncontrolled state propagation.',
+    'Lack of virtualization when rendering large user datasets (1000+ entries).',
+    'Multiple redundant API calls on rapid pagination changes.',
+  ],
+  createdAt: date1,
+  updatedAt: date3,
+};
+
+const extendedFileNode2: Node = {
+  name: 'server/auth/authService.js',
+  isContainer: false,
+  description: `Handles user authentication flow, JWT creation, and password hashing.
+Currently written as a monolithic service without clear separation between logic and data access layers.
+The service should be modularized to facilitate unit testing and security auditing.`,
+  externalDependencies: ['express', 'jsonwebtoken', 'bcrypt', 'dotenv'],
+  internalDependencies: ['server/db/userModel.js', 'server/utils/tokenUtils.js'],
+  potentialBugs: [
+    'Error thrown when JWT secret is missing is not caught, causing service crash.',
+    'bcrypt compare method occasionally receives undefined values for passwords.',
+  ],
+  styleIssues: [
+    'Inconsistent naming conventions between functions (camelCase vs snake_case).',
+    'Improper indentation in several async functions.',
+  ],
+  securityConcerns: [
+    'Hardcoded fallback secret key in token generation block.',
+    'Lacks rate limiting on failed login attempts (vulnerable to brute-force).',
+    'No CSRF protection when tokens are used in cookies.',
+  ],
+  incompleteCode: [
+    'Forgotten comment "// add refresh token logic later".',
+    'Unimplemented token revocation endpoint stub present in router.',
+  ],
+  performanceConcerns: [
+    'bcrypt salt rounds set to 4 instead of 10, leading to weak hashing but faster execution.',
+  ],
+  createdAt: date2,
+  updatedAt: date3,
+};
+
+const extendedContainerNode: Node = {
+  name: 'API Interaction Layer',
+  isContainer: true,
+  description: `Centralized module managing communication between the frontend and backend services.
+Each submodule defines standardized HTTP request patterns with retry logic and cancellation tokens.
+However, error normalization and caching are incomplete, leading to inconsistent UX across components.`,
+  children: [
+    {
+      name: 'src/api/users.ts',
+      isContainer: false,
+      description: `Responsible for fetching, creating, and updating user data via RESTful endpoints.
+Lacks unified error handling; some functions return undefined on failure, others throw exceptions.`,
+      externalDependencies: ['axios', 'qs'],
+      internalDependencies: [],
+      potentialBugs: ['Query params not encoded properly on multi-filter search requests.'],
+      styleIssues: ['Inconsistent import ordering.', 'No inline documentation for exported functions.'],
+      securityConcerns: ['POST endpoint exposes stack traces in error responses.'],
+      incompleteCode: ['TODO: add exponential backoff to retry logic.'],
+      performanceConcerns: ['Repeated network calls for identical queries due to missing cache layer.'],
+      createdAt: date1,
+      updatedAt: date2,
+    },
+  ],
+  createdAt: date1,
+  updatedAt: date3,
+};
+
 // --- Fake Analysis Array ---
 
 export const FAKE_ANALYSIS_ARRAY: Analysis[] = [
@@ -1001,7 +1095,93 @@ export const FAKE_ANALYSIS_ARRAY: Analysis[] = [
         desiredStatus: 'running' as DesiredStatus,
         createdAt: date3,
         updatedAt: date3,
-    }
+    },
+    {
+    _id: 'analysis-104',
+    userId: 'test-user-extended-1',
+    projectId: 'project-frontend-extended',
+    repository: 'git@github.com:devuser/nextgen-webapp.git',
+    cost: 9.85,
+    descriptions: [extendedContainerNode, extendedFileNode1],
+    testReport: {
+      content: `Test Summary:
+Total tests: 246
+Passed: 232
+Failed: 14
+Coverage: 87.4%
+Most failures occur in the pagination and search synchronization tests within UserList.tsx.
+Snapshot tests for UserCard components are outdated and failing due to layout changes.
+
+Recommendations:
+- Update snapshots with new layout markup.
+- Refactor test utilities to mock react-query properly.
+- Consider adding integration tests with mocked network layer to catch concurrency bugs.`,
+    },
+    buildReport: {
+      content: `Build Report:
+✅ Build completed with warnings.
+Warnings (8 total):
+- Unused import in src/hooks/usePagination.ts
+- Circular dependency detected between UserList.tsx and usePagination.ts
+- Deprecated ReactDOM.render call in test setup file.
+Bundle size: 1.2 MB (target < 1 MB)
+Build time: 42.3s
+Optimization recommended: enable tree-shaking and compression.`,
+    },
+    status: 'completed' as Status,
+    desiredStatus: 'stopped' as DesiredStatus,
+    createdAt: date1,
+    updatedAt: date3,
+  },
+  {
+    _id: 'analysis-105',
+    userId: 'test-user-extended-2',
+    projectId: 'project-backend-extended',
+    repository: 'git@gitlab.com:prompttosoftware/secure-api-service.git',
+    cost: 6.45,
+    descriptions: [extendedFileNode2],
+    buildReport: {
+      content: `Starting build process investigation. First, examining client/package.json to understand the build configuration.
+Examining client/package.json to identify the build command for the frontend application.
+Reviewing client/package.json scripts to identify the build command for the frontend application.
+Examining the contents of client/package.json to find the build script for the frontend application.
+Examining the contents of client/package.json to find the build script for the frontend application.
+Attempting to view the contents of client/package.json to identify the build script for the frontend application.
+Using cat command to view the contents of client/package.json to identify the build script for the frontend application.
+The client application uses "vite build" as its build command. Now checking the server directory contents to determine if there are any server-side build steps needed.
+Checking for root-level package.json file that might contain a build command for the entire application.
+Executing the build command for the client application using "npm run build" in the client directory. This will build the frontend assets using Vite.
+Installing npm dependencies for the client application before attempting to build. The build failed previously because Vite was not found.
+Running the build command for the client application after successfully installing dependencies. This will use Vite to build the frontend assets.
+Build Summary:
+- Command: cd client && npm run build
+- Status: Success
+- Duration: 2.29s
+- Output: Frontend assets successfully built using Vite and placed in the client/dist/ directory
+- Artifacts: client/dist/index.html, client/dist/assets/*
+
+The client application was successfully built. The server component is a Python application that does not require a build step.`
+    },
+    runReport: {
+      content: `Runtime Analysis Report:
+Execution time: 198 seconds
+Memory footprint: ~320MB average, 410MB peak.
+No fatal errors encountered during execution.
+Detected 3 minor issues:
+1. Unhandled promise rejections during token refresh.
+2. Database connection pool warning (max connections exceeded under load test).
+3. Missing performance metrics logging in auth middleware.
+
+Suggested Improvements:
+- Implement connection pooling with configurable limits.
+- Add structured logging (e.g., pino or Winston) with log rotation.
+- Harden environment validation to prevent missing configuration at runtime.`,
+    },
+    status: 'running' as Status,
+    desiredStatus: 'running' as DesiredStatus,
+    createdAt: date2,
+    updatedAt: date3,
+  },
 ];
 
 export const FAKE_CHATS: Chat[] = [
