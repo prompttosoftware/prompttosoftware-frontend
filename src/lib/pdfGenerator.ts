@@ -56,7 +56,7 @@ class PdfContext {
     const lines = Array.isArray(text)
         ? text
         : this.doc.splitTextToSize(text, this.pageWidth - MARGIN * 2);
-    const textHeight = lines.length * (this.doc.getFontSize() * 0.35);
+    const textHeight = this.doc.getTextDimensions(lines).h;
     this.checkPageBreak(textHeight + additionalSpacing);
     this.doc.text(lines, MARGIN, this.cursorY, options);
     this.cursorY += textHeight + additionalSpacing;
