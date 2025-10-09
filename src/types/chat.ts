@@ -63,6 +63,7 @@ export interface SendMessageInput {
     systemPrompt?: string;
     top_k?: number;
     temperature?: number;
+    stream?: boolean;
 }
 
 export interface EditMessageInput {
@@ -70,6 +71,7 @@ export interface EditMessageInput {
     systemPrompt?: string;
     top_k?: number;
     temperature?: number;
+    stream?: boolean;
 }
 
 /**
@@ -80,6 +82,7 @@ export interface RegenerateResponseInput {
     systemPrompt?: string;
     top_k?: number;
     temperature?: number;
+    stream?: boolean;
 }
 
 /**
@@ -105,7 +108,6 @@ export interface PaginationParams {
 export interface CreateChatResponse {
     chat: Chat;
     userMessage: ChatMessage;
-    aiResponse: ChatMessage;
 }
 
 export interface GetChatResponse {

@@ -28,34 +28,19 @@ export const useChatActions = (chatId?: string) => {
     const createChatMutation = useMutation({
         mutationFn: (payload: CreateChatInput) => api.chat.createChat(payload),
         onSuccess: (data) => {
-            invalidateChatsList();
-            // Pre-populate the cache for the new chat to avoid a loading flash on redirect
-            console.log(`Create chat response: ${JSON.stringify(data)}`);
+            // Invalidate the main list of chats
+            queryClient.invalidateQueries({ queryKey: ['userChats'] });
+            
             const newChatResponse: GetChatResponse = {
                 chat: data.chat,
-                messages: [data.userMessage, data.aiResponse],
+                messages: [data.userMessage],
             };
-            queryClient.setQueryData(['chat', data.chat?._id], newChatResponse);
-            router.push(`/chat/${data.chat?._id}`);
+            queryClient.setQueryData(['chat', data.chat._id], newChatResponse);
+            router.push(`/chat/${data.chat._id}`);
             toast.success('New chat created!');
         },
         onError: (error) => {
             toast.error(`Failed to create chat: ${error.message}`);
-        },
-    });
-
-    /**
-     * Sends a new message in the current chat.
-     */
-    const sendMessageMutation = useMutation({
-        mutationFn: (payload: SendMessageInput) => {
-            if (!chatId) throw new Error('Chat ID is required to send a message.');
-            return api.chat.sendMessage(chatId, payload);
-        },
-        onSuccess: invalidateChatHistory,
-        onError: (error) => {
-            toast.error(`Failed to send message: ${error.message}`);
-            invalidateChatHistory(); // Refetch to revert optimistic updates if you were to add them
         },
     });
 
@@ -84,37 +69,6 @@ export const useChatActions = (chatId?: string) => {
             toast.error(`Failed to delete chat: ${error.message}`);
             invalidateChatsList(); // Refetch the list on failure
         },
-    });
-    
-    /**
-     * Regenerates an AI response, creating a new branch.
-     */
-    const regenerateResponseMutation = useMutation({
-        mutationFn: (payload: RegenerateResponseInput) => {
-            if (!chatId) throw new Error('Chat ID is required to regenerate a response.');
-            return api.chat.regenerateResponse(chatId, payload);
-        },
-        onSuccess: () => {
-            toast.success('Response regenerated.');
-            invalidateChatHistory(); // Invalidate on success to refetch the new branch
-        },
-        onError: (error) => toast.error(`Failed to regenerate: ${error.message}`),
-    });
-
-    /**
-     * Edits a user's message and gets a new AI response.
-     */
-    const editMessageMutation = useMutation({
-        mutationFn: (variables: { messageId: string; payload: EditMessageInput }) => {
-            if (!chatId) throw new Error('Chat ID is required to edit a message.');
-            const { messageId, payload } = variables;
-            return api.chat.editUserMessage(chatId, messageId, payload);
-        },
-        onSuccess: () => {
-            toast.success('Message edited and response generated.');
-            invalidateChatHistory(); // Invalidate to refetch the entire new branch
-        },
-        onError: (error) => toast.error(`Failed to edit message: ${error.message}`),
     });
 
     /**
@@ -145,13 +99,43 @@ export const useChatActions = (chatId?: string) => {
         onError: (error) => toast.error(`Failed to delete message: ${error.message}`),
     });
 
+    const sendMessageStream = async (payload: SendMessageInput, onChunk: (chunk: string) => void) => {
+        if (!chatId) throw new Error('Chat ID is required to send a message.');
+        await api.chat.sendMessageStream(chatId, payload, {
+            onChunk,
+            onFinish: invalidateChatHistory, // Refetch the final data when stream is done
+            onError: (error) => toast.error(`Streaming failed: ${error.message}`),
+        });
+    };
+
+    const regenerateResponseStream = async (payload: RegenerateResponseInput, onChunk: (chunk: string) => void) => {
+        if (!chatId) throw new Error('Chat ID is required to regenerate a response.');
+        await api.chat.regenerateResponseStream(chatId, payload, {
+            onChunk,
+            onFinish: invalidateChatHistory,
+            onError: (error) => toast.error(`Regeneration failed: ${error.message}`),
+        });
+    };
+
+    const editMessageStream = async (messageId: string, payload: EditMessageInput, onChunk: (chunk: string) => void) => {
+        if (!chatId) throw new Error('Chat ID is required to edit a message.');
+        await api.chat.editUserMessageStream(chatId, messageId, payload, {
+            onChunk,
+            onFinish: invalidateChatHistory,
+            onError: (error) => toast.error(`Failed to edit: ${error.message}`),
+        });
+    };
+
     return {
+        // Mutations
         createChat: createChatMutation,
-        sendMessage: sendMessageMutation,
         deleteChat: deleteChatMutation,
-        regenerateResponse: regenerateResponseMutation,
-        editMessage: editMessageMutation,
         switchBranch: switchBranchMutation,
         deleteMessage: deleteMessageMutation,
+
+        // Streaming Functions
+        sendMessageStream,
+        regenerateResponseStream,
+        editMessageStream,
     };
 };

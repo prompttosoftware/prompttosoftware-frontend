@@ -8,7 +8,7 @@ import { GetChatResponse, ChatSettings, ChatMessage as ChatMessageType } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SkeletonLoader from '@/app/(main)/components/SkeletonLoader';
 import ChatSidebar from './ChatSidebar';
-import ChatMessage from './ChatMessage';
+import ChatMessage, { ChatStreamingActions } from './ChatMessage';
 import MessageInput from './MessageInput';
 import { Analysis } from '@/types/analysis';
 import { Bot } from 'lucide-react';
@@ -39,10 +39,11 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const [chatId, setChatId] = useState(initialChatId);
 
   // Data Fetching & Mutations
-  const { data, isLoading, isError, error } = useChat(chatId !== 'new' ? chatId : undefined, {
+  const { data, isLoading, isError, error } = useChat(initialChatId !== 'new' ? initialChatId : undefined, {
     initialData: initialChat ?? undefined,
   });
-  const { createChat, sendMessage, ...mutations } = useChatActions(chatId !== 'new' ? chatId : undefined);
+  // Destructure the new streaming functions
+  const { createChat, sendMessageStream, regenerateResponseStream, editMessageStream, ...mutations } = useChatActions(initialChatId !== 'new' ? initialChatId : undefined);
 
   // State
   const [input, setInput] = useState('');
@@ -55,6 +56,10 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     analysisId: initialAnalysisId,
   });
   const [systemPrompt, setSystemPrompt] = useState('');
+
+  const [optimisticUserMessage, setOptimisticUserMessage] = useState<ChatMessageType | null>(null);
+  const [streamingAiResponse, setStreamingAiResponse] = useState<ChatMessageType | null>(null);
+  const isResponding = createChat.isPending || !!streamingAiResponse;
 
   // Effects
   useEffect(() => {
@@ -72,15 +77,42 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   }, [data?.chat]);
 
   useEffect(() => {
-    // When the real messages from the server are loaded/updated,
-    // we can clear our optimistic message. This prevents a temporary duplicate message
-    // from showing if the mutation succeeds and the query refetches.
-    if (optimisticMessage) {
-        setOptimisticMessage(null);
+    // This effect runs when the chat data is loaded for an existing chat.
+    if (data?.messages && data.messages.length === 1 && data.messages[0].sender === 'user' && !isResponding) {
+      const firstUserMessage = data.messages[0];
+      
+      // Prepare a placeholder for the AI's streaming response
+      const tempAiMessage: ChatMessageType = {
+          _id: `streaming-${Date.now()}`,
+          chatId: initialChatId,
+          sender: 'ai',
+          content: '', // Start with empty content
+          createdAt: new Date(),
+          parentMessageId: firstUserMessage._id,
+          branchIndex: 0,
+          totalBranches: 1,
+      };
+      setStreamingAiResponse(tempAiMessage);
+
+      // Call the streaming function
+      sendMessageStream(
+        { content: firstUserMessage.content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+        (chunk) => {
+          setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+        }
+      ).finally(() => {
+        setStreamingAiResponse(null); // Clear on completion
+      });
     }
-    // We only want this to run when the server-side messages change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.messages]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.messages, isResponding]); // Depends on messages loading
+
+  useEffect(() => {
+    // Clear optimistic messages once the real data arrives or streaming ends
+    if (!isResponding) {
+      setOptimisticUserMessage(null);
+    }
+  }, [data?.messages, isResponding]);
 
   useEffect(() => {
     // The createChat mutation hook handles the redirect. We just update the local chatId.
@@ -94,7 +126,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight });
     }
-  }, [data?.messages, createChat.isPending, sendMessage.isPending, optimisticMessage]);
+  }, [data?.messages, streamingAiResponse, optimisticUserMessage]);
 
   useEffect(() => {
     if (isError) {
@@ -105,77 +137,112 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   // Handlers
   const handleSend = async () => {
     const content = input.trim();
-    if (!content || isAnyMutationPending) return;
-
-    // Create an optimistic message to display immediately in the UI for all sends.
-    const tempUserMessage: ChatMessageType = {
-        _id: `optimistic-${Date.now()}`,
-        chatId: chatId, // 'new' or an existing ID
-        sender: 'user',
-        content: content,
-        createdAt: new Date(),
-        parentMessageId: null,
-        branchIndex: 0,
-        totalBranches: 0
-    };
-    
-    // 1. Update UI immediately
-    setOptimisticMessage(tempUserMessage);
+    if (!content || isResponding) return;
     setInput('');
 
-    if (chatId === 'new') {
-        try {
-            // 2. Call the mutation to create a new chat.
-            await createChat.mutateAsync({
-                repository: 'your-github/repository-name',
-                initialContent: content,
-                systemPrompt: systemPrompt || undefined,
-                analysisId: settings.analysisId,
-                model: { primary: settings.model },
-                temperature: settings.temperature,
-                top_k: settings.top_k,
-            });
-            // On success, the useEffect for createChat.data handles the redirect,
-            // and the component state will reset, clearing the optimistic message.
-        } catch (error) {
-            // 3. Rollback on failure
-            console.error("Create chat mutation failed:", error);
-            toast.error("Failed to send message. Please try again.");
-            setOptimisticMessage(null);
-            setInput(content); // Repopulate the input so user doesn't lose their text.
-        }
+    if (initialChatId === 'new') {
+        // 1. For a new chat, call the updated createChat mutation.
+        // It redirects, and the new useEffect will handle the first message send.
+        await createChat.mutateAsync({
+            repository: 'your-github/repository-name', // TODO: This should be dynamic
+            initialContent: content,
+            systemPrompt: systemPrompt || undefined,
+            analysisId: settings.analysisId,
+            model: { primary: settings.model },
+            temperature: settings.temperature,
+            top_k: settings.top_k,
+        });
     } else {
-        try {
-            // 2. Call the mutation to send a message to an existing chat.
-            await sendMessage.mutateAsync({
-                content: content,
-                systemPrompt: systemPrompt || undefined,
-                temperature: settings.temperature,
-                top_k: settings.top_k,
-            });
-            // On success, the useChat query will refetch. The new useEffect watching
-            // `data.messages` will then clear the optimistic message.
-        } catch (error) {
-            // 3. Rollback on failure
-            console.error("Send message failed in component:", error);
-            toast.error("Failed to send message. Please try again.");
-            setOptimisticMessage(null);
-            setInput(content); // Repopulate input for consistency.
-        }
+        // 2. For an existing chat, start the streaming flow.
+        const tempUserMessage: ChatMessageType = {
+            _id: `optimistic-${Date.now()}`,
+            chatId: initialChatId,
+            sender: 'user',
+            content: content,
+            createdAt: new Date(),
+            parentMessageId: data?.messages[data.messages.length - 1]?._id ?? null,
+            branchIndex: 0, totalBranches: 1,
+        };
+        const tempAiMessage: ChatMessageType = {
+            _id: `streaming-${Date.now()}`,
+            chatId: initialChatId,
+            sender: 'ai',
+            content: '',
+            createdAt: new Date(),
+            parentMessageId: tempUserMessage._id, // Optimistically parented
+            branchIndex: 0, totalBranches: 1,
+        };
+
+        setOptimisticUserMessage(tempUserMessage);
+        setStreamingAiResponse(tempAiMessage);
+
+        await sendMessageStream(
+          { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+          (chunk) => {
+            setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+          }
+        ).finally(() => {
+          // The onFinish callback in useChatActions handles invalidation.
+          // We just clear our local streaming state.
+          setStreamingAiResponse(null);
+        });
     }
   };
 
-  const messages = data?.messages ?? [];
-  const isNewMessageResponding = createChat.isPending || sendMessage.isPending;
-  const isAnyMutationPending = isNewMessageResponding || mutations.regenerateResponse?.isPending;
+  const streamingActions: ChatStreamingActions = {
+    handleStreamEdit: async (messageId: string, newContent: string) => {
+      if (isResponding) return;
 
-  // Combine server messages with the optimistic message for immediate UI feedback.
+      // Start the AI response placeholder.
+      const tempAiMessage: ChatMessageType = {
+          _id: `streaming-${Date.now()}`,
+          chatId: initialChatId,
+          sender: 'ai', content: '', createdAt: new Date(),
+          parentMessageId: messageId, // This is an approximation for UI, backend handles branching.
+          branchIndex: 0, totalBranches: 1,
+      };
+      setStreamingAiResponse(tempAiMessage);
+
+      await editMessageStream(
+        messageId,
+        { newContent, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+        (chunk) => {
+          setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+        }
+      ).finally(() => setStreamingAiResponse(null));
+    },
+
+    handleStreamRegenerate: async (parentMessageId: string) => {
+      if (isResponding) return;
+
+      const tempAiMessage: ChatMessageType = {
+          _id: `streaming-${Date.now()}`,
+          chatId: initialChatId,
+          sender: 'ai', content: '', createdAt: new Date(),
+          parentMessageId: parentMessageId,
+          branchIndex: 0, totalBranches: 1,
+      };
+      setStreamingAiResponse(tempAiMessage);
+
+      await regenerateResponseStream(
+        { parentMessageId, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+        (chunk) => {
+          setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+        }
+      ).finally(() => setStreamingAiResponse(null));
+    },
+  };
+
+  const messages = data?.messages ?? [];
   const displayedMessages = [...messages];
-  if (optimisticMessage) {
-      displayedMessages.push(optimisticMessage);
+  if (optimisticUserMessage && !messages.find(m => m._id === optimisticUserMessage._id)) {
+      displayedMessages.push(optimisticUserMessage);
+  }
+  if (streamingAiResponse) {
+      displayedMessages.push(streamingAiResponse);
   }
 
-  if (isLoading && chatId !== 'new') {
+  if (isLoading && initialChatId !== 'new') {
     return <div className="p-8"><SkeletonLoader className="h-[80vh] w-full" /></div>;
   }
   
@@ -199,16 +266,19 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
             </div>
           ) : (
             <>
-              {displayedMessages.map((msg) => (
+                {displayedMessages.map((msg) => (
                 <ChatMessage
-                  key={msg._id}
-                  chatId={chatId}
-                  message={msg}
-                  // Disable actions for the optimistic message
-                  mutations={msg._id.startsWith('optimistic-') ? {} as any : mutations}
+                    key={msg._id}
+                    chatId={initialChatId}
+                    message={msg}
+                    // Pass down the remaining non-streaming mutations
+                    mutations={mutations}
+                    // Pass down the new streaming handlers
+                    streamingActions={streamingActions}
+                    isStreaming={isResponding && !msg._id.startsWith('streaming-')}
                 />
-              ))}
-              {isNewMessageResponding && <ThinkingMessage />}
+                ))}
+                {isResponding && !streamingAiResponse && <ThinkingMessage />}
             </>
           )}
         </div>
@@ -219,7 +289,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onSend={handleSend}
-              disabled={isAnyMutationPending}
+              disabled={isResponding}
             />
           </div>
         </div>

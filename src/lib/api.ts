@@ -4,7 +4,7 @@ import { Analysis, AnalysisFormData, GetAnalysisResponse } from '@/types/analysi
 
 // Auth Types
 import { UserProfile, AuthResponse } from '@/types/auth';
-import { CreateChatInput, CreateChatResponse, PaginationParams, GetChatResponse, SendMessageInput, SendMessageResponse, RegenerateResponseInput, RegenerateResponse, SwitchBranchInput, SwitchBranchResponse, Chat, EditMessageInput, EditMessageResponse } from '@/types/chat';
+import { CreateChatInput, CreateChatResponse, PaginationParams, GetChatResponse, SendMessageInput, SendMessageResponse, RegenerateResponseInput, RegenerateResponse, SwitchBranchInput, SwitchBranchResponse, Chat, EditMessageInput, EditMessageResponse, ChatMessage } from '@/types/chat';
 import { SavedCard } from '@/types/payments';
 
 // Project Types
@@ -22,6 +22,7 @@ import {
     ProjectFormData
 } from '@/types/project';
 import { Transaction } from '@/types/transactions';
+import { fetchStream } from './streamingClient';
 
 // API Key Types
 export interface ApiKey {
@@ -76,6 +77,12 @@ export async function getEstimatedCost(
 ): Promise<CostEstimation> {
  console.log('Mock getEstimatedCost called with:', { description, maxRuntimeHours, maxBudget, aiModels });
  return { cost: 100.00, durationHours: 50, tokensUsed: 100000 };
+}
+
+type StreamCallbacks = {
+  onChunk: (chunk: string) => void;
+  onFinish?: () => void;
+  onError?: (error: Error) => void;
 }
 
 
@@ -423,7 +430,7 @@ export const api = {
   // --- Chat API Methods ---
     chat: {
         /**
-         * Creates a new chat session and sends the first message.
+         * Creates a new chat session.
          * Corresponds to: POST /chats
          * @param payload - The initial data for creating the chat.
          */
@@ -462,33 +469,27 @@ export const api = {
         },
 
         /**
-         * Sends a new message in an existing chat.
-         * Corresponds to: POST /chats/:chatId/messages
+         * Sends a message and streams the AI's response.
          */
-        sendMessage: async (chatId: string, payload: SendMessageInput): Promise<SendMessageResponse> => {
-            const response = await httpClient.post<SendMessageResponse>(`/chats/${chatId}/messages`, payload);
-            return response.data;
+        sendMessageStream: async (chatId: string, payload: SendMessageInput, callbacks: StreamCallbacks) => {
+            const url = `${httpClient.defaults.baseURL}/chats/${chatId}/messages`;
+            await fetchStream({ method: 'POST', url, payload, ...callbacks });
         },
 
         /**
-         * Regenerates an AI response from a specific point in the conversation, creating a new branch.
-         * Corresponds to: POST /chats/:chatId/regenerate
+         * Regenerates a response and streams it.
          */
-        regenerateResponse: async (chatId: string, payload: RegenerateResponseInput): Promise<RegenerateResponse> => {
-            const response = await httpClient.post<RegenerateResponse>(`/chats/${chatId}/regenerate`, payload);
-            return response.data;
+        regenerateResponseStream: async (chatId: string, payload: RegenerateResponseInput, callbacks: StreamCallbacks) => {
+            const url = `${httpClient.defaults.baseURL}/chats/${chatId}/regenerate`;
+            await fetchStream({ method: 'POST', url, payload, ...callbacks });
         },
 
         /**
-         * Edits a user's message, creating a new branch and getting a new AI response.
-         * Corresponds to: PUT /chats/:chatId/messages/:messageId
-         * @param chatId - The ID of the chat.
-         * @param messageId - The ID of the user message to edit.
-         * @param payload - The new content and optional model parameters.
+         * Edits a user message and streams the new AI response.
          */
-        editUserMessage: async (chatId: string, messageId: string, payload: EditMessageInput): Promise<EditMessageResponse> => {
-            const response = await httpClient.put<EditMessageResponse>(`/chats/${chatId}/messages/${messageId}`, payload);
-            return response.data;
+        editUserMessageStream: async (chatId: string, messageId: string, payload: EditMessageInput, callbacks: StreamCallbacks) => {
+            const url = `${httpClient.defaults.baseURL}/chats/${chatId}/messages/${messageId}`;
+            await fetchStream({ method: 'PUT', url, payload, ...callbacks });
         },
 
         /**

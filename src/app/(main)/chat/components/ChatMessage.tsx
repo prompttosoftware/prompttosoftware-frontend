@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Copy, ClipboardCopy, Pencil, RefreshCw, Trash2,
+  Copy, Pencil, RefreshCw, Trash2,
   ChevronLeft, ChevronRight, User, Bot,
   Check,
 } from 'lucide-react';
@@ -19,15 +19,22 @@ import ReactMarkdown from 'react-markdown';
 import Reasoning from './Reasoning';
 import { useChatActions } from '@/hooks/useChatActions';
 
-type ChatMutations = Omit<ReturnType<typeof useChatActions>, 'createChat' | 'sendMessage' | 'deleteChat'>;
+type ChatMutations = Omit<ReturnType<typeof useChatActions>, 'createChat' | 'editMessage' | 'sendMessageStream' | 'regenerateResponseStream' | 'editMessageStream'>;
+
+export interface ChatStreamingActions {
+  handleStreamEdit: (messageId: string, newContent: string) => void;
+  handleStreamRegenerate: (parentMessageId: string) => void;
+}
 
 interface ChatMessageProps {
   chatId: string;
   message: MessageType;
-  mutations: ChatMutations;
+  mutations: ChatMutations; // For delete, switchBranch, etc.
+  streamingActions: ChatStreamingActions;
+  isStreaming: boolean;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streamingActions, isStreaming }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
   const [copiedIcon, setCopiedIcon] = useState<{ standard: boolean; markdown: boolean }>({
@@ -36,11 +43,6 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
   });
 
   const isUser = message.sender === 'user';
-
-  const isRegenerating = 
-    !isUser &&
-    mutations.regenerateResponse?.isPending &&
-    mutations.regenerateResponse.variables?.parentMessageId === message.parentMessageId;
 
   const handleCopy = (buttonKey: 'standard' | 'markdown') => {
     // Determine which content to copy based on the button
@@ -59,25 +61,21 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
   };
 
   const handleSaveEdit = () => {
-    // Check if content has actually changed to prevent unnecessary API calls
     if (editedContent.trim() === message.content.trim() || editedContent.trim() === '') {
-        setIsEditing(false);
-        return;
+      setIsEditing(false);
+      return;
     }
-
-    mutations.editMessage.mutate({
-        messageId: message._id,
-        payload: { newContent: editedContent },
-    });
-    
-    setIsEditing(false); // Immediately close the editor for a better UX
+    // Call the new streaming function passed from the parent
+    streamingActions.handleStreamEdit(message._id, editedContent);
+    setIsEditing(false);
   };
   
   const handleRegenerate = () => {
     if (message.parentMessageId) {
-        mutations.regenerateResponse.mutate({ parentMessageId: message.parentMessageId });
+      // Call the new streaming function passed from the parent
+      streamingActions.handleStreamRegenerate(message.parentMessageId);
     } else {
-        console.error("Cannot regenerate a message without a parent.");
+      console.error("Cannot regenerate a message without a parent.");
     }
   };
 
@@ -111,16 +109,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
                 autoFocus
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveEdit} disabled={mutations.editMessage?.isPending}>
-                  {mutations.editMessage.isPending ? 'Saving...' : 'Save & Submit'}
+                <Button size="sm" onClick={handleSaveEdit} disabled={isStreaming}>
+                  {isStreaming ? 'Working...' : 'Save & Submit'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
               </div>
-            </div>
-          ) : isRegenerating ? (
-            <div className="space-y-2 pt-1">
-              <div className="h-4 w-4/5 animate-pulse rounded-md bg-muted" />
-              <div className="h-4 w-2/3 animate-pulse rounded-md bg-muted" />
             </div>
           ) : (
             <article className="prose prose-sm max-w-none dark:prose-invert">
@@ -159,8 +152,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
             {isUser && !isEditing && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  {/* Disable edit button while another mutation is running */}
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)} disabled={mutations.editMessage?.isPending || mutations.regenerateResponse?.isPending}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)} disabled={isStreaming}>
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit message</span>
                   </Button>
@@ -172,8 +164,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatId, message, mutations })
             {!isUser && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  {/* Disable regenerate button while a mutation is running */}
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRegenerate} disabled={mutations.regenerateResponse?.isPending || mutations.editMessage?.isPending}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRegenerate} disabled={isStreaming}>
                     <RefreshCw className="h-4 w-4" />
                     <span className="sr-only">Regenerate response</span>
                   </Button>
