@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useChat } from '@/hooks/useChat';
 import { useChatActions } from '@/hooks/useChatActions';
@@ -21,6 +22,7 @@ interface ChatClientProps {
 }
 
 const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialChat, analyses, initialAnalysisId }) => {
+  const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   
   const [chatId, setChatId] = useState(initialChatId);
@@ -127,6 +129,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     setInput('');
 
     if (chatId === 'new') {
+        hasTriggeredFirstResponse.current = true;
         await createChat.mutateAsync({
             repository: 'your-github/repository-name', // TODO: This should be dynamic
             initialContent: content,
@@ -173,6 +176,19 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const streamingActions: ChatStreamingActions = {
     handleStreamEdit: async (messageId: string, newContent: string) => {
       if (isResponding) return;
+
+      const queryKey = ['chat', chatId];
+      queryClient.setQueryData<GetChatResponse>(queryKey, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          messages: oldData.messages.map((msg) =>
+            msg._id === messageId
+              ? { ...msg, content: newContent }
+              : msg
+          ),
+        };
+      });
 
       const tempAiMessage: ChatMessageType = {
           _id: `streaming-${Date.now()}`,
