@@ -29,34 +29,33 @@ export interface ChatStreamingActions {
 interface ChatMessageProps {
   chatId: string;
   message: MessageType;
-  mutations: ChatMutations; // For delete, switchBranch, etc.
+  mutations: ChatMutations;
   streamingActions: ChatStreamingActions;
-  isStreaming: boolean;
+  isAnyMessageResponding: boolean; // Is any message in the chat being generated?
+  isResponding?: boolean; // Is THIS specific message being generated?
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streamingActions, isStreaming }) => {
+const ThinkingAnimation: React.FC = () => (
+  <div className="space-y-2 pt-1">
+    <div className="h-4 w-12 animate-pulse rounded-md bg-muted" />
+    <div className="h-4 w-4/5 animate-pulse rounded-md bg-muted" />
+    <div className="h-4 w-2/3 animate-pulse rounded-md bg-muted" />
+  </div>
+);
+
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streamingActions, isAnyMessageResponding, isResponding = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(message.content);
-  const [copiedIcon, setCopiedIcon] = useState<{ standard: boolean; markdown: boolean }>({
-    standard: false,
-    markdown: false,
-  });
+  const [copiedIcon, setCopiedIcon] = useState<{ standard: boolean }>({ standard: false });
 
   const isUser = message.sender === 'user';
 
-  const handleCopy = (buttonKey: 'standard' | 'markdown') => {
-    // Determine which content to copy based on the button
-    const contentToCopy = buttonKey === 'standard' ? message.content : message.content; // assuming you'd modify this if you actually had a markdown string
-    
-    // For now, both copy the same content, but this separates the feedback
-    navigator.clipboard.writeText(contentToCopy);
-
-    // Set the corresponding copy state to true
-    setCopiedIcon(prev => ({ ...prev, [buttonKey]: true }));
-
-    // Revert the icon back to the original after a short delay (e.g., 1.5 seconds)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopiedIcon({ standard: true });
     setTimeout(() => {
-      setCopiedIcon(prev => ({ ...prev, [buttonKey]: false }));
+      setCopiedIcon({ standard: false });
     }, 1500);
   };
 
@@ -65,14 +64,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
       setIsEditing(false);
       return;
     }
-    // Call the new streaming function passed from the parent
     streamingActions.handleStreamEdit(message._id, editedContent);
     setIsEditing(false);
   };
   
   const handleRegenerate = () => {
     if (message.parentMessageId) {
-      // Call the new streaming function passed from the parent
       streamingActions.handleStreamRegenerate(message.parentMessageId);
     } else {
       console.error("Cannot regenerate a message without a parent.");
@@ -109,12 +106,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
                 autoFocus
               />
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleSaveEdit} disabled={isStreaming}>
-                  {isStreaming ? 'Working...' : 'Save & Submit'}
+                <Button size="sm" onClick={handleSaveEdit} disabled={isAnyMessageResponding}>
+                  {isAnyMessageResponding ? 'Working...' : 'Save & Submit'}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
               </div>
             </div>
+          ) : isResponding ? (
+            <ThinkingAnimation />
           ) : (
             <article className="prose prose-sm max-w-none dark:prose-invert">
                  <ReactMarkdown>{message.content}</ReactMarkdown>
@@ -129,7 +128,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
               <div className="flex items-center rounded-md border text-sm">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button onClick={() => handleSwitchBranch('prev')} variant="ghost" size="icon" className="h-7 w-7" disabled={message.branchIndex === 0}>
+                    <Button onClick={() => handleSwitchBranch('prev')} variant="ghost" size="icon" className="h-7 w-7" disabled={message.branchIndex === 0 || isAnyMessageResponding}>
                       <ChevronLeft className="h-4 w-4" />
                       <span className="sr-only">Previous response</span>
                     </Button>
@@ -139,7 +138,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
                 <span className="px-2">{message.branchIndex + 1} / {message.totalBranches}</span>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button onClick={() => handleSwitchBranch('next')} variant="ghost" size="icon" className="h-7 w-7" disabled={message.branchIndex === message.totalBranches - 1}>
+                    <Button onClick={() => handleSwitchBranch('next')} variant="ghost" size="icon" className="h-7 w-7" disabled={message.branchIndex === message.totalBranches - 1 || isAnyMessageResponding}>
                       <ChevronRight className="h-4 w-4" />
                       <span className="sr-only">Next response</span>
                     </Button>
@@ -152,7 +151,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
             {isUser && !isEditing && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)} disabled={isStreaming}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)} disabled={isAnyMessageResponding}>
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit message</span>
                   </Button>
@@ -161,10 +160,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
               </Tooltip>
             )}
 
-            {!isUser && (
+            {!isUser && !isResponding && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRegenerate} disabled={isStreaming}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRegenerate} disabled={isAnyMessageResponding}>
                     <RefreshCw className="h-4 w-4" />
                     <span className="sr-only">Regenerate response</span>
                   </Button>
@@ -173,36 +172,23 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
               </Tooltip>
             )}
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className={`h-7 w-7 transition-colors ${copiedIcon.standard ? 'text-green-500 animate-pulse' : ''}`} 
-                  onClick={() => handleCopy('standard')}
-                >
-                  {copiedIcon.standard ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  <span className="sr-only">Copy</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{copiedIcon.standard ? <p>Copied!</p> : <p>Copy</p>}</TooltipContent>
-            </Tooltip>
-            
-            {/* Copy as Markdown Button with Feedback */}
-            {/* <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className={`h-7 w-7 transition-colors ${copiedIcon.markdown ? 'text-green-500 animate-pulse' : ''}`} 
-                  onClick={() => handleCopy('markdown')}
-                >
-                  {copiedIcon.markdown ? <Check className="h-4 w-4" /> : <ClipboardCopy className="h-4 w-4" />}
-                  <span className="sr-only">Copy as Markdown</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{copiedIcon.markdown ? <p>Copied as Markdown!</p> : <p>Copy as Markdown</p>}</TooltipContent>
-            </Tooltip> */}
+            {!isResponding && message.content && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={`h-7 w-7 transition-colors ${copiedIcon.standard ? 'text-green-500 animate-pulse' : ''}`} 
+                    onClick={handleCopy}
+                  >
+                    {copiedIcon.standard ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    <span className="sr-only">Copy</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{copiedIcon.standard ? <p>Copied!</p> : <p>Copy</p>}</TooltipContent>
+              </Tooltip>
+            )}
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleDelete}>
