@@ -1,5 +1,5 @@
 // src/hooks/useChatActions.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Chat, CreateChatInput, EditMessageInput, GetChatResponse, RegenerateResponseInput, SendMessageInput, SwitchBranchInput } from '@/types/chat';
 import { api, PaginatedResponse } from '@/lib/api';
@@ -53,17 +53,23 @@ export const useChatActions = (chatId?: string) => {
     const deleteChatMutation = useMutation({
         mutationFn: (id: string) => api.chat.deleteChat(id),
         onSuccess: (_, deletedId) => {
-            // Optimistically remove from the list
-            queryClient.setQueryData<PaginatedResponse<Chat>>(['userChats'], (oldData) => {
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<Chat>>>(
+                ['userChats'],
+                (oldData) => {
                 if (!oldData) return oldData;
                 return {
                     ...oldData,
-                    data: oldData.data?.filter((chat) => chat._id !== deletedId),
+                    pages: oldData.pages.map((page) => ({
+                    ...page,
+                    data: page.data.filter((chat) => chat._id !== deletedId),
+                    })),
                 };
-            });
+                }
+            );
+
             queryClient.removeQueries({ queryKey: ['chat', deletedId] });
             toast.success('Chat deleted.');
-            // If the user is on the page of the deleted chat, redirect them
+
             if (chatId === deletedId) {
                 router.push('/chat');
             }

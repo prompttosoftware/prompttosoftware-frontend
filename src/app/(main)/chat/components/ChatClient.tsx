@@ -23,14 +23,13 @@ interface ChatClientProps {
 }
 
 const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialChat, analyses, initialAnalysisId }) => {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   
   const [chatId, setChatId] = useState(initialChatId);
 
   // Data Fetching & Mutations
-  const { data, isLoading, isError, error } = useChat(initialChatId !== 'new' ? chatId : undefined, {
+  const { data, isLoading, isError, error } = useChat(chatId !== 'new' ? chatId : undefined, {
     initialData: initialChat ?? undefined,
   });
   const { createChat, sendMessageStream, regenerateResponseStream, editMessageStream, ...mutations } = useChatActions();
