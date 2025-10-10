@@ -81,7 +81,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
   };
   
   const handleSwitchBranch = (direction: 'next' | 'prev') => {
-    if (!message.parentMessageId) return;
+    if (message.parentMessageId === undefined) return;
     const newIndex = direction === 'next' ? message.branchIndex + 1 : message.branchIndex - 1;
     mutations.switchBranch.mutate({ chatId: message.chatId, payload: { parentMessageId: message.parentMessageId, branchIndex: newIndex }});
   };

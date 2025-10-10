@@ -71,7 +71,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     if (!isResponding) {
       setOptimisticUserMessage(null);
     }
-  }, [data?.messages, isResponding]);
+  }, [isResponding]);
 
   useEffect(() => {
     if (isError) {
@@ -114,6 +114,11 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
             });
             const newChatId = response.chat._id;
 
+            queryClient.setQueryData<GetChatResponse>(['chat', newChatId], {
+                chat: response.chat,
+                messages: [], // We are providing the initial (empty) message list
+            });
+
             window.history.replaceState(null, '', `/chat/${newChatId}`);
 
             setChatId(newChatId);
@@ -127,12 +132,15 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
               }
             );
 
+            queryClient.invalidateQueries({ queryKey: ['chat', newChatId] });
+
         } catch (e: any) {
             toast.error(`Error creating chat: ${e.message}`);
             // Clear optimistic state on failure
             setOptimisticUserMessage(null);
         } finally {
             setStreamingAiResponse(null);
+            setOptimisticUserMessage(null);
         }
 
     } else {

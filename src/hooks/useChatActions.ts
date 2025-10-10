@@ -58,7 +58,7 @@ export const useChatActions = (chatId?: string) => {
                 if (!oldData) return oldData;
                 return {
                     ...oldData,
-                    data: oldData.data.filter((chat) => chat._id !== deletedId),
+                    data: oldData.data?.filter((chat) => chat._id !== deletedId),
                 };
             });
             queryClient.removeQueries({ queryKey: ['chat', deletedId] });
