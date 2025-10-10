@@ -13,6 +13,7 @@ import ChatMessage, { ChatStreamingActions } from './ChatMessage';
 import MessageInput from './MessageInput';
 import { Analysis } from '@/types/analysis';
 import { Bot } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface ChatClientProps {
   chatId: string;
@@ -22,6 +23,7 @@ interface ChatClientProps {
 }
 
 const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialChat, analyses, initialAnalysisId }) => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   
@@ -32,7 +34,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const { data, isLoading, isError, error } = useChat(initialChatId !== 'new' ? chatId : undefined, {
     initialData: initialChat ?? undefined,
   });
-  const { createChat, sendMessageStream, regenerateResponseStream, editMessageStream, ...mutations } = useChatActions(chatId !== 'new' ? chatId : undefined);
+  const { createChat, sendMessageStream, regenerateResponseStream, editMessageStream, ...mutations } = useChatActions();
 
   // State
   const [input, setInput] = useState('');
@@ -67,54 +69,10 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   }, [data?.chat]);
 
   useEffect(() => {
-    if (
-      data?.messages &&
-      data.messages.length === 1 &&
-      data.messages[0].sender === 'user' &&
-      !isResponding &&
-      !hasTriggeredFirstResponse.current
-    ) {
-      hasTriggeredFirstResponse.current = true;
-      const firstUserMessage = data.messages[0];
-      const tempAiMessage: ChatMessageType = {
-          _id: `streaming-${Date.now()}`,
-          chatId: chatId,
-          sender: 'ai',
-          content: '',
-          createdAt: new Date(),
-          parentMessageId: firstUserMessage._id,
-          branchIndex: 0,
-          totalBranches: 1,
-      };
-      setStreamingAiResponse(tempAiMessage);
-
-      sendMessageStream(
-        { content: firstUserMessage.content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
-        (chunk) => {
-          setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
-        }
-      ).finally(() => {
-        setStreamingAiResponse(null);
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.messages, sendMessageStream]);
-
-  useEffect(() => {
     if (!isResponding) {
       setOptimisticUserMessage(null);
     }
   }, [data?.messages, isResponding]);
-
-  useEffect(() => {
-    hasTriggeredFirstResponse.current = false;
-  }, [initialChatId]);
-
-  useEffect(() => {
-    if (createChat.data?.chat._id) {
-        setChatId(createChat.data.chat._id);
-    }
-  }, [createChat.data]);
 
   useEffect(() => {
     if (isError) {
@@ -129,40 +87,74 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     setInput('');
 
     if (chatId === 'new') {
-        hasTriggeredFirstResponse.current = true;
-        await createChat.mutateAsync({
-            repository: 'your-github/repository-name', // TODO: This should be dynamic
-            initialContent: content,
-            systemPrompt: systemPrompt || undefined,
-            analysisId: settings.analysisId,
-            model: { primary: settings.model },
-            temperature: settings.temperature,
-            top_k: settings.top_k,
-        });
-    } else {
+        // Optimistically show the user's message immediately
         const tempUserMessage: ChatMessageType = {
             _id: `optimistic-${Date.now()}`,
-            chatId: chatId,
-            sender: 'user',
-            content: content,
-            createdAt: new Date(),
+            chatId: 'new', sender: 'user', content, createdAt: new Date(),
+            parentMessageId: null, branchIndex: 0, totalBranches: 1,
+        };
+        setOptimisticUserMessage(tempUserMessage);
+        
+        // Show a loading/streaming placeholder for the AI response
+        const tempAiMessage: ChatMessageType = {
+            _id: `streaming-${Date.now()}`,
+            chatId: 'new', sender: 'ai', content: '', createdAt: new Date(),
+            parentMessageId: tempUserMessage._id, branchIndex: 0, totalBranches: 1,
+        };
+        setStreamingAiResponse(tempAiMessage);
+
+        try {
+            // Step 1: Create the chat and get the new ID
+            const newChatData = await createChat.mutateAsync({
+                repository: 'your-github/repository-name', // TODO: Dynamic
+                initialContent: content,
+                systemPrompt: systemPrompt || undefined,
+                analysisId: settings.analysisId,
+                model: { primary: settings.model },
+                temperature: settings.temperature,
+                top_k: settings.top_k,
+            });
+            const newChatId = newChatData.chat._id;
+
+            // Step 2: Navigate to the new URL
+            router.push(`/chat/${newChatId}`);
+            
+            // Step 3: Start the stream using the new ID
+            await sendMessageStream(
+              newChatId,
+              { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+              (chunk) => {
+                setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+              }
+            );
+
+        } catch (e: any) {
+            toast.error(`Error creating chat: ${e.message}`);
+            // Clear optimistic state on failure
+            setOptimisticUserMessage(null);
+        } finally {
+            setStreamingAiResponse(null);
+        }
+
+    } else {
+        // This logic for existing chats was already good
+        const tempUserMessage: ChatMessageType = {
+            _id: `optimistic-${Date.now()}`,
+            chatId: chatId, sender: 'user', content, createdAt: new Date(),
             parentMessageId: data?.messages[data.messages.length - 1]?._id ?? null,
             branchIndex: 0, totalBranches: 1,
         };
         const tempAiMessage: ChatMessageType = {
             _id: `streaming-${Date.now()}`,
-            chatId: chatId,
-            sender: 'ai',
-            content: '',
-            createdAt: new Date(),
-            parentMessageId: tempUserMessage._id,
-            branchIndex: 0, totalBranches: 1,
+            chatId: chatId, sender: 'ai', content: '', createdAt: new Date(),
+            parentMessageId: tempUserMessage._id, branchIndex: 0, totalBranches: 1,
         };
 
         setOptimisticUserMessage(tempUserMessage);
         setStreamingAiResponse(tempAiMessage);
 
         await sendMessageStream(
+          chatId, // Pass the current chatId
           { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
           (chunk) => {
             setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
@@ -200,7 +192,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       setStreamingAiResponse(tempAiMessage);
       setRegeneratingParentId(messageId); // Treat edit as a form of regeneration for UI purposes
 
-      await editMessageStream(
+      await editMessageStream(chatId,
         messageId,
         { newContent, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
         (chunk) => {
@@ -225,7 +217,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       setStreamingAiResponse(tempAiMessage);
       setRegeneratingParentId(parentMessageId); // Mark the parent of the message being replaced
 
-      await regenerateResponseStream(
+      await regenerateResponseStream(chatId,
         { parentMessageId, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
         (chunk) => {
           setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);

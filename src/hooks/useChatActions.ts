@@ -14,9 +14,9 @@ export const useChatActions = (chatId?: string) => {
         queryClient.invalidateQueries({ queryKey: ['userChats'] });
     };
 
-    const invalidateChatHistory = () => {
-        if (chatId) {
-            queryClient.invalidateQueries({ queryKey: ['chat', chatId] });
+    const invalidateChatHistory = (chatIdToInvalidate: string) => {
+        if (chatIdToInvalidate) {
+            queryClient.invalidateQueries({ queryKey: ['chat', chatIdToInvalidate] });
         }
     };
 
@@ -28,16 +28,19 @@ export const useChatActions = (chatId?: string) => {
     const createChatMutation = useMutation({
         mutationFn: (payload: CreateChatInput) => api.chat.createChat(payload),
         onSuccess: (data) => {
-            // Invalidate the main list of chats
+            // Simplify this. We only need to invalidate the list.
+            // The component will handle pre-populating the UI.
             queryClient.invalidateQueries({ queryKey: ['userChats'] });
             
+            // We set the initial data here so the new page has something to show immediately
             const newChatResponse: GetChatResponse = {
                 chat: data.chat,
                 messages: [data.userMessage],
             };
             queryClient.setQueryData(['chat', data.chat._id], newChatResponse);
-            router.push(`/chat/${data.chat._id}`);
-            toast.success('New chat created!');
+            
+            // Let the component handle navigation.
+            // toast.success('New chat created!'); // Can be moved or kept
         },
         onError: (error) => {
             toast.error(`Failed to create chat: ${error.message}`);
@@ -93,35 +96,36 @@ export const useChatActions = (chatId?: string) => {
     const deleteMessageMutation = useMutation({
         mutationFn: (messageId: string) => api.chat.deleteMessage(messageId),
         onSuccess: () => {
+            if (!chatId) throw new Error('Chat ID is required to delete a message.');
             toast.success('Message branch deleted.');
-            invalidateChatHistory(); // This is the simplest way to update the UI
+            invalidateChatHistory(chatId); // This is the simplest way to update the UI
         },
         onError: (error) => toast.error(`Failed to delete message: ${error.message}`),
     });
 
-    const sendMessageStream = async (payload: SendMessageInput, onChunk: (chunk: string) => void) => {
+    const sendMessageStream = async (chatId: string, payload: SendMessageInput, onChunk: (chunk: string) => void) => {
         if (!chatId) throw new Error('Chat ID is required to send a message.');
         await api.chat.sendMessageStream(chatId, payload, {
             onChunk,
-            onFinish: invalidateChatHistory, // Refetch the final data when stream is done
+            onFinish: () => invalidateChatHistory(chatId), // Use the passed-in ID
             onError: (error) => toast.error(`Streaming failed: ${error.message}`),
         });
     };
 
-    const regenerateResponseStream = async (payload: RegenerateResponseInput, onChunk: (chunk: string) => void) => {
+    const regenerateResponseStream = async (chatId: string, payload: RegenerateResponseInput, onChunk: (chunk: string) => void) => {
         if (!chatId) throw new Error('Chat ID is required to regenerate a response.');
         await api.chat.regenerateResponseStream(chatId, payload, {
             onChunk,
-            onFinish: invalidateChatHistory,
+            onFinish: () => invalidateChatHistory(chatId),
             onError: (error) => toast.error(`Regeneration failed: ${error.message}`),
         });
     };
 
-    const editMessageStream = async (messageId: string, payload: EditMessageInput, onChunk: (chunk: string) => void) => {
+    const editMessageStream = async (chatId: string, messageId: string, payload: EditMessageInput, onChunk: (chunk: string) => void) => {
         if (!chatId) throw new Error('Chat ID is required to edit a message.');
         await api.chat.editUserMessageStream(chatId, messageId, payload, {
             onChunk,
-            onFinish: invalidateChatHistory,
+            onFinish: () => invalidateChatHistory(chatId),
             onError: (error) => toast.error(`Failed to edit: ${error.message}`),
         });
     };
