@@ -44,7 +44,6 @@ export interface ChatMessage {
  */
 export interface CreateChatInput {
     repository: string;
-    initialContent: string;
     systemPrompt?: string;
     analysisId?: string;
     model: {
@@ -107,7 +106,6 @@ export interface PaginationParams {
 
 export interface CreateChatResponse {
     chat: Chat;
-    userMessage: ChatMessage;
 }
 
 export interface GetChatResponse {

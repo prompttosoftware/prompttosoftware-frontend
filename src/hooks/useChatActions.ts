@@ -35,7 +35,7 @@ export const useChatActions = (chatId?: string) => {
             // We set the initial data here so the new page has something to show immediately
             const newChatResponse: GetChatResponse = {
                 chat: data.chat,
-                messages: [data.userMessage],
+                messages: []
             };
             queryClient.setQueryData(['chat', data.chat._id], newChatResponse);
             

@@ -28,7 +28,6 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
   
   const [chatId, setChatId] = useState(initialChatId);
-  const hasTriggeredFirstResponse = useRef(false);
 
   // Data Fetching & Mutations
   const { data, isLoading, isError, error } = useChat(initialChatId !== 'new' ? chatId : undefined, {
@@ -105,19 +104,19 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
         try {
             // Step 1: Create the chat and get the new ID
-            const newChatData = await createChat.mutateAsync({
+            const response = await createChat.mutateAsync({
                 repository: 'your-github/repository-name', // TODO: Dynamic
-                initialContent: content,
                 systemPrompt: systemPrompt || undefined,
                 analysisId: settings.analysisId,
                 model: { primary: settings.model },
                 temperature: settings.temperature,
                 top_k: settings.top_k,
             });
-            const newChatId = newChatData.chat._id;
+            const newChatId = response.chat._id;
 
-            // Step 2: Navigate to the new URL
-            router.push(`/chat/${newChatId}`);
+            window.history.replaceState(null, '', `/chat/${newChatId}`);
+
+            setChatId(newChatId);
             
             // Step 3: Start the stream using the new ID
             await sendMessageStream(
