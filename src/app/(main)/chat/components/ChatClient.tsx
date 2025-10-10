@@ -230,34 +230,36 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
   // --- Start of Logic for Displaying Messages ---
   const baseMessages = data?.messages ?? [];
-  let displayedMessages = [...baseMessages];
+  let displayedMessages;
 
-  // If regenerating, replace the old AI message with the new streaming one
-  if (regeneratingParentId && streamingAiResponse) {
-    const oldAiMessageIndex = displayedMessages.findIndex(
-      (m) => m.parentMessageId === regeneratingParentId && m.sender === 'ai'
-    );
-    if (oldAiMessageIndex !== -1) {
-      displayedMessages[oldAiMessageIndex] = streamingAiResponse;
+  // If we are editing or regenerating, we create a new branch.
+  // We should only show messages up to the point of the branch.
+  if (regeneratingParentId) {
+    const parentIndex = baseMessages.findIndex(msg => msg._id === regeneratingParentId);
+    
+    if (parentIndex !== -1) {
+      // Take all messages up to and including the parent that is being branched from.
+      displayedMessages = baseMessages.slice(0, parentIndex + 1);
+      // Add the new streaming response that forms the new branch.
+      if (streamingAiResponse) {
+        displayedMessages.push(streamingAiResponse);
+      }
     } else {
-      // Fallback: if somehow the old message isn't there, find the parent and insert after it
-      const parentIndex = displayedMessages.findIndex((m) => m._id === regeneratingParentId);
-      if (parentIndex !== -1) {
-          displayedMessages.splice(parentIndex + 1, 0, streamingAiResponse);
-      } else {
-          displayedMessages.push(streamingAiResponse); // Last resort
+      // Fallback if parent isn't found (shouldn't happen but good for safety)
+      displayedMessages = [...baseMessages];
+      if (streamingAiResponse) {
+        displayedMessages.push(streamingAiResponse);
       }
     }
-  }
-
-  // Add the optimistic user message if it exists
-  if (optimisticUserMessage) {
-    displayedMessages.push(optimisticUserMessage);
-  }
-
-  // Add the new streaming AI response (but not if it's already handling a regeneration)
-  if (streamingAiResponse && !regeneratingParentId) {
-    displayedMessages.push(streamingAiResponse);
+  } else {
+    // Default behavior: append new optimistic messages to the full list.
+    displayedMessages = [...baseMessages];
+    if (optimisticUserMessage) {
+      displayedMessages.push(optimisticUserMessage);
+    }
+    if (streamingAiResponse) {
+      displayedMessages.push(streamingAiResponse);
+    }
   }
   // --- End of Logic for Displaying Messages ---
 

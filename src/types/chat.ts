@@ -88,7 +88,7 @@ export interface RegenerateResponseInput {
  * Payload for switching the active branch of a conversation.
  */
 export interface SwitchBranchInput {
-    parentMessageId: string;
+    parentMessageId: string | null;
     branchIndex: number;
 }
 

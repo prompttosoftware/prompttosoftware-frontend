@@ -77,13 +77,13 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
   };
 
   const handleDelete = () => {
-    mutations.deleteMessage.mutate(message._id);
+    mutations.deleteMessage.mutate({ chatId: message.chatId, messageId: message._id });
   };
   
   const handleSwitchBranch = (direction: 'next' | 'prev') => {
     if (!message.parentMessageId) return;
     const newIndex = direction === 'next' ? message.branchIndex + 1 : message.branchIndex - 1;
-    mutations.switchBranch.mutate({ parentMessageId: message.parentMessageId, branchIndex: newIndex });
+    mutations.switchBranch.mutate({ chatId: message.chatId, payload: { parentMessageId: message.parentMessageId, branchIndex: newIndex }});
   };
 
   const Icon = isUser ? User : Bot;

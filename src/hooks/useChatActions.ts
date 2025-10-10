@@ -78,12 +78,11 @@ export const useChatActions = (chatId?: string) => {
      * Switches the active conversation branch.
      */
     const switchBranchMutation = useMutation({
-        mutationFn: (payload: SwitchBranchInput) => {
+        mutationFn: ({ chatId, payload }: { chatId: string; payload: SwitchBranchInput }) => {
             if (!chatId) throw new Error('Chat ID is required to switch branches.');
             return api.chat.switchBranch(chatId, payload);
         },
-        onSuccess: (data) => {
-            // For a snappy UX, update the cache directly with the response
+        onSuccess: (data, { chatId }) => {
             queryClient.setQueryData(['chat', chatId], data);
             toast.success('Switched branch');
         },
@@ -94,11 +93,13 @@ export const useChatActions = (chatId?: string) => {
      * Deletes a message and all its descendants.
      */
     const deleteMessageMutation = useMutation({
-        mutationFn: (messageId: string) => api.chat.deleteMessage(messageId),
-        onSuccess: () => {
+        mutationFn: ({ chatId, messageId }: { chatId: string; messageId: string }) => {
             if (!chatId) throw new Error('Chat ID is required to delete a message.');
+            return api.chat.deleteMessage(messageId);
+        },
+        onSuccess: (_, { chatId }) => {
             toast.success('Message branch deleted.');
-            invalidateChatHistory(chatId); // This is the simplest way to update the UI
+            invalidateChatHistory(chatId);
         },
         onError: (error) => toast.error(`Failed to delete message: ${error.message}`),
     });
