@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import { Chat, CreateChatInput, EditMessageInput, GetChatResponse, RegenerateResponseInput, SendMessageInput, SwitchBranchInput } from '@/types/chat';
 import { api, PaginatedResponse } from '@/lib/api';
 import { toast } from 'sonner';
+import { useGlobalErrorStore } from '@/store/globalErrorStore';
 
 export const useChatActions = (chatId?: string) => {
     const queryClient = useQueryClient();
     const router = useRouter();
+    const { hideConfirmation} = useGlobalErrorStore();
 
     // --- Invalidation Helpers ---
     const invalidateChatsList = () => {
@@ -66,6 +68,8 @@ export const useChatActions = (chatId?: string) => {
                 };
                 }
             );
+
+            hideConfirmation();
 
             queryClient.removeQueries({ queryKey: ['chat', deletedId] });
             toast.success('Chat deleted.');
