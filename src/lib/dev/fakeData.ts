@@ -1208,6 +1208,17 @@ export const FAKE_CHATS: Chat[] = [
         createdAt: new Date('2023-10-27T11:00:00Z'),
         updatedAt: new Date('2023-10-27T11:10:00Z'),
     },
+    {
+        _id: 'chat_3',
+        userId: 'user_123',
+        repository: 'tiangolo/fastapi',
+        model: { model: 'gpt-4-turbo', provider: 'openrouter' },
+        cost: 0.031,
+        name: 'Python Web Frameworks',
+        activeMessageId: 'msg_8',
+        createdAt: new Date('2023-10-28T14:00:00Z'),
+        updatedAt: new Date('2023-10-28T14:02:00Z'),
+    },
 ];
 
 export const FAKE_MESSAGES_BY_CHAT: Record<string, ChatMessage[]> = {
@@ -1264,6 +1275,67 @@ export const FAKE_MESSAGES_BY_CHAT: Record<string, ChatMessage[]> = {
             branchIndex: 0,
             totalBranches: 1,
             createdAt: new Date('2023-10-27T11:01:00Z'),
+        },
+    ],
+    'chat_3': [
+        {
+            _id: 'msg_7',
+            chatId: 'chat_3',
+            sender: 'user',
+            content: 'Could you compare FastAPI, Django, and Flask for me? Please include a table and a code example for one of them.',
+            parentMessageId: null,
+            branchIndex: 0,
+            totalBranches: 1,
+            createdAt: new Date('2023-10-28T14:00:00Z'),
+        },
+        {
+            _id: 'msg_8',
+            chatId: 'chat_3',
+            sender: 'ai',
+            content: `Of course! Here is a comparison of FastAPI, Django, and Flask, which are three of the most popular Python web frameworks.
+
+### Framework Comparison
+
+| Feature           | FastAPI                               | Django                                  | Flask                                     |
+|-------------------|---------------------------------------|-----------------------------------------|-------------------------------------------|
+| **Type**          | ASGI Micro-framework                  | Batteries-included MVT framework        | WSGI Micro-framework                      |
+| **Async Support** | Native (built on Starlette)           | Yes (since 3.1)                         | Yes (with extensions like Quart)          |
+| **Performance**   | Very High (one of the fastest)        | Good, but slower than FastAPI           | Good, performance depends on extensions   |
+| **Learning Curve**| Easy                                  | Moderate                                | Very Easy                                 |
+| **Best For**      | APIs, high-performance services       | Full-featured web apps, admin panels    | Small projects, prototypes, APIs          |
+
+---
+
+### Code Example: "Hello World" in FastAPI
+
+FastAPI is known for its modern features, type hints, and automatic documentation. Here’s a basic example:
+
+\`\`\`python
+import uvicorn
+from fastapi import FastAPI
+
+# Create an instance of the FastAPI class
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+# This block allows running the server directly with 'python main.py'
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+\`\`\`
+
+To run this, you would save it as \`main.py\`, and then run \`uvicorn main:app --reload\` in your terminal. You can then visit \`http://127.0.0.1:8000\` in your browser to see the JSON response.
+
+In summary:
+- **FastAPI:** Best for modern, high-performance APIs.
+- **Django:** Best for large, complex applications where you need an all-in-one solution (ORM, admin, etc.).
+- **Flask:** Great for smaller projects, prototypes, or when you want more flexibility to choose your own tools.`,
+            parentMessageId: 'msg_7',
+            branchIndex: 0,
+            totalBranches: 1,
+            createdAt: new Date('2023-10-28T14:02:00Z'),
         },
     ],
 };

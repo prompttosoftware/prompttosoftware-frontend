@@ -21,6 +21,7 @@ import { ChatSettings } from '@/types/chat';
 import { Analysis } from '@/types/analysis';
 import { ProviderModelSelector } from './ProviderModelSelection';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 interface ChatSidebarProps {
@@ -183,6 +184,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ settings, onSettingsChange, s
                     <div className="space-y-2">
                       <Label>Top K: {settings.top_k}</Label>
                       <Slider defaultValue={[settings.top_k]} max={100} step={1} onValueChange={([v]: number[]) => handleSettingChange('top_k', v)} />
+                    </div>
+                    <div className="space-y-2 flex items-center justify-between">
+                      <Label htmlFor="google-search">Enable Google Search</Label>
+                      <Checkbox
+                        id="google-search"
+                        checked={settings.search ?? true}
+                        onCheckedChange={(checked) => handleSettingChange("search", checked)}
+                      />
                     </div>
                   </AccordionContent>
                 </AccordionItem>

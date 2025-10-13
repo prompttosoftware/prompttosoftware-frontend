@@ -42,6 +42,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     temperature: 0.7,
     top_k: 40,
     analysisId: initialAnalysisId,
+    search: true
   });
   const [systemPrompt, setSystemPrompt] = useState('');
 
@@ -60,6 +61,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
         temperature: data.chat.temperature || 0.7,
         top_k: data.chat.top_k || 40,
         analysisId: data.chat.analysisId,
+        search: data.chat.search || true,
       });
       setSystemPrompt(data.chat.systemPrompt || '');
       setChatId(data.chat._id); // Ensure local chatId is synced
@@ -85,64 +87,78 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     setInput('');
 
     if (chatId === 'new') {
-        // Optimistically show the user's message immediately
-        const tempUserMessage: ChatMessageType = {
-            _id: `optimistic-${Date.now()}`,
-            chatId: 'new', sender: 'user', content, createdAt: new Date(),
-            parentMessageId: null, branchIndex: 0, totalBranches: 1,
-        };
-        setOptimisticUserMessage(tempUserMessage);
-        
-        // Show a loading/streaming placeholder for the AI response
-        const tempAiMessage: ChatMessageType = {
-            _id: `streaming-${Date.now()}`,
-            chatId: 'new', sender: 'ai', content: '', createdAt: new Date(),
-            parentMessageId: tempUserMessage._id, branchIndex: 0, totalBranches: 1,
-        };
-        setStreamingAiResponse(tempAiMessage);
+      // Optimistically create the user's message
+      const tempUserMessage: ChatMessageType = {
+          _id: `optimistic-${Date.now()}`,
+          chatId: 'new', // It's still 'new' at this point
+          sender: 'user',
+          content,
+          createdAt: new Date(),
+          parentMessageId: null,
+          branchIndex: 0,
+          totalBranches: 1,
+      };
+      
+      // Set the streaming AI response placeholder (this can remain in local state)
+      const tempAiMessage: ChatMessageType = {
+          _id: `streaming-${Date.now()}`,
+          chatId: 'new',
+          sender: 'ai',
+          content: '',
+          createdAt: new Date(),
+          parentMessageId: tempUserMessage._id,
+          branchIndex: 0,
+          totalBranches: 1,
+      };
+      
+      setStreamingAiResponse(tempAiMessage);
 
-        try {
-            // Step 1: Create the chat and get the new ID
-            const response = await createChat.mutateAsync({
-                repository: 'your-github/repository-name', // TODO: Dynamic
-                systemPrompt: systemPrompt || undefined,
-                analysisId: settings.analysisId,
-                model: { primary: settings.model },
-                temperature: settings.temperature,
-                top_k: settings.top_k,
-            });
-            const newChatId = response.chat._id;
+      try {
+          // Step 1: Create the chat
+          const response = await createChat.mutateAsync({
+              repository: 'your-github/repository-name', // TODO: Dynamic
+              systemPrompt: systemPrompt || undefined,
+              analysisId: settings.analysisId,
+              model: { primary: settings.model },
+              temperature: settings.temperature,
+              top_k: settings.top_k,
+          });
+          const newChatId = response.chat._id;
 
-            queryClient.setQueryData<GetChatResponse>(['chat', newChatId], {
-                chat: response.chat,
-                messages: [], // We are providing the initial (empty) message list
-            });
+          queryClient.setQueryData<GetChatResponse>(['chat', newChatId], {
+              chat: response.chat,
+              messages: [
+                  { ...tempUserMessage, chatId: newChatId } // Update chatId in the optimistic message
+              ],
+          });
 
-            window.history.replaceState(null, '', `/chat/${newChatId}`);
+          // Update URL and local state to trigger the useQuery hook for the new ID
+          window.history.replaceState(null, '', `/chat/${newChatId}`);
+          setChatId(newChatId);
 
-            setChatId(newChatId);
-            
-            // Step 3: Start the stream using the new ID
-            await sendMessageStream(
+          // Step 2: Start the stream using the new ID
+          await sendMessageStream(
               newChatId,
               { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
               (chunk) => {
-                setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+                  setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
               }
-            );
+          );
 
-            queryClient.invalidateQueries({ queryKey: ['chat', newChatId] });
+          // Invalidation will fetch the final state and seamlessly replace our optimistic one
+          queryClient.invalidateQueries({ queryKey: ['chat', newChatId] });
 
-        } catch (e: any) {
-            toast.error(`Error creating chat: ${e.message}`);
-            // Clear optimistic state on failure
-            setOptimisticUserMessage(null);
-        } finally {
-            setStreamingAiResponse(null);
-            setOptimisticUserMessage(null);
-        }
+      } catch (e: any) {
+          toast.error(`Error creating chat: ${e.message}`);
+          // On error, we might need to remove the optimistic data
+          queryClient.removeQueries({ queryKey: ['chat', chatId] });
+      } finally {
+          // Clear the transient streaming state
+          setStreamingAiResponse(null);
+          // We no longer need to clear optimisticUserMessage as it's not in state
+      }
 
-    } else {
+  } else {
         // This logic for existing chats was already good
         const tempUserMessage: ChatMessageType = {
             _id: `optimistic-${Date.now()}`,

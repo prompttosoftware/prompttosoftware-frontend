@@ -11,6 +11,7 @@ export interface Chat {
     top_k?: number;
     temperature?: number;
     systemPrompt?: string;
+    search?: boolean;
 
     conversationInfo?: string[];
 
@@ -131,4 +132,5 @@ export interface ChatSettings {
   model: string;    // e.g., 'gpt-4-turbo'
   temperature: number;
   top_k: number;
+  search: boolean;
 }

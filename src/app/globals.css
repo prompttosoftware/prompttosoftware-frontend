@@ -52,6 +52,30 @@
     background-color: hsl(var(--popover) / 1) !important;
   }
 
+  .prose table {
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+    border: 1px solid hsl(var(--border));
+  }
+
+  .prose th,
+  .prose td {
+    border: 1px solid hsl(var(--border));
+    padding: 0.5rem 1rem;
+    text-align: left;
+  }
+
+  .prose th {
+    background-color: hsl(var(--muted));
+    font-weight: 600;
+  }
+
+  .prose tbody tr:nth-child(even) {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+
   :root {
     --chart-line: hsl(var(--foreground));
     --chart-foreground: hsl(var(--foreground));
@@ -150,32 +174,3 @@
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--border));
 }
-
-/*
-USAGE EXAMPLES FROM YOUR COMPONENTS:
-
-1. PaymentModal:
-   - Dialog background: uses --popover
-   - DialogTitle: uses --popover-foreground  
-   - DialogDescription: uses --muted-foreground
-   - Input field: uses --input for background/border
-   - Dollar sign placeholder: uses --muted-foreground
-   - Next/Cancel buttons: use --primary and --primary-foreground
-   - Button hover states: use --ring for focus outlines
-
-2. ProjectCard:
-   - Card container: uses --card background
-   - CardTitle: uses --card-foreground
-   - Description text: uses --muted-foreground
-   - CardFooter border: uses --border
-   - Timestamps: use --muted-foreground
-   - Hover border effect: would use --ring or custom colors
-
-3. General Application:
-   - Page backgrounds: --background
-   - Main headings: --foreground
-   - Form labels: --foreground
-   - Disabled elements: --muted background with --muted-foreground text
-   - Error states: custom destructive colors (not shown in variables)
-   - Success states: custom success colors (not shown in variables)
-*/

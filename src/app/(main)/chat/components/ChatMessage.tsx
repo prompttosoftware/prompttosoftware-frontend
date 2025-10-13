@@ -18,6 +18,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import Reasoning from './Reasoning';
 import { useChatActions } from '@/hooks/useChatActions';
+import MarkdownRenderer from './MarkdownRenderer';
 
 type ChatMutations = Omit<ReturnType<typeof useChatActions>, 'createChat' | 'editMessage' | 'sendMessageStream' | 'regenerateResponseStream' | 'editMessageStream'>;
 
@@ -115,9 +116,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, mutations, streaming
           ) : isResponding ? (
             <ThinkingAnimation />
           ) : (
-            <article className="prose prose-sm max-w-none dark:prose-invert">
-                 <ReactMarkdown>{message.content}</ReactMarkdown>
-            </article>
+            <MarkdownRenderer content={message.content} />
           )}
 
           {message.reasoning && <Reasoning reasoning={message.reasoning} />}
