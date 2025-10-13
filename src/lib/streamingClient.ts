@@ -72,6 +72,7 @@ export const fetchStream = async ({
           try {
             // The backend is sending a JSON-encoded string, so we parse it.
             // e.g., 'data: "Hello"' becomes the string "Hello"
+            logger.info(`Chat streaming data revieved: ${jsonStr}`);
             const parsedChunk = JSON.parse(jsonStr);
             if (typeof parsedChunk === 'string') {
               onChunk(parsedChunk);
@@ -82,6 +83,7 @@ export const fetchStream = async ({
         } else if (line.startsWith('event: error')) {
             // Optional: Handle custom error events from the server
             // The next line would be the 'data:' line for the error
+            logger.error(`Custom streaming error: ${line}`);
         }
       }
     }
