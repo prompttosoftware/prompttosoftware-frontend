@@ -66,13 +66,14 @@ export const fetchStream = async ({
         // Ignore empty lines (like the second '\n' in '\n\n')
         if (line === '') continue;
 
+        if (line.startsWith('event: ping')) continue;
+
         // Check for the 'data:' prefix
         if (line.startsWith('data: ')) {
           const jsonStr = line.slice(6);
           try {
             // The backend is sending a JSON-encoded string, so we parse it.
             // e.g., 'data: "Hello"' becomes the string "Hello"
-            logger.info(`Chat streaming data revieved: ${jsonStr}`);
             const parsedChunk = JSON.parse(jsonStr);
             if (typeof parsedChunk === 'string') {
               onChunk(parsedChunk);
@@ -83,7 +84,6 @@ export const fetchStream = async ({
         } else if (line.startsWith('event: error')) {
             // Optional: Handle custom error events from the server
             // The next line would be the 'data:' line for the error
-            logger.error(`Custom streaming error: ${line}`);
         }
       }
     }
