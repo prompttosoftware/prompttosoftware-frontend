@@ -8,6 +8,7 @@ interface FetchStreamOptions {
   onChunk: (chunk: string) => void; // onChunk will now receive the clean string content
   onFinish?: () => void;
   onError?: (error: Error) => void;
+  signal?: AbortSignal;
 }
 
 /**
@@ -21,6 +22,7 @@ export const fetchStream = async ({
   onChunk,
   onFinish,
   onError,
+  signal,
 }: FetchStreamOptions): Promise<void> => {
   try {
     const token = getAuthToken();
@@ -32,6 +34,7 @@ export const fetchStream = async ({
         'Accept': 'text/event-stream', // Good practice to signal expected content type
       },
       body: JSON.stringify({ ...payload, stream: true }),
+      signal
     });
 
     if (!response.ok || !response.body) {
@@ -88,6 +91,10 @@ export const fetchStream = async ({
       }
     }
   } catch (error: any) {
+    if (error.name === 'AbortError') {
+      logger.info('Fetch aborted as expected.');
+      return; 
+    }
     logger.error('Streaming fetch failed:', error);
     if (onError) {
       onError(error);

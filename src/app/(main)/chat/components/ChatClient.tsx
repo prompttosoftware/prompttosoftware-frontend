@@ -25,6 +25,7 @@ interface ChatClientProps {
 const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialChat, analyses, initialAnalysisId }) => {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
+  const abortControllerRef = useRef<AbortController | null>(null);
   
   const [chatId, setChatId] = useState(initialChatId);
 
@@ -80,11 +81,24 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     }
   }, [isError, error]);
 
+  // This ensures that if the user navigates away while a stream is in progress,
+  // the fetch request is cancelled.
+  useEffect(() => {
+    // The function returned from useEffect is the cleanup function
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []); // Empty dependency array ensures this runs only on mount and unmount
+
   // Handlers
   const handleSend = async () => {
     const content = input.trim();
     if (!content || isResponding) return;
     setInput('');
+
+    // Create a new controller for this specific request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     if (chatId === 'new') {
       // Optimistically create the user's message
@@ -142,7 +156,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
               { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
               (chunk) => {
                   setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
-              }
+              },
+              controller.signal
           );
 
           // Invalidation will fetch the final state and seamlessly replace our optimistic one
@@ -180,7 +195,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
           { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
           (chunk) => {
             setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
-          }
+          },
+          controller.signal
         ).finally(() => {
           setStreamingAiResponse(null);
         });
@@ -190,6 +206,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const streamingActions: ChatStreamingActions = {
     handleStreamEdit: async (messageId: string, newContent: string) => {
       if (isResponding) return;
+
+      const controller = new AbortController();
 
       const queryKey = ['chat', chatId];
       queryClient.setQueryData<GetChatResponse>(queryKey, (oldData) => {
@@ -219,7 +237,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
         { newContent, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
         (chunk) => {
           setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
-        }
+        },
+        controller.signal
       ).finally(() => {
         setStreamingAiResponse(null);
         setRegeneratingParentId(null);
@@ -228,6 +247,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
     handleStreamRegenerate: async (parentMessageId: string) => {
       if (isResponding) return;
+
+      const controller = new AbortController();
 
       const tempAiMessage: ChatMessageType = {
           _id: `streaming-${Date.now()}`,
@@ -243,7 +264,8 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
         { parentMessageId, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
         (chunk) => {
           setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
-        }
+        },
+        controller.signal
       ).finally(() => {
         setStreamingAiResponse(null);
         setRegeneratingParentId(null);

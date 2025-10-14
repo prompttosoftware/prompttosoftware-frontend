@@ -471,25 +471,25 @@ export const api = {
         /**
          * Sends a message and streams the AI's response.
          */
-        sendMessageStream: async (chatId: string, payload: SendMessageInput, callbacks: StreamCallbacks) => {
+        sendMessageStream: async (chatId: string, payload: SendMessageInput, callbacks: StreamCallbacks, signal?: AbortSignal) => {
             const url = `${httpClient.defaults.baseURL}/chats/${chatId}/messages`;
-            await fetchStream({ method: 'POST', url, payload, ...callbacks });
+            await fetchStream({ method: 'POST', url, payload, ...callbacks, signal });
         },
 
         /**
          * Regenerates a response and streams it.
          */
-        regenerateResponseStream: async (chatId: string, payload: RegenerateResponseInput, callbacks: StreamCallbacks) => {
+        regenerateResponseStream: async (chatId: string, payload: RegenerateResponseInput, callbacks: StreamCallbacks , signal?: AbortSignal) => {
             const url = `${httpClient.defaults.baseURL}/chats/${chatId}/regenerate`;
-            await fetchStream({ method: 'POST', url, payload, ...callbacks });
+            await fetchStream({ method: 'POST', url, payload, ...callbacks, signal });
         },
 
         /**
          * Edits a user message and streams the new AI response.
          */
-        editUserMessageStream: async (chatId: string, messageId: string, payload: EditMessageInput, callbacks: StreamCallbacks) => {
+        editUserMessageStream: async (chatId: string, messageId: string, payload: EditMessageInput, callbacks: StreamCallbacks, signal?: AbortSignal) => {
             const url = `${httpClient.defaults.baseURL}/chats/${chatId}/messages/${messageId}`;
-            await fetchStream({ method: 'PUT', url, payload, ...callbacks });
+            await fetchStream({ method: 'PUT', url, payload, ...callbacks, signal });
         },
 
         /**

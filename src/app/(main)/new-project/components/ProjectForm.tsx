@@ -83,7 +83,7 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
             requestType: project.requestType ?? 'auto',
             devMode: project.devMode ?? 'write_test_repeat',
             singleIssue: project.singleIssue ?? false,
-            cascade: project.cascade ?? true,
+            cascade: project.cascade === true,
         },
     };
 };
