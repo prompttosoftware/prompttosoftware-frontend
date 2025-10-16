@@ -32,7 +32,7 @@ export interface ApiKey {
 
 export interface ApiKeyPayload {
   provider: string;
-  api_key: string;
+  apiKey: string;
 }
 
 export { paymentsService };

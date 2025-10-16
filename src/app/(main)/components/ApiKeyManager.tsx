@@ -84,7 +84,7 @@ export const AddApiKeyButton: React.FC<AddApiKeyButtonProps> = ({
     try {
       await api.saveApiKey({
         provider: selectedProvider,
-        api_key: apiKey.trim(),
+        apiKey: apiKey.trim(),
       });
 
       // Reset form
