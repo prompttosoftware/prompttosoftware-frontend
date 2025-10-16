@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { usePostHog } from 'posthog-js/react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- 1. Define a unique key for localStorage ---
 const FORM_DRAFT_KEY = 'new-project-form-draft';
@@ -90,6 +91,18 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
     };
 };
 
+const LOADING_STEPS = [
+  'Setting up project...',
+  'Naming project...',
+  'Determining installations...',
+  'Linking repositories...',
+  'Configuring AI models...',
+  'Finalizing setup...',
+  'Starting environment...',
+  'Loading...'
+];
+
+
 interface ProjectFormProps {
   initialProjectData?: Project;
 }
@@ -101,6 +114,9 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const { user, isLoading: isAuthLoading } = useAuth();
   const posthog = usePostHog();
   const [open, setOpen] = React.useState(true);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const isEditMode = !!initialProjectData;
   const projectId = initialProjectData?._id;
@@ -186,6 +202,18 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
 
   const onSubmit = async (data: ProjectFormData) => {
       setIsSubmitting(true);
+      setLoadingStep(0);
+      setProgress(0);
+
+      // Step every 2.5s, advance progress smoothly
+      loadingIntervalRef.current = setInterval(() => {
+        setLoadingStep(prev => {
+          const next = Math.min(prev + 1, LOADING_STEPS.length - 1);
+          setProgress(Math.min((next / (LOADING_STEPS.length - 1)) * 100, 100));
+          return next;
+        });
+      }, 2500);
+
       try {
           if (isEditMode && projectId) {
               const updatedProject = await api.updateProject(projectId, data);
@@ -214,6 +242,14 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
               queryClient.invalidateQueries({ queryKey: ['projects'] });
               router.push(`/projects/${createdProject._id}`);
           }
+
+          if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
+          for (let i = loadingStep; i < LOADING_STEPS.length - 1; i++) {
+            await new Promise(res => setTimeout(res, 100));
+            setLoadingStep(i + 1);
+            setProgress(Math.min(((i + 1) / (LOADING_STEPS.length - 1)) * 100, 100));
+          }
+
       } catch (error: any) {
           console.error('Project submission failed:', error);
           const action = isEditMode ? 'update' : 'create';
@@ -237,7 +273,9 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
 
           toast.error(errorMessage);
       } finally {
+          if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
           setIsSubmitting(false);
+          setProgress(0);
       }
   };
 
@@ -270,10 +308,39 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
             <BudgetAndRuntime />
             <AdvancedOptions isEditing={isEditMode} isJiraGloballyLinked={isJiraGloballyLinked} />
 
-            <div className="pt-4">
-              <Button type="submit" disabled={isSubmitting} className="min-w-[8rem]">
-                {isSubmitting ? <LoadingSpinner size="small" /> : (isEditMode ? 'Save Changes' : 'Start Project')}
-              </Button>
+            <div className="pt-6 flex flex-col items-center">
+              <AnimatePresence mode="wait">
+                {!isSubmitting ? (
+                  <motion.div
+                    key="button"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                  >
+                    <Button type="submit" className="min-w-[8rem]">
+                      {isEditMode ? 'Save Changes' : 'Start Project'}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="w-full max-w-md text-center"
+                  >
+                    <p className="text-sm text-muted-foreground mb-3">{LOADING_STEPS[loadingStep]}</p>
+                    <div className="w-full h-2 bg-secondary/40 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-primary"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ ease: 'easeInOut', duration: 0.4 }}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </form>
         </FormProvider>

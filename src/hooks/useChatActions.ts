@@ -42,6 +42,7 @@ export const useChatActions = (chatId?: string) => {
                 messages: []
             };
             queryClient.setQueryData(['chat', data.chat._id], newChatResponse);
+            console.log(`Chat created.`);
             
             // Let the component handle navigation.
             // toast.success('New chat created!'); // Can be moved or kept

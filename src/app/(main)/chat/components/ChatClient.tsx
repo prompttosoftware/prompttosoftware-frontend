@@ -208,9 +208,11 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
             top_k: settings.top_k 
           },
           (chunk) => {
+            console.log(`Check recieved in chat client: ${chunk}`);
             setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
           },
           () => {
+            console.log(`Chat client finished stream recieved.`);
             setStreamingAiResponse(null);
         },
           controller.signal

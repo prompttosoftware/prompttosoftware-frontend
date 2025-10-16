@@ -7,7 +7,7 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 
 export const httpClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' ? '' : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://host.docker.internal:8080/api'),
-  timeout: 10000,
+  timeout: 30000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

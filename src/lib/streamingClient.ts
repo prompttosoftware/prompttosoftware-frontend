@@ -25,6 +25,7 @@ export const fetchStream = async ({
   signal,
 }: FetchStreamOptions): Promise<void> => {
   try {
+    console.log(`Send message stream started.`);
     const token = getAuthToken();
     const response = await fetch(url, {
       method,
@@ -49,16 +50,19 @@ export const fetchStream = async ({
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
+        console.log(`Stream finished.`);
         break; // Stream finished
       }
 
       // Add the new data to our buffer
       buffer += decoder.decode(value, { stream: true });
+      console.log(`New data added to buffer: ${buffer}`);
 
       // Process all complete lines in the buffer
       while (true) {
         const newlineIndex = buffer.indexOf('\n');
         if (newlineIndex === -1) {
+          console.log(`Not full line, waiting for more data...`);
           break; // Not a full line yet, wait for more data
         }
 
@@ -73,18 +77,21 @@ export const fetchStream = async ({
 
         // Check for the 'data:' prefix
         if (line.startsWith('data: ')) {
+          console.log(`Recieved a data line.`);
           const jsonStr = line.slice(6);
           try {
             // The backend is sending a JSON-encoded string, so we parse it.
             // e.g., 'data: "Hello"' becomes the string "Hello"
             const parsedChunk = JSON.parse(jsonStr);
             if (typeof parsedChunk === 'string') {
+              console.log(`Calling on chunk with chunk: ${parsedChunk}`);
               onChunk(parsedChunk);
             }
           } catch (e) {
             logger.error('Failed to parse SSE data chunk:', jsonStr);
           }
         } else if (line.startsWith('event: error')) {
+          console.log(`Recieved custom error: ${line}`);
             // Optional: Handle custom error events from the server
             // The next line would be the 'data:' line for the error
         }
@@ -101,6 +108,7 @@ export const fetchStream = async ({
     }
   } finally {
     if (onFinish) {
+      console.log(`Calling onFinish.`);
       onFinish();
     }
   }
