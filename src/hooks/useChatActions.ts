@@ -116,29 +116,38 @@ export const useChatActions = (chatId?: string) => {
         onError: (error) => toast.error(`Failed to delete message: ${error.message}`),
     });
 
-    const sendMessageStream = async (chatId: string, payload: SendMessageInput, onChunk: (chunk: string) => void, signal?: AbortSignal) => {
+    const sendMessageStream = async (chatId: string, payload: SendMessageInput, onChunk: (chunk: string) => void, onFinish?: () => void, signal?: AbortSignal) => {
         if (!chatId) throw new Error('Chat ID is required to send a message.');
         await api.chat.sendMessageStream(chatId, payload, {
             onChunk,
-            onFinish: () => invalidateChatHistory(chatId), // Use the passed-in ID
+            onFinish: () => {
+                invalidateChatHistory(chatId);
+                if (onFinish) onFinish();
+            },
             onError: (error) => toast.error(`Streaming failed: ${error.message}`),
         }, signal);
     };
 
-    const regenerateResponseStream = async (chatId: string, payload: RegenerateResponseInput, onChunk: (chunk: string) => void, signal?: AbortSignal) => {
+    const regenerateResponseStream = async (chatId: string, payload: RegenerateResponseInput, onChunk: (chunk: string) => void, onFinish?: () => void, signal?: AbortSignal) => {
         if (!chatId) throw new Error('Chat ID is required to regenerate a response.');
         await api.chat.regenerateResponseStream(chatId, payload, {
             onChunk,
-            onFinish: () => invalidateChatHistory(chatId),
+            onFinish: () => {
+                invalidateChatHistory(chatId);
+                if (onFinish) onFinish();
+            },
             onError: (error) => toast.error(`Regeneration failed: ${error.message}`),
         }, signal);
     };
 
-    const editMessageStream = async (chatId: string, messageId: string, payload: EditMessageInput, onChunk: (chunk: string) => void, signal?: AbortSignal) => {
+    const editMessageStream = async (chatId: string, messageId: string, payload: EditMessageInput, onChunk: (chunk: string) => void, onFinish?: () => void, signal?: AbortSignal) => {
         if (!chatId) throw new Error('Chat ID is required to edit a message.');
         await api.chat.editUserMessageStream(chatId, messageId, payload, {
             onChunk,
-            onFinish: () => invalidateChatHistory(chatId),
+            onFinish: () => {
+                invalidateChatHistory(chatId);
+                if (onFinish) onFinish();
+            },
             onError: (error) => toast.error(`Failed to edit: ${error.message}`),
         }, signal);
     };

@@ -151,7 +151,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
           setChatId(newChatId);
 
           // Step 2: Start the stream using the new ID
-          await sendMessageStream(
+          sendMessageStream(
               newChatId,
               { 
                 content, 
@@ -162,6 +162,9 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
               },
               (chunk) => {
                   setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+              },
+              () => {
+                  setStreamingAiResponse(null);
               },
               controller.signal
           );
@@ -196,7 +199,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
         setOptimisticUserMessage(tempUserMessage);
         setStreamingAiResponse(tempAiMessage);
 
-        await sendMessageStream(
+        sendMessageStream(
           chatId, // Pass the current chatId
           { content, 
             systemPrompt: systemPrompt || undefined, 
@@ -207,10 +210,11 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
           (chunk) => {
             setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
           },
+          () => {
+            setStreamingAiResponse(null);
+        },
           controller.signal
-        ).finally(() => {
-          setStreamingAiResponse(null);
-        });
+        );
     }
   };
 
@@ -243,7 +247,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       setStreamingAiResponse(tempAiMessage);
       setRegeneratingParentId(messageId); // Treat edit as a form of regeneration for UI purposes
 
-      await editMessageStream(chatId,
+      editMessageStream(chatId,
         messageId,
         { 
           newContent, 
@@ -253,13 +257,14 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
           top_k: settings.top_k 
         },
         (chunk) => {
-          setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+            setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
+        },
+        () => {
+            setStreamingAiResponse(null);
+            setRegeneratingParentId(null);
         },
         controller.signal
-      ).finally(() => {
-        setStreamingAiResponse(null);
-        setRegeneratingParentId(null);
-      });
+      );
     },
 
     handleStreamRegenerate: async (parentMessageId: string) => {
@@ -277,7 +282,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       setStreamingAiResponse(tempAiMessage);
       setRegeneratingParentId(parentMessageId); // Mark the parent of the message being replaced
 
-      await regenerateResponseStream(chatId,
+      regenerateResponseStream(chatId,
         { 
           parentMessageId, 
           systemPrompt: systemPrompt || undefined, 
@@ -287,11 +292,12 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
         (chunk) => {
           setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
         },
+        () => {
+            setStreamingAiResponse(null);
+            setRegeneratingParentId(null);
+        },
         controller.signal
-      ).finally(() => {
-        setStreamingAiResponse(null);
-        setRegeneratingParentId(null);
-      });
+      );
     },
   };
 

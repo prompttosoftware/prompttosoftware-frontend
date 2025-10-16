@@ -150,7 +150,7 @@ export const api = {
    * POST /api-keys
    */
   saveApiKey: async (payload: ApiKeyPayload): Promise<ApiKey> => {
-    const response = await httpClient.post<ApiKeyResponse>("/me/apikeys", payload);
+    const response = await httpClient.post<ApiKeyResponse>("/users/me/apikeys", payload);
     return response.data.data;
   },
 
@@ -159,7 +159,7 @@ export const api = {
    * DELETE /api-keys/:provider
    */
   deleteApiKey: async (provider: string): Promise<void> => {
-    await httpClient.delete(`/me/apikeys/${provider}`);
+    await httpClient.delete(`/users/me/apikeys/${provider}`);
   },
 
  // project lifecycle
