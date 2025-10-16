@@ -38,7 +38,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = ({ initialChats }) => {
   // 3. Get the deleteChat mutation and its pending state
   const { deleteChat } = useChatActions();
 
-  const { showConfirmation } = useGlobalErrorStore(); // 2. Get the showConfirmation function from the store
+  const { showConfirmation, hideConfirmation } = useGlobalErrorStore(); // 2. Get the showConfirmation function from the store
 
   // 3. Update the handler to use the custom confirmation dialog
   const handleDeleteChat = (e: React.MouseEvent, chatId: string, chatName?: string) => {
@@ -56,6 +56,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = ({ initialChats }) => {
       // onConfirm: This function is executed when the user confirms.
       () => {
         deleteChat.mutate(chatId);
+        hideConfirmation();
       },
       // options: Customize the dialog buttons
       {

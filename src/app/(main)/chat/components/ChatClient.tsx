@@ -13,7 +13,7 @@ import ChatMessage, { ChatStreamingActions } from './ChatMessage';
 import MessageInput from './MessageInput';
 import { Analysis } from '@/types/analysis';
 import { Bot } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Provider } from '@/types/project';
 
 interface ChatClientProps {
   chatId: string;
@@ -39,7 +39,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const [input, setInput] = useState('');
   const [settings, setSettings] = useState<ChatSettings>({
     provider: 'openrouter',
-    model: 'qwen/qwen-turbo',
+    model: 'openai/gpt-5-nano',
     temperature: 0.7,
     top_k: 40,
     analysisId: initialAnalysisId,
@@ -133,7 +133,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
               repository: 'your-github/repository-name', // TODO: Dynamic
               systemPrompt: systemPrompt || undefined,
               analysisId: settings.analysisId,
-              model: { primary: settings.model },
+              model: { model: settings.model, provider: settings.provider as Provider | undefined },
               temperature: settings.temperature,
               top_k: settings.top_k,
           });
@@ -153,7 +153,13 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
           // Step 2: Start the stream using the new ID
           await sendMessageStream(
               newChatId,
-              { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+              { 
+                content, 
+                systemPrompt: systemPrompt || undefined, 
+                model: { model: settings.model, provider: settings.provider as Provider | undefined },
+                temperature: settings.temperature, 
+                top_k: settings.top_k 
+              },
               (chunk) => {
                   setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
               },
@@ -192,7 +198,12 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
         await sendMessageStream(
           chatId, // Pass the current chatId
-          { content, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+          { content, 
+            systemPrompt: systemPrompt || undefined, 
+            model: { model: settings.model, provider: settings.provider as Provider | undefined },
+            temperature: settings.temperature, 
+            top_k: settings.top_k 
+          },
           (chunk) => {
             setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
           },
@@ -234,7 +245,13 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
 
       await editMessageStream(chatId,
         messageId,
-        { newContent, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+        { 
+          newContent, 
+          systemPrompt: systemPrompt || undefined, 
+          model: { model: settings.model, provider: settings.provider as Provider | undefined },
+          temperature: settings.temperature, 
+          top_k: settings.top_k 
+        },
         (chunk) => {
           setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
         },
@@ -261,7 +278,12 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       setRegeneratingParentId(parentMessageId); // Mark the parent of the message being replaced
 
       await regenerateResponseStream(chatId,
-        { parentMessageId, systemPrompt: systemPrompt || undefined, temperature: settings.temperature, top_k: settings.top_k },
+        { 
+          parentMessageId, 
+          systemPrompt: systemPrompt || undefined, 
+          model: { model: settings.model, provider: settings.provider as Provider | undefined },
+          temperature: settings.temperature, 
+          top_k: settings.top_k },
         (chunk) => {
           setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
         },

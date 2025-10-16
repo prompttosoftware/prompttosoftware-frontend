@@ -56,6 +56,7 @@ export interface Analysis {
     buildReport?: BuildReport;
     runReport?: RunReport;
     
+    free?: boolean;
     status: Status;
     desiredStatus: DesiredStatus;
     createdAt: Date;

@@ -1,7 +1,7 @@
 // src/app/new-project/components/ProjectForm.tsx
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -20,6 +20,8 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { usePostHog } from 'posthog-js/react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // --- 1. Define a unique key for localStorage ---
 const FORM_DRAFT_KEY = 'new-project-form-draft';
@@ -97,6 +99,8 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading: isAuthLoading } = useAuth();
+  const posthog = usePostHog();
+  const [open, setOpen] = React.useState(true);
 
   const isEditMode = !!initialProjectData;
   const projectId = initialProjectData?._id;
@@ -196,6 +200,13 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
           } else {
               const createdProject = await api.createProject(data);
               toast.success('Project created successfully!');
+
+              posthog?.capture('project_started', {
+                cascade: data.advancedOptions.cascade,
+                devMode: data.advancedOptions.devMode,
+                singleIssue: data.advancedOptions.singleIssue
+              });
+
               // --- 4. Clear the draft upon successful submission ---
               localStorage.removeItem(FORM_DRAFT_KEY);
 
@@ -236,11 +247,18 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
         <h1 className="text-2xl font-bold mb-6">
             {isEditMode ? `Editing '${initialProjectData?.name}'` : 'Create a New Project'}
         </h1>
-        <div className="bg-secondary/20 border border-secondary rounded-lg p-3 mb-6">
-            <p className="text-sm text-muted-foreground">
-                A project establishes an <strong>autonomous AI developer</strong> capable of writing code, running tests, and managing repositories based on your description. Once started, the AI works independently. All collaboration (code and issue management) is handled through <strong>GitHub</strong> and linked <strong>Jira</strong> accounts.
-            </p>
-        </div>
+        <Collapsible open={open} onOpenChange={setOpen} className="mb-6">
+          <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer text-muted-foreground text-sm group">
+            <div className="flex items-center gap-2">
+              <span>Overview</span>
+            </div>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-3 rounded-md bg-secondary/20 border border-secondary p-3 text-sm text-muted-foreground data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+            A project establishes an <strong>autonomous AI developer</strong> capable of writing code, running tests, and managing repositories based on your description. Once started, the AI works independently. All collaboration (code and issue management) is handled through <strong>GitHub</strong> and linked <strong>Jira</strong> accounts.
+          </CollapsibleContent>
+        </Collapsible>
+
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit, (errors) => {
               console.error("Form validation failed:", errors);

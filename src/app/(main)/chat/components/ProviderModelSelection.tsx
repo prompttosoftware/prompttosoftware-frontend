@@ -7,7 +7,7 @@ import { AddApiKeyButton } from "../../components/ApiKeyManager";
 
 
 const AI_PROVIDERS = [
-//   { label: 'OpenAI', value: 'openai' },
+  { label: 'OpenAI', value: 'openai' },
 //   { label: 'Anthropic', value: 'anthropic' },
 //   { label: 'Google', value: 'google' },
 //   { label: 'Groq', value: 'groq' },

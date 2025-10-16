@@ -12,7 +12,8 @@ interface AnalysisHeaderProps {
   onDeleteClick: () => void;
   onRerunClick: () => void;
   onStopClick: () => void;
-  onDownloadClick: () => void;
+  onDownloadPdfClick: () => void;
+  onDownloadJsonClick: () => void;
   isDownloading: boolean;
   isDeleting: boolean;
   isRerunning: boolean;
@@ -26,7 +27,8 @@ const AnalysisHeader = ({
     onDeleteClick, 
     onRerunClick,
     onStopClick,
-    onDownloadClick,
+    onDownloadPdfClick,
+    onDownloadJsonClick,
     isDownloading,
     isDeleting, 
     isRerunning, 
@@ -85,13 +87,21 @@ const AnalysisHeader = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onDownloadClick} disabled={isDownloading}>
+          <DropdownMenuItem onClick={onDownloadPdfClick} disabled={isDownloading}>
             {isDownloading ? (
               <LoadingSpinner size="small" className="mr-2" />
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
             Download PDF
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onDownloadJsonClick} disabled={isDownloading}>
+            {isDownloading ? (
+              <LoadingSpinner size="small" className="mr-2" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Download JSON
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onDeleteClick} className="text-destructive">
             <Trash2 className="mr-2 h-4 w-4" />

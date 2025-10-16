@@ -22,6 +22,8 @@ import { useUserProjects } from '@/hooks/useUserProjects';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { usePostHog } from 'posthog-js/react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 // --- 1. Define a unique key for localStorage ---
 const FORM_DRAFT_KEY = 'new-analysis-form-draft';
@@ -49,6 +51,8 @@ export default function AnalysisForm({ initialAnalysisData, initialProjects }: A
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading: isAuthLoading } = useAuth();
+  const posthog = usePostHog();
+  const [open, setOpen] = React.useState(true);
 
   // Fetch projects on the client, hydrated with server-side data
   const { data: projects, isLoading: isLoadingProjects } = useUserProjects({ 
@@ -133,6 +137,9 @@ export default function AnalysisForm({ initialAnalysisData, initialProjects }: A
           
         const createdAnalysis = await api.createAnalysis(data);
         toast.success('Analysis created successfully!');
+
+        posthog?.capture('analysis_started');
+
         // --- 4. Clear the draft upon successful submission ---
         localStorage.removeItem(FORM_DRAFT_KEY);
 
@@ -173,11 +180,17 @@ export default function AnalysisForm({ initialAnalysisData, initialProjects }: A
         <h1 className="text-2xl font-bold mb-6">
             {'Create a New Analysis'}
         </h1>
-        <div className="bg-secondary/20 border border-secondary rounded-lg p-3 mb-6">
-            <p className="text-sm text-muted-foreground">
-                AI will systematically <strong>check each file for issues</strong> (bugs, style, security, performance, incompleteness). It then <strong>builds a description tree</strong> to fully understand the repository. Finally, it attempts to <strong>run the application, tests, and build</strong>, generating a detailed report on the results for each step.
-            </p>
-        </div>
+        <Collapsible open={open} onOpenChange={setOpen} className="mb-6">
+          <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer text-muted-foreground text-sm group">
+            <div className="flex items-center gap-2">
+              <span>Overview</span>
+            </div>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="mt-3 rounded-md bg-secondary/20 border border-secondary p-3 text-sm text-muted-foreground data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+            AI will systematically <strong>check each file for issues</strong> (bugs, style, security, performance, incompleteness). It then <strong>builds a description tree</strong> to fully understand the repository. Finally, it attempts to <strong>run the application, tests, and build</strong>, generating a detailed report on the results for each step.
+          </CollapsibleContent>
+        </Collapsible>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit, (errors) => {
               console.error("Form validation failed:", errors);
@@ -267,7 +280,13 @@ export default function AnalysisForm({ initialAnalysisData, initialProjects }: A
 
             <div className="pt-4">
               <Button type="submit" disabled={isSubmitting} className="min-w-[8rem]">
-                {isSubmitting ? <LoadingSpinner size="small" /> : 'Start Analysis'}
+                {isSubmitting ? (
+                  <LoadingSpinner size="small" />
+                ) : !user.createdAnalysis && user.freeAnalyses > 0 ? (
+                  'Start Free Analysis'
+                ) : (
+                  'Start Analysis'
+                )}
               </Button>
             </div>
           </form>

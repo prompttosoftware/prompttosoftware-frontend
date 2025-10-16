@@ -92,8 +92,8 @@ export const api = {
    * Exchanges a GitHub OAuth code for a JWT and user profile.
    * POST /auth/github
    */
-  loginWithGithub: async (code: string): Promise<AuthResponse> => {
-    const response = await httpClient.post<AuthResponse>("/auth/github", { code });
+  loginWithGithub: async (code: string, freeProject?: boolean, freeAnalysis?: boolean): Promise<AuthResponse> => {
+    const response = await httpClient.post<AuthResponse>("/auth/github", { code, freeAnalysis, freeProject });
     return response.data;
   },
 
@@ -108,6 +108,10 @@ export const api = {
       email: backendUser.email,
       isNewUser: backendUser.isNewUser ?? false, // fallback if missing
       balance: backendUser.balance,
+      createdProject: backendUser.createdProject ?? false,
+      createdAnalysis: backendUser.createdAnalysis ?? false,
+      freeProjects: backendUser.freeProjects ?? 0,
+      freeAnalyses: backendUser.freeAnalyses ?? 0,
       name: backendUser.name,
       avatarUrl: backendUser.avatarUrl,
       role: backendUser.role, // optional if you have roles
@@ -312,6 +316,10 @@ export const api = {
       email: backendUser.email,
       isNewUser: backendUser.isNewUser ?? false,
       balance: backendUser.balance,
+      createdProject: backendUser.createdProject ?? false,
+      createdAnalysis: backendUser.createdAnalysis ?? false,
+      freeProjects: backendUser.freeProjects ?? 0,
+      freeAnalyses: backendUser.freeAnalyses ?? 0,
       name: backendUser.name,
       avatarUrl: backendUser.avatarUrl,
       role: backendUser.role,

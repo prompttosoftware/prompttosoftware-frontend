@@ -47,10 +47,7 @@ export interface CreateChatInput {
     repository: string;
     systemPrompt?: string;
     analysisId?: string;
-    model: {
-        primary: string;
-        secondary?: string;
-    };
+    model?: Model;
     top_k?: number;
     temperature?: number;
 }
@@ -61,6 +58,7 @@ export interface CreateChatInput {
 export interface SendMessageInput {
     content: string;
     systemPrompt?: string;
+    model?: Model;
     top_k?: number;
     temperature?: number;
     stream?: boolean;
@@ -69,6 +67,7 @@ export interface SendMessageInput {
 export interface EditMessageInput {
     newContent: string;
     systemPrompt?: string;
+    model?: Model;
     top_k?: number;
     temperature?: number;
     stream?: boolean;
@@ -80,6 +79,7 @@ export interface EditMessageInput {
 export interface RegenerateResponseInput {
     parentMessageId: string;
     systemPrompt?: string;
+    model?: Model;
     top_k?: number;
     temperature?: number;
     stream?: boolean;

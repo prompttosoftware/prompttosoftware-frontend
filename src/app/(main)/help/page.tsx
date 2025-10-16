@@ -1,10 +1,11 @@
 import { CodeExample, Paragraph, SectionHeading, StyledLink, StyledList, SubHeading } from '@/components/ui/presentation';
 import HelpContentDisplay from './HelpContentDisplay';
+import YouTubeEmbed from '@/components/ui/presentation/YoutubeEmbed';
 
 interface ContentBlock {
-  type: 'heading' | 'subheading' | 'paragraph' | 'list' | 'custom';
-  content: any; // The data for the block (string, string[], object, etc.)
-  key?: string; // Optional unique key for complex content
+  type: 'heading' | 'subheading' | 'paragraph' | 'list' | 'custom' | 'youtube'; 
+  content: any;
+  key?: string;
 }
 
 const HelpSectionRenderer = ({ contentBlocks }: { contentBlocks: ContentBlock[] }) => {
@@ -21,6 +22,8 @@ const HelpSectionRenderer = ({ contentBlocks }: { contentBlocks: ContentBlock[] 
             return <Paragraph key={key}>{block.content}</Paragraph>;
           case 'list':
             return <StyledList key={key} items={block.content} />;
+          case 'youtube':
+            return <YouTubeEmbed key={key} videoId={block.content} />;
           default:
             return null;
         }
@@ -48,6 +51,7 @@ const helpMenuItems: HelpMenuItem[] = [
     name: 'Project Creation',
     content: [
       { type: 'heading', content: 'Creating a New Project' },
+      { type: 'youtube', content: 'Xz0kmz6kxxA' },
       { type: 'paragraph', content: 'Here is a detailed guide to each field in the project creation form, along with tips for getting the best results.' },
       { type: 'list', content: [
           <><strong>Project Description:</strong> This is the core instruction for the AI. It can be a detailed specification or a vague idea. The AI will attempt to follow detailed instructions while filling in any gaps with best practices. If the description is vague, the AI will design an interesting and useful application based on the concept. It is recommended to describe the project rather than posing a question or prompt. <strong>Do not paste code here;</strong> add code to a GitHub repository and select it instead.</>,
@@ -58,16 +62,16 @@ const helpMenuItems: HelpMenuItem[] = [
       { type: 'subheading', content: 'Advanced Options' },
       { type: 'list', content: [
         <><strong>Development Configuration:</strong> These options control how the AI manages development workflow and testing.
-          <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
+          <ul className="list-disc list-inside ml-4 mt-2 space-y-6 text-foreground">
             <li><strong>Test Level:</strong> Determines how strictly tests are required.
-              <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-4">
                 <li><strong>Standard:</strong> The system decides when and where tests are useful. Recommended for most projects.</li>
                 <li><strong>Required:</strong> Every change must include tests. The AI will not proceed without them. Best for production-critical projects.</li>
                 <li><strong>None:</strong> No tests will be written. Suitable only for prototypes or experiments where speed is more important than reliability.</li>
               </ul>
             </li>
             <li><strong>Request Type:</strong> Defines the nature of the work so the AI can adjust its approach and level of scrutiny.
-              <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-4">
                 <li><strong>Automatic:</strong> The AI automatically decides the correct type (bug fix, feature, etc.). Recommended for most users.</li>
                 <li><strong>Change Request:</strong> For new features or alterations to existing functionality.</li>
                 <li><strong>Bug Fix:</strong> Focuses the AI specifically on diagnosing and fixing issues in the codebase.</li>
@@ -75,10 +79,27 @@ const helpMenuItems: HelpMenuItem[] = [
                 <li><strong>Development Task:</strong> For internal work, experiments, or refactoring. Useful for non-production projects.</li>
               </ul>
             </li>
+            <li><strong>Dev Mode:</strong> Sets development flow for writing and testing code.
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-4">
+                <li><strong>Automatic:</strong> The system decides which mode will work best for the project.</li>
+                <li><strong>Write Test Repeat:</strong> This mode works better for large projects. There is a dedicated code writing stage where all the necessary context is given.</li>
+                <li><strong>General Purpose:</strong> There is one agent that writes code, tests, and debugs. It's faster for small changes or non-production projects.</li>
+              </ul>
+            </li>
+            <li><strong>Task Mode:</strong> Determines whether how issues are used for development.
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-4">
+                <li><strong>Single Issue:</strong> When checked, the entire project will be created using a single issue. This skips the potentially lengthy issue creation stage, but greatly reducing the possible detail and scope of the project.</li>
+              </ul>
+            </li>
+            <li><strong>Optimization:</strong> Options to speed up the development process.
+              <ul className="list-disc list-inside ml-6 mt-1 space-y-4">
+                <li><strong>Cascade:</strong> When checked, all the code for the project will be written at the start in parralel before testing.</li>
+              </ul>
+            </li>
           </ul>
         </>,
         <><strong>AI Model Selection:</strong> Different tasks use different "intelligence levels" to optimize for cost and performance. While the default models are recommended, you can customize them.
-            <ul className="list-disc list-inside ml-4 mt-2 space-y-1 text-muted-foreground">
+            <ul className="list-disc list-inside ml-4 mt-2 space-y-6 text-foreground">
                 <li><strong>Recommendation:</strong> Use models with at least a 120k token context window for Medium, High, and Super levels.</li>
                 <li><strong>Warning:</strong> The "Medium" intelligence level does the vast majority of the work (approx. 75%). Using a slow model here will significantly increase project runtime and cost.</li>
                 <li><strong>Backup Model:</strong> If the primary models get stuck, the system can "escalate" intelligence. Medium becomes High, High becomes Super, and Super becomes the Backup model. This can happen up to two times so at most the Backup model can be used for High intelligence.</li>
@@ -86,7 +107,7 @@ const helpMenuItems: HelpMenuItem[] = [
             </ul>
         </>,
         <><strong>Approximate Model Usage Breakdown:</strong>
-            <ul className="list-disc list-inside ml-4 mt-2 text-muted-foreground">
+            <ul className="list-disc list-inside ml-4 mt-2 text-foreground">
                 <li><strong>Utility:</strong> ~1%</li>
                 <li><strong>Low:</strong> ~4%</li>
                 <li><strong>Medium:</strong> ~75%</li>
@@ -97,6 +118,32 @@ const helpMenuItems: HelpMenuItem[] = [
         </>,
         <><strong>Installations:</strong> You can select packages from a predefined list to ensure they are installed in the project's container. The AI will automatically determine and install necessary packages, but this option guarantees a specific tool is available.</>,
         <><strong>Jira Integration:</strong> Enable this to have the project managed via Jira issues. <strong>Important:</strong> Due to Jira's authentication method, only one active project can be linked to your Jira account at a time.</>,
+      ]}
+    ]
+  },
+  {
+    name: 'Analysis',
+    content: [
+      { type: 'heading', content: 'Creating a New Analysis' },
+      { type: 'youtube', content: 'bAtQf8nA-Fg' },
+      { type: 'paragraph', content: <>An <strong>Analysis</strong> is a deep-dive, hands-free assessment of an existing codebase, performed by the AI system. Unlike a Project which is focused on active development or bug fixing, an analysis is designed to rapidly generate a comprehensive understanding of a repository without making any changes to the code.</> },
+      { type: 'subheading', content: 'The Analysis Process' },
+      { type: 'list', content: [
+        <><strong>Repository Selection:</strong> The first step is choosing the GitHub repository to analyze. You can either paste in a URL or select one from an existing project.</>,
+        <><strong>Configuration:</strong> You can customize the <strong>AI models</strong> and <strong>Installations</strong> that will be used for the review and execution. These settings are similar to those for creating a new project.</>,
+        <><strong>Execution:</strong> Once started, the AI clones the repository and runs a full battery of checks. An analysis typically takes <strong>10-15 minutes</strong> to complete.</>
+      ]},
+      { type: 'subheading', content: 'Key Reports and Results' },
+      { type: 'paragraph', content: 'Upon completion, the AI generates a detailed Analysis Report containing several key components:' },
+      { type: 'list', content: [
+        <><strong>Issue Identification:</strong> The AI scans the code to find potential bugs, security vulnerabilities, code smells, and general areas for improvement. You can click on a file to see its detailed description and the issues found.</>,
+        <><strong>Description Tree:</strong> A high-level, human-readable summary of the entire project's structure, logic, and purpose, which is invaluable for <strong>onboarding new developers</strong>.</>,
+        <><strong>Run, Build, and Test Reports:</strong> The system attempts to execute the project’s build, test, and run commands. These reports document the success or failure of these steps, providing crucial operational insights (e.g., failed build due to <strong>timeout issues</strong> or an application being unable to run due to <strong>lacking webcam access</strong>).</>
+      ]},
+      { type: 'subheading', content: 'Utilizing the Analysis' },
+      { type: 'list', content: [
+        <>The report can be <strong>downloaded as a PDF</strong> for easy sharing with your team or for documenting the project's current state.</>,
+        <>The analysis is automatically selected as <strong>context</strong> in the <strong>Chat</strong> feature, allowing you to ask the AI to summarize reports, recommend fixes, or write code based on the findings.</>
       ]}
     ]
   },

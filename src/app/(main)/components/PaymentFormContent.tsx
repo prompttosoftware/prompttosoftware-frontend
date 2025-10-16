@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { logger } from '@/lib/logger';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { usePostHog } from 'posthog-js/react';
 
 interface PaymentFormContentProps {
   clientSecret: string;
@@ -32,6 +33,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
 }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const posthog = usePostHog();
 
   logger.debug(`PaymentFormContent rendered. clientSecret: ${!!clientSecret}, stripe: ${!!stripe}, elements: ${!!elements}`);
 
@@ -102,6 +104,13 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
         resetAddFundsStep();
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         logger.info('Payment confirmed on client. Handing off to parent for polling.');
+
+        posthog?.capture('funds_added', {
+          amount: amount, // The amount in cents or dollars, be consistent
+          currency: 'usd', // Or whatever your currency is
+          save_card_selected: saveCardForFuture,
+        });
+
         onPaymentConfirmed(paymentIntent.id);
       } else {
         logger.warn(`Payment not successful in PaymentFormContent: status ${paymentIntent?.status}`);
@@ -120,6 +129,7 @@ const PaymentFormContent: React.FC<PaymentFormContentProps> = ({
     elements,
     clientSecret,
     amount,
+    posthog,
     resetAddFundsStep,
     saveCardForFuture,
     onPaymentConfirmed

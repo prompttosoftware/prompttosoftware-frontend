@@ -66,7 +66,7 @@ const AnalysisOverview: React.FC<AnalysisOverviewProps> = ({ analysis, issueTota
     <Card>
       <CardContent className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
         <InfoBlock icon={<Clock className="h-4 w-4" />} label="Status" value={<StatusIndicator status={analysis.status}/>} />
-        <InfoBlock icon={<DollarSign className="h-4 w-4" />} label="Cost" value={`$${(analysis.cost || 0).toFixed(4)}`} />
+        <InfoBlock icon={<DollarSign className="h-4 w-4" />} label="Cost" value={ analysis.free ? `Free` : `$${(analysis.cost || 0).toFixed(4)}`} />
         <InfoBlock icon={<CalendarDays className="h-4 w-4" />} label="Created" value={formatDate(analysis.createdAt)} />
         <InfoBlock icon={<Clock className="h-4 w-4" />} label="Last Updated" value={formatDate(analysis.updatedAt)} />
       </CardContent>

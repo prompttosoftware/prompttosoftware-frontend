@@ -28,6 +28,10 @@ export interface UserProfile {
   email?: string;
   isNewUser: boolean;
   balance: number;
+  createdProject: boolean;
+  createdAnalysis: boolean;
+  freeProjects: number;
+  freeAnalyses: number;
   name?: string;
   avatarUrl?: string;
   role?: string;

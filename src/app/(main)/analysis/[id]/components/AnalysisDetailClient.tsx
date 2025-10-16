@@ -60,7 +60,7 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
     initialData: initialAnalysis,
     // Enable refetching to get status updates for 'stopping' -> 'stopped'
     refetchInterval: (data: any) =>
-  data?.status === 'pending' || data?.status === 'running' || data?.status === 'stopping'
+  data?.status === 'pending' || data?.status === 'running' || data?.status === 'stopping' || data?.status === 'starting'
     ? 5000
     : false,
   });
@@ -100,7 +100,7 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
     setSelectedNode(node);
   };
 
-  const handleDownloadClick = async () => {
+  const handleDownloadPdfClick = async () => {
     if (!currentAnalysis || !issueTotals) {
             toast.error("Analysis data is not fully loaded yet. Please try again.");
             return;
@@ -120,6 +120,60 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
         } finally {
             setIsDownloading(false);
         }
+  };
+
+  const handleDownloadJsonClick = () => {
+    if (!currentAnalysis) {
+      toast.error("Analysis data is not fully loaded yet. Please try again.");
+      return;
+    }
+
+    try {
+      // Define the keys to remove from the analysis object and any nested nodes.
+      const keysToRemove = new Set([
+        '_id',
+        'userId',
+        'projectId',
+        'cost',
+        'status',
+        'desiredStatus',
+        'createdAt',
+        'updatedAt',
+      ]);
+
+      // The 'replacer' function is called for each key-value pair during serialization.
+      // If a key is in our set, we return 'undefined' to exclude it from the JSON output.
+      const replacer = (key: string, value: any) => {
+        if (keysToRemove.has(key)) {
+          return undefined;
+        }
+        return value;
+      };
+      
+      // Sanitize repository name to create a clean filename
+      const repoName = currentAnalysis.repository.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const filename = `analysis-report-${repoName}.json`;
+
+      // Create a blob from the pretty-printed JSON data, using the replacer to filter it.
+      const jsonString = JSON.stringify(currentAnalysis, replacer, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up the temporary link and URL
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+    } catch (error) {
+      logger.error("Failed to generate and download JSON:", error);
+      toast.error("An error occurred while preparing the JSON file.");
+    }
   };
 
   // Loading state for the whole page (initial load)
@@ -144,7 +198,8 @@ export default function AnalysisDetailClient({ initialAnalysis }: AnalysisDetail
           onDeleteClick={handleDeleteClick}
           onRerunClick={handleRerunClick}
           onStopClick={handleStopClick}
-          onDownloadClick={handleDownloadClick}
+          onDownloadPdfClick={handleDownloadPdfClick}
+          onDownloadJsonClick={handleDownloadJsonClick}
           isDownloading={isDownloading}
           isDeleting={deleteAnalysis.isPending}
           isRerunning={rerunAnalysis.isPending}

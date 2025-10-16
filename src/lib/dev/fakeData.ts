@@ -339,6 +339,10 @@ export const FAKE_USER: UserProfile = {
   avatarUrl: '/avatar.png',
   isNewUser: true,
   balance: 100.00,
+  createdProject: false,
+  createdAnalysis: false,
+  freeProjects: 0,
+  freeAnalyses: 1,
   role: 'user',
   integrations: {
     jira: { isLinked: false },
@@ -1079,6 +1083,7 @@ export const FAKE_ANALYSIS_ARRAY: Analysis[] = [
         runReport: {
             content: 'Analysis runtime: 120 seconds. No critical errors found during execution.',
         },
+        free: true,
         status: 'running' as Status,
         desiredStatus: 'running' as DesiredStatus,
         createdAt: date2,

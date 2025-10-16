@@ -5,14 +5,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Linkedin, Youtube } from 'lucide-react';
 import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
 import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
+import { usePostHog } from 'posthog-js/react';
 
 export function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loginWithGithub } = useAuth();
+  const posthog = usePostHog();
   
   // Use ref to track if we've already processed the callback
   const callbackProcessed = useRef(false);
@@ -22,6 +24,27 @@ export function LoginContent() {
   const [error, setError] = useState<string | null>(null);
 
   const sessionExpired = searchParams.get('sessionExpired') === 'true';
+
+  useEffect(() => {
+      // This runs only once when the component mounts
+      const utm_source = searchParams.get('utm_source');
+      const utm_medium = searchParams.get('utm_medium');
+      const utm_campaign = searchParams.get('utm_campaign');
+  
+      const analytics_props = {
+        utm_source,
+        utm_medium,
+        utm_campaign,
+      };
+  
+      // Track the page view event with UTMs
+      posthog?.capture('default_landing_page_viewed', analytics_props);
+  
+      // Persist UTMs in session storage to survive the GitHub redirect
+      if (utm_source) {
+        sessionStorage.setItem('utm_params', JSON.stringify(analytics_props));
+      }
+    }, [searchParams, posthog]);
 
   // Simplified effect that doesn't depend on the callback function
   useEffect(() => {
@@ -71,13 +94,25 @@ export function LoginContent() {
     setError(null); // Clear previous errors before trying
     
     try {
-      await loginWithGithub(code);
+      // Retrieve UTMs from session storage
+      const storedUtmParams = sessionStorage.getItem('utm_params');
+      const campaign_metadata = storedUtmParams ? JSON.parse(storedUtmParams) : {};
+
+      await loginWithGithub(code); // TODO: apply promo to free project
       console.log(`Login with github success, should navigate to dashboard.`);
       
       // Clear success messages and navigate
       useSuccessMessageStore.getState().clearMessage();
 
       document.cookie = `${TUTORIAL_CONTEXT_COOKIE}=default; path=/; max-age=300`;
+
+      posthog?.capture('user_signed_up', {
+        ...campaign_metadata,
+        login_method: 'github',
+        promo_applied: !!campaign_metadata.utm_source,
+      });
+      // Optionally clean up session storage
+      sessionStorage.removeItem('utm_params');
       
       // Replace the current URL to remove the code parameter and navigate
       router.replace('/dashboard');
@@ -86,12 +121,15 @@ export function LoginContent() {
       console.log(`Error while logging in: ${err}`);
       callbackProcessed.current = false; // Reset on error so user can try again
       setError(err.message || 'An unknown error occurred during login.');
+      posthog?.capture('signup_failed', { error_message: err.message });
     } finally {
       setIsLoggingIn(false);
     }
   };
 
   const handleGitHubLogin = () => {
+    posthog?.capture('login_initiated', { login_method: 'github' });
+
     const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
     if (!GITHUB_CLIENT_ID) {
       setError('GitHub Client ID is not configured. Please contact support.');
@@ -241,6 +279,27 @@ export function LoginContent() {
             <div className="flex items-center space-x-4 mt-2 sm:mt-0">
                 <a href="/terms" className="hover:underline">Terms of Service</a>
                 <a href="/privacy" className="hover:underline">Privacy Policy</a>
+                <a
+                  href="https://www.linkedin.com/company/prompttosoftware"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition flex items-center"
+                >
+                  <Linkedin className="h-4 w-4 mr-1" />
+                  <span>LinkedIn</span>
+                  <ExternalLink className="ml-1 h-3 w-3" />
+                </a>
+
+                <a
+                  href="https://www.youtube.com/@prompttosoftware"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition flex items-center"
+                >
+                  <Youtube className="h-4 w-4 mr-1" />
+                  <span>YouTube</span>
+                  <ExternalLink className="ml-1 h-3 w-3" />
+                </a>
             </div>
         </div>
       </footer>

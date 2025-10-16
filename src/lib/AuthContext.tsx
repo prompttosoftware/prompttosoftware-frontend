@@ -22,7 +22,7 @@ interface AuthContextType {
   updateProfile: (newUserProfile: UserProfile) => void;
   showTutorial: boolean;
   setShowTutorial: (show: boolean) => void;
-  loginWithGithub: (code: string) => Promise<AuthResponse>;
+  loginWithGithub: (code: string, freeProject?: boolean, freeAnalysis?: boolean) => Promise<AuthResponse>;
   refreshUser: () => Promise<void>;
 }
 
@@ -83,10 +83,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialDat
     logger.info('AuthProvider: Profile updated in cache synchronously.');
   };
 
-  const loginWithGithub = async (code: string): Promise<AuthResponse> => {
+  const loginWithGithub = async (code: string, freeProject?: boolean, freeAnalysis?: boolean): Promise<AuthResponse> => {
     logger.info('AuthProvider: Attempting GitHub login');
     try {
-      const response = await api.loginWithGithub(code);
+      const response = await api.loginWithGithub(code, freeProject, freeAnalysis);
 
       if (response.token && response.data?.user) {
         logger.info('AuthProvider: GitHub login successful, setting token.');
