@@ -54,6 +54,7 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
   const isResponding = createChat.isPending || !!streamingAiResponse;
 
   // Effects
+  // Update settings when chat is updated
   useEffect(() => {
     if (data?.chat) {
       setSettings({
@@ -69,12 +70,14 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
     }
   }, [data?.chat]);
 
+  // Remove optimistic user message when AI is responding
   useEffect(() => {
     if (!isResponding) {
       setOptimisticUserMessage(null);
     }
   }, [isResponding]);
 
+  // Show an error when an error is set
   useEffect(() => {
     if (isError) {
       toast.error(error?.message || 'Failed to load chat. Please try again.');
@@ -164,22 +167,19 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
                   setStreamingAiResponse(prev => prev ? { ...prev, content: prev.content + chunk } : null);
               },
               () => {
-                  setStreamingAiResponse(null);
+                // Handle all cleanup here
+                setStreamingAiResponse(null);
+                // Invalidation will fetch the final state and seamlessly replace our optimistic one
+                queryClient.invalidateQueries({ queryKey: ['chat', newChatId] });
               },
               controller.signal
           );
-
-          // Invalidation will fetch the final state and seamlessly replace our optimistic one
-          queryClient.invalidateQueries({ queryKey: ['chat', newChatId] });
 
       } catch (e: any) {
           toast.error(`Error creating chat: ${e.message}`);
           // On error, we might need to remove the optimistic data
           queryClient.removeQueries({ queryKey: ['chat', chatId] });
-      } finally {
-          // Clear the transient streaming state
           setStreamingAiResponse(null);
-          // We no longer need to clear optimisticUserMessage as it's not in state
       }
 
   } else {
