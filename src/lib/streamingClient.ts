@@ -1,21 +1,23 @@
+// src/lib/fetchStreamClient.ts
+
 import { getAuthToken } from '@/utils/auth';
 import { logger } from '@/utils/logger';
 
-interface FetchStreamOptions {
+export interface FetchStreamOptions<T> {
   method: 'POST' | 'PUT';
   url: string;
   payload: Record<string, any>;
-  onChunk: (chunk: string) => void; // onChunk will now receive the clean string content
+  onChunk: (data: T) => void; // onChunk now receives the parsed data of type T
   onFinish?: () => void;
   onError?: (error: Error) => void;
   signal?: AbortSignal;
 }
 
 /**
- * A dedicated client for making API requests that return a Server-Sent Events (SSE) stream.
- * It parses the SSE protocol and calls onChunk with the clean data payload.
+ * A universal client for Server-Sent Events (SSE) streams.
+ * It intelligently handles both JSON objects and raw string data.
  */
-export const fetchStream = async ({
+export const fetchStream = async <T>({
   method,
   url,
   payload,
@@ -23,24 +25,30 @@ export const fetchStream = async ({
   onFinish,
   onError,
   signal,
-}: FetchStreamOptions): Promise<void> => {
+}: FetchStreamOptions<T>): Promise<void> => {
   try {
-    console.log(`Send message stream started.`);
     const token = getAuthToken();
     const response = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
         Authorization: token ? `Bearer ${token}` : '',
-        'Accept': 'text/event-stream', // Good practice to signal expected content type
+        'Accept': 'text/event-stream',
       },
       body: JSON.stringify({ ...payload, stream: true }),
-      signal
+      signal,
     });
 
     if (!response.ok || !response.body) {
-      const errorData = await response.json().catch(() => ({ message: 'Failed to read error response.' }));
-      throw new Error(errorData.message || `Request failed with status ${response.status}`);
+      const errorText = await response.text();
+      let errorMessage = `Request failed with status ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorMessage;
+      } catch (e) {
+        if (errorText) errorMessage = errorText;
+      }
+      throw new Error(errorMessage);
     }
 
     const reader = response.body.getReader();
@@ -50,57 +58,45 @@ export const fetchStream = async ({
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        console.log(`Stream finished.`);
-        break; // Stream finished
+        break;
       }
 
-      // Add the new data to our buffer
       buffer += decoder.decode(value, { stream: true });
-      console.log(`New data added to buffer: ${buffer}`);
 
-      // Process all complete lines in the buffer
-      while (true) {
-        const newlineIndex = buffer.indexOf('\n');
-        if (newlineIndex === -1) {
-          console.log(`Not full line, waiting for more data...`);
-          break; // Not a full line yet, wait for more data
-        }
+      // Use a robust boundary of two newlines to separate messages
+      let boundary = buffer.indexOf('\n\n');
+      while (boundary !== -1) {
+        const message = buffer.substring(0, boundary);
+        buffer = buffer.substring(boundary + 2);
 
-        // Get a single line, and remove it from the buffer
-        const line = buffer.slice(0, newlineIndex).trim();
-        buffer = buffer.slice(newlineIndex + 1);
-
-        // Ignore empty lines (like the second '\n' in '\n\n')
-        if (line === '') continue;
-
-        if (line.startsWith('event: ping')) continue;
-
-        // Check for the 'data:' prefix
-        if (line.startsWith('data: ')) {
-          console.log(`Recieved a data line.`);
-          const jsonStr = line.slice(6);
+        const dataLine = message.split('\n').find(line => line.startsWith('data: '));
+        if (dataLine) {
+          const content = dataLine.substring(6).trim();
+          
           try {
-            // The backend is sending a JSON-encoded string, so we parse it.
-            // e.g., 'data: "Hello"' becomes the string "Hello"
-            const parsedChunk = JSON.parse(jsonStr);
-            if (typeof parsedChunk === 'string') {
-              console.log(`Calling on chunk with chunk: ${parsedChunk}`);
-              onChunk(parsedChunk);
-            }
+            // First, try to parse the content as JSON.
+            // This will work for the project creation stream.
+            const parsedData = JSON.parse(content) as T;
+            onChunk(parsedData);
           } catch (e) {
-            logger.error('Failed to parse SSE data chunk:', jsonStr);
+            // If JSON.parse fails, assume it's a raw string chunk.
+            // This will work for the chat stream.
+            // We need to ensure the raw string is compatible with the expected type T.
+            // By convention, if a string is expected, T will be `string`.
+            if (typeof content === 'string') {
+              onChunk(content as T);
+            } else {
+               logger.error('Failed to process non-string SSE data chunk:', content, e);
+            }
           }
-        } else if (line.startsWith('event: error')) {
-          console.log(`Recieved custom error: ${line}`);
-            // Optional: Handle custom error events from the server
-            // The next line would be the 'data:' line for the error
         }
+        boundary = buffer.indexOf('\n\n');
       }
     }
   } catch (error: any) {
     if (error.name === 'AbortError') {
       logger.info('Fetch aborted as expected.');
-      return; 
+      return;
     }
     logger.error('Streaming fetch failed:', error);
     if (onError) {
@@ -108,7 +104,6 @@ export const fetchStream = async ({
     }
   } finally {
     if (onFinish) {
-      console.log(`Calling onFinish.`);
       onFinish();
     }
   }

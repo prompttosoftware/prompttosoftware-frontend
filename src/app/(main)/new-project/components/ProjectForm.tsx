@@ -16,7 +16,7 @@ import AdvancedOptions from './AdvancedOptions';
 import BudgetAndRuntime from './BudgetAndRuntime';
 import ProjectDescription from './ProjectDescription';
 import RepositoryManagement from './RepositoryManagement';
-import { api } from '@/lib/api';
+import { api, ProgressPayload, StreamMessage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -91,17 +91,6 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
     };
 };
 
-const LOADING_STEPS = [
-  'Setting up project...',
-  'Naming project...',
-  'Determining installations...',
-  'Linking repositories...',
-  'Configuring AI models...',
-  'Finalizing setup...',
-  'Starting environment...',
-  'Loading...'
-];
-
 
 interface ProjectFormProps {
   initialProjectData?: Project;
@@ -114,9 +103,9 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const { user, isLoading: isAuthLoading } = useAuth();
   const posthog = usePostHog();
   const [open, setOpen] = React.useState(true);
-  const [loadingStep, setLoadingStep] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('Starting project...');
   const [progress, setProgress] = useState(0);
-  const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const finalProjectDataRef = useRef<Project | null>(null);
 
   const isEditMode = !!initialProjectData;
   const projectId = initialProjectData?._id;
@@ -201,89 +190,87 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
   const isJiraGloballyLinked = user.integrations?.jira?.isLinked ?? false;
 
   const onSubmit = async (data: ProjectFormData) => {
-      setIsSubmitting(true);
-      setLoadingStep(0);
-      setProgress(0);
+    setIsSubmitting(true);
+    setProgress(0);
+    setLoadingMessage('Setting up project...');
+    finalProjectDataRef.current = null; // Reset ref
 
-      // Step every 2.5s, advance progress smoothly
-      loadingIntervalRef.current = setInterval(() => {
-        setLoadingStep(prev => {
-          const next = Math.min(prev + 1, LOADING_STEPS.length - 1);
-          setProgress(Math.min((next / (LOADING_STEPS.length - 1)) * 100, 100));
-          return next;
-        });
-      }, 2500);
-
-      try {
-          if (isEditMode && projectId) {
-              const updatedProject = await api.updateProject(projectId, data);
-              toast.success('Project updated successfully!');
-              // --- 4. Clear the draft upon successful submission ---
-              localStorage.removeItem(FORM_DRAFT_KEY);
-              queryClient.setQueryData(['project', updatedProject._id], updatedProject);
-              queryClient.invalidateQueries({ queryKey: ['projects'] });
-              
-              router.push(`/projects/${updatedProject._id}`);
-              router.refresh();
-          } else {
-              const createdProject = await api.createProject(data);
+    try {
+      if (isEditMode && projectId) {
+        // Edit mode can remain a standard request as it's likely faster
+        const updatedProject = await api.updateProject(projectId, data);
+        toast.success('Project updated successfully!');
+        queryClient.setQueryData(['project', updatedProject._id], updatedProject);
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
+        router.push(`/projects/${updatedProject._id}`);
+      } else {
+        // --- Create Mode: Use the new streaming API ---
+        await api.createProjectStreamed(data, {
+          onChunk: (message: StreamMessage) => {
+            console.log('Received stream message:', message);
+            if (message.type === 'progress') {
+              const { message: msg, progress: prog } = message.payload as ProgressPayload;
+              setLoadingMessage(msg);
+              setProgress(prog);
+            } else if (message.type === 'complete') {
+              // Don't navigate yet. Store the final data and wait for onFinish.
+              finalProjectDataRef.current = message.payload as Project;
+              setLoadingMessage('Finalizing setup...');
+              setProgress(100);
+            } else if (message.type === 'error') {
+              // The backend can send structured errors through the stream
+              throw new Error(message.payload.message || 'An error occurred during project creation.');
+            }
+          },
+          onFinish: () => {
+            const createdProject = finalProjectDataRef.current;
+            if (createdProject) {
               toast.success('Project created successfully!');
-
-              posthog?.capture('project_started', {
-                cascade: data.advancedOptions.cascade,
-                devMode: data.advancedOptions.devMode,
-                singleIssue: data.advancedOptions.singleIssue
-              });
-
-              // --- 4. Clear the draft upon successful submission ---
+              posthog?.capture('project_started', { /* ... */ });
+              
               localStorage.removeItem(FORM_DRAFT_KEY);
 
               queryClient.setQueryData(['project', createdProject._id], createdProject);
               queryClient.invalidateQueries({ queryKey: ['projects'] });
               router.push(`/projects/${createdProject._id}`);
-          }
-
-          if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
-          for (let i = loadingStep; i < LOADING_STEPS.length - 1; i++) {
-            await new Promise(res => setTimeout(res, 100));
-            setLoadingStep(i + 1);
-            setProgress(Math.min(((i + 1) / (LOADING_STEPS.length - 1)) * 100, 100));
-          }
-
-      } catch (error: any) {
-          console.error('Project submission failed:', error);
-          const action = isEditMode ? 'update' : 'create';
-          let errorMessage = `Failed to ${action} project.`;
-
-          if (axios.isAxiosError(error) && (error.code === 'ECONNABORTED' || error.message.includes('timeout'))) {
-              errorMessage = 'The request timed out. Please check your network connection and try again.';
-              toast.error(errorMessage);
-              // Redirect to the projects page
-              router.push('/projects');
-              return; // Exit the function to prevent further execution
-          }
-
-          const backendMessage = error.response?.data?.message;
-
-          if (typeof backendMessage === 'string') {
-              errorMessage = backendMessage;
-          } else if (error instanceof Error) {
-              errorMessage = error.message;
-          }
-
-          toast.error(errorMessage);
-      } finally {
-          if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
-          setIsSubmitting(false);
-          setProgress(0);
+            } else {
+              // This can happen if the stream closes without a 'complete' message
+              throw new Error('Project creation finished unexpectedly. Please check the projects page.');
+            }
+            // No need to set isSubmitting to false here, as we are navigating away
+          },
+          onError: (error) => {
+            // This handles network errors or if the stream fails to start
+            console.error('Project submission stream failed:', error);
+            toast.error(error.message || 'Failed to create project. Please try again.');
+            setIsSubmitting(false); // Only set submitting to false on error
+          },
+        });
       }
+    } catch (error: any) {
+      // This outer catch now primarily handles errors from the edit submission
+      // or synchronous errors before the stream starts.
+      console.error('Project submission failed:', error);
+      const action = isEditMode ? 'update' : 'create';
+      toast.error(error.message || `Failed to ${action} project.`);
+      setIsSubmitting(false);
+    }
+    // The finally block is no longer needed as state is handled by the callbacks
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="bg-card p-6 rounded-lg border">
-        <h1 className="text-2xl font-bold mb-6">
+        <h1 className="text-2xl font-bold mb-6 flex items-center gap-3">
             {isEditMode ? `Editing '${initialProjectData?.name}'` : 'Create a New Project'}
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">
+              Under Development
+            </span>
+            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800 border border-purple-300">
+              Experimental
+            </span>
+          </div>
         </h1>
         <Collapsible open={open} onOpenChange={setOpen} className="mb-6">
           <CollapsibleTrigger className="flex items-center justify-between w-full cursor-pointer text-muted-foreground text-sm group">
@@ -311,12 +298,7 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
             <div className="pt-6 flex flex-col items-center">
               <AnimatePresence mode="wait">
                 {!isSubmitting ? (
-                  <motion.div
-                    key="button"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                  >
+                  <motion.div /* ... */>
                     <Button type="submit" className="min-w-[8rem]">
                       {isEditMode ? 'Save Changes' : 'Start Project'}
                     </Button>
@@ -329,13 +311,14 @@ export default function ProjectForm({ initialProjectData }: ProjectFormProps) {
                     exit={{ opacity: 0 }}
                     className="w-full max-w-md text-center"
                   >
-                    <p className="text-sm text-muted-foreground mb-3">{LOADING_STEPS[loadingStep]}</p>
+                    {/* Use the new state driven by the server */}
+                    <p className="text-sm text-muted-foreground mb-3">{loadingMessage}</p>
                     <div className="w-full h-2 bg-secondary/40 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full bg-primary"
-                        initial={{ width: 0 }}
+                        // Animate the width based on real progress
                         animate={{ width: `${progress}%` }}
-                        transition={{ ease: 'easeInOut', duration: 0.4 }}
+                        transition={{ ease: "easeInOut", duration: 0.5 }}
                       />
                     </div>
                   </motion.div>

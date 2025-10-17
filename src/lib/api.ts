@@ -44,6 +44,17 @@ export interface PaginatedResponse<T> {
  total: number;
  totalPages: number;
 }
+
+export interface StreamMessage {
+  type: 'progress' | 'complete' | 'error';
+  payload: any;
+}
+
+export interface ProgressPayload {
+    message: string;
+    progress: number; // A percentage from 0-100
+}
+
 export interface CostEstimation {
  cost: number;
  durationHours: number;
@@ -79,12 +90,11 @@ export async function getEstimatedCost(
  return { cost: 100.00, durationHours: 50, tokensUsed: 100000 };
 }
 
-type StreamCallbacks = {
-  onChunk: (chunk: string) => void;
-  onFinish?: () => void;
-  onError?: (error: Error) => void;
+export interface StreamCallbacks<T> {
+    onChunk: (chunk: T) => void;
+    onFinish?: () => void;
+    onError?: (error: Error) => void;
 }
-
 
 export const api = {
  // authentication
@@ -171,6 +181,19 @@ export const api = {
   createProject: async (payload: ProjectFormData): Promise<Project> => {
       const response = await httpClient.post<Project>("/projects", payload);
       return response.data;
+  },
+
+  createProjectStreamed: async (
+    payload: ProjectFormData,
+    callbacks: StreamCallbacks<StreamMessage>
+  ): Promise<void> => {
+    // Explicitly tell fetchStream we expect a StreamMessage object
+    await fetchStream<StreamMessage>({
+      method: 'POST',
+      url: `${httpClient.defaults.baseURL}/projects`,
+      payload,
+      ...callbacks
+    });
   },
 
   /**
@@ -479,25 +502,25 @@ export const api = {
         /**
          * Sends a message and streams the AI's response.
          */
-        sendMessageStream: async (chatId: string, payload: SendMessageInput, callbacks: StreamCallbacks, signal?: AbortSignal) => {
+        sendMessageStream: async (chatId: string, payload: SendMessageInput, callbacks: StreamCallbacks<string>, signal?: AbortSignal) => {
             const url = `${httpClient.defaults.baseURL}/chats/${chatId}/messages`;
-            await fetchStream({ method: 'POST', url, payload, ...callbacks, signal });
+            await fetchStream<string>({ method: 'POST', url, payload, ...callbacks, signal });
         },
 
         /**
          * Regenerates a response and streams it.
          */
-        regenerateResponseStream: async (chatId: string, payload: RegenerateResponseInput, callbacks: StreamCallbacks , signal?: AbortSignal) => {
+        regenerateResponseStream: async (chatId: string, payload: RegenerateResponseInput, callbacks: StreamCallbacks<string> , signal?: AbortSignal) => {
             const url = `${httpClient.defaults.baseURL}/chats/${chatId}/regenerate`;
-            await fetchStream({ method: 'POST', url, payload, ...callbacks, signal });
+            await fetchStream<string>({ method: 'POST', url, payload, ...callbacks, signal });
         },
 
         /**
          * Edits a user message and streams the new AI response.
          */
-        editUserMessageStream: async (chatId: string, messageId: string, payload: EditMessageInput, callbacks: StreamCallbacks, signal?: AbortSignal) => {
+        editUserMessageStream: async (chatId: string, messageId: string, payload: EditMessageInput, callbacks: StreamCallbacks<string>, signal?: AbortSignal) => {
             const url = `${httpClient.defaults.baseURL}/chats/${chatId}/messages/${messageId}`;
-            await fetchStream({ method: 'PUT', url, payload, ...callbacks, signal });
+            await fetchStream<string>({ method: 'PUT', url, payload, ...callbacks, signal });
         },
 
         /**
