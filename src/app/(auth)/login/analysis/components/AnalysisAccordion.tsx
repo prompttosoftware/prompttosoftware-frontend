@@ -118,25 +118,6 @@ const analysisSteps = [
             </span>
           </li>
         </ul>
-        <div className="rounded-lg bg-muted p-4 border mt-6">
-          <div className="flex items-center gap-3 mb-3">
-            <DollarSign className="w-6 h-6 text-primary" strokeWidth={2} />
-            <h4 className="text-lg font-semibold text-card-foreground">Simple Pay-As-You-Go Pricing</h4>
-          </div>
-          <ul className="space-y-2 text-card-foreground text-sm list-disc pl-5">
-            <li>
-              <strong>AI API Costs:</strong> You only pay the direct, pass-through cost for the AI models used during the analysis.
-            </li>
-            <li>
-              <strong>Compute Runtime:</strong> A small fee is added for the virtual machine runtime, which is typically 5-10 minutes.
-            </li>
-          </ul>
-          <div className="mt-4 text-sm text-card-foreground bg-primary/10 p-3 rounded-md border border-primary/20">
-            <p>
-              <span className="font-semibold text-primary">No Subscriptions, No Surprises.</span> A complete analysis for a medium-sized project typically costs less than a dollar.
-            </p>
-          </div>
-        </div>
       </>
     ),
   },

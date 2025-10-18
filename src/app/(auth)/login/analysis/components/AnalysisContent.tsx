@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
 import { 
+  CheckCircle2,
   ExternalLink,
   Linkedin,
   Youtube,
@@ -78,7 +79,7 @@ export function GitHubAnalysisLandingPage() {
       const storedUtmParams = sessionStorage.getItem('utm_params');
       const campaign_metadata = storedUtmParams ? JSON.parse(storedUtmParams) : {};
 
-      await loginWithGithub(code, false, !!campaign_metadata.utm_source);
+      await loginWithGithub(code, false, true);
       useSuccessMessageStore.getState().clearMessage();
       
       // Set the tutorial context cookie specifically for the repo analysis flow
@@ -88,7 +89,7 @@ export function GitHubAnalysisLandingPage() {
       posthog?.capture('user_signed_up', {
         ...campaign_metadata,
         login_method: 'github',
-        promo_applied: !!campaign_metadata.utm_source,
+        promo_applied: true,
       });
       // Optionally clean up session storage
       sessionStorage.removeItem('utm_params');
@@ -123,10 +124,10 @@ export function GitHubAnalysisLandingPage() {
           
           <header className="mb-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-card-foreground">
-              Understand Any GitHub Repo, Instantly
+              Get Your <span className="text-primary">Free</span> AI Codebase Analysis
             </h1>
             <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our AI agent performs a deep analysis of any codebase, identifying issues, documenting architecture, and even attempting to build and run the project. Get a comprehensive report in minutes.
+              Struggling to understand an AI-generated or unfamiliar codebase? Our agent performs a deep analysis and gives you a complete report in minutes. Your first one is on us.
             </p>
           </header>
 
@@ -153,15 +154,22 @@ export function GitHubAnalysisLandingPage() {
             ) : (
               <button
                 onClick={handleGitHubLogin}
-                className="w-full max-w-xs flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg"
+                className="w-full max-w-xs flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg transform hover:scale-105"
               >
                 <GitHubLogoIcon className="w-8 h-8 mr-3" />
-                Analyze with GitHub
+                Start Your Free Analysis
               </button>
             )}
-            <p className="text-sm text-muted-foreground">
-              Simple pay-as-you-go pricing. Analysis takes just 5-10 minutes.
-            </p>
+            <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground pt-2">
+              <div className="flex items-center">
+                <CheckCircle2 className="w-4 h-4 mr-2 text-green-500"/>
+                <span>First analysis is 100% free</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle2 className="w-4 h-4 mr-2 text-green-500"/>
+                <span>No credit card required</span>
+              </div>
+            </div>
             <div className="flex items-center space-x-4">
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
                 Terms of Service <ExternalLink className="ml-1 h-3 w-3" />
@@ -185,40 +193,67 @@ export function GitHubAnalysisLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
-              A Complete Codebase X-Ray
+              What Your Free Analysis Includes
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Go beyond static analysis. Our AI understands your code's purpose, structure, and health.
+              Our AI goes beyond static analysis to understand your code's purpose, structure, and health.
             </p>
           </div>
           <AnalysisAccordion />
         </div>
       </section>
 
+      <section id="pricing" className="py-20 bg-background">
+        <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Simple Pricing After Your Free Run</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Loved your free analysis? Continue using our service with transparent, pay-as-you-go pricing. No subscriptions, no surprises.
+            </p>
+            <div className="mt-8 rounded-lg bg-card p-6 border text-left">
+              <ul className="space-y-4 text-card-foreground">
+                <li className="flex items-start">
+                  <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
+                  <div>
+                    <strong className="block">Direct AI API Costs</strong>
+                    You only pay the pass-through cost for the AI models used.
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
+                  <div>
+                    <strong className="block">Compute Runtime Fee</strong>
+                    A small fee for the 5-10 minutes of virtual machine time.
+                  </div>
+                </li>
+              </ul>
+              <div className="mt-6 text-center text-sm text-card-foreground bg-primary/10 p-4 rounded-md border border-primary/20">
+                <p>
+                  A complete analysis for a medium-sized project typically costs <strong className="text-primary">less than a dollar.</strong>
+                </p>
+              </div>
+            </div>
+        </div>
+      </section>
+
       {/* Final CTA Section */}
       <section className="py-20 bg-secondary/50">
         <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Ready to Decode Your Codebase?</h2>
+          {/* CHANGE: Headline reinforces the free offer */}
+          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Ready for Your Free Code X-Ray?</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Get actionable insights and a complete architectural overview in less time than a coffee break.
+            Get actionable insights and a complete architectural overview in less time than a coffee break. Click below to start.
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center space-y-6">
+          <div className="mt-8 flex flex-col items-center justify-center space-y-4">
+            {/* CHANGE: Consistent button text */}
             <button
               onClick={handleGitHubLogin}
               disabled={isLoggingIn}
-              className="w-full max-w-xs inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg disabled:opacity-50"
+              className="w-full max-w-xs inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus transition-all duration-200 ease-in-out hover:shadow-lg disabled:opacity-50 transform hover:scale-105"
             >
               <GitHubLogoIcon className="w-8 h-8 mr-3" />
-              Start Your Analysis
+              Claim Free Analysis
             </button>
-            <div className="flex items-center space-x-4">
-               <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
-                Terms of Service <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
-                Privacy Policy <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-            </div>
+            <p className="text-sm text-muted-foreground">No credit card required to sign up.</p>
           </div>
         </div>
       </section>

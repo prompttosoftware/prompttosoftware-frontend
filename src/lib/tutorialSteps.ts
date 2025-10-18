@@ -224,18 +224,9 @@ export const repoAnalysisTutorialSteps: TutorialStep[] = [
   {
     id: 'tutorial-finished',
     title: 'You\'re All Set!',
-    description: 'You now know your way around. The next step is to add funds and start your first analysis. Good luck!',
+    description: 'You now know your way around. The next step is to your first analysis. Good luck!',
     position: 'center',
     disableBeacon: true,
-  },
-
-  // --- Section 4: Billing Flow ---
-  {
-    id: 'nav-add-payment',
-    title: 'Add Funds to Your Account',
-    description: 'This is the final step. An analysis consumes funds to run. Click here to add your first payment.',
-    targetSelector: '[data-testid="add-payment-button"]', // This could be in your header or sidebar
-    position: 'bottom',
   },
 ];
 
