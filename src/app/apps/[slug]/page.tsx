@@ -5,6 +5,7 @@ import LandingPageHero from '../components/LandingPageHero';
 import LandingPageFeatures from '../components/LandingPageFeatures';
 import { Metadata } from 'next';
 import LandingPageFooter from '../components/LandingPageFooter';
+import { Suspense } from 'react';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -16,6 +17,12 @@ export async function generateStaticParams() {
     slug: app.slug,
   }));
 }
+
+const AppPageFallback = (
+  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+    Loading...
+  </div>
+);
 
 // Generate dynamic metadata for each page
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -110,6 +117,7 @@ export default async function AppLandingPage({ params }: Props) {
   }
 
   return (
+    <Suspense fallback={AppPageFallback}>
     <main>
       {/* 
         The CSS variable `--primary-color` allows us to use the app's theme 
@@ -122,5 +130,6 @@ export default async function AppLandingPage({ params }: Props) {
       <LandingPageFeatures app={appData} />
       <LandingPageFooter></LandingPageFooter>
     </main>
+    </Suspense>
   );
 }

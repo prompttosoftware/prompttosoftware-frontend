@@ -85,7 +85,7 @@ export const apps: AppData[] = [
     ageRange: '18+',
     targetLocation: 'Chicago',
     description:
-      'Chat with everyone in your vicinity. Send invites to activities, alert what’s happening, or just have a good time. Pass along the most important messages.',
+      'End to end encryption. Chat with everyone in your vicinity. Send invites to activities, alert what’s happening, or just have a good time. Pass along the most important messages.',
     themeColor: {
       primary: 'hsl(135 100% 63%)',
       background: '/backgrounds/frogrevolution.jpg',
