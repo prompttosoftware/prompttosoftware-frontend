@@ -19,7 +19,6 @@ import RepositoryManagement from './RepositoryManagement';
 import { api, ProgressPayload, StreamMessage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import { usePostHog } from 'posthog-js/react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { motion, AnimatePresence } from 'framer-motion';

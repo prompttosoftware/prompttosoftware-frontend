@@ -50,6 +50,11 @@ export interface StreamMessage {
   payload: any;
 }
 
+export interface SaveEmailPayload {
+  email: string;
+  slug: string;
+}
+
 export interface ProgressPayload {
     message: string;
     progress: number; // A percentage from 0-100
@@ -543,6 +548,18 @@ export const api = {
             // Note: The route from your definition is /messages/:messageId, not nested under a chat ID.
             await httpClient.delete(`/chats/messages/${messageId}`);
         }
+    },
+
+    apps: {
+      saveEmail: async (payload: SaveEmailPayload): Promise<void> => {
+        await httpClient.post(`/apps`, payload);
+      }
+    },
+
+    contact: {
+      send: async (payload: { name: string; email: string; company?: string; message: string }): Promise<void> => {
+        await httpClient.post('/contact', payload);
+      },
     }
 };
 

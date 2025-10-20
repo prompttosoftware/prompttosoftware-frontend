@@ -1,0 +1,168 @@
+'use client';
+
+import Image from 'next/image';
+import { AppData } from '@/lib/appsData';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { api } from '@/lib/api';
+
+interface LandingPageHeroProps {
+  app: AppData;
+}
+
+export default function LandingPageHero({ app }: LandingPageHeroProps) {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+
+  // --- Animation Hooks ---
+  // 1. useScroll captures scroll information.
+  const { scrollY } = useScroll();
+  
+  // 2. useTransform maps one value to another.
+  // Here, we map the scrollY position (from 0px to 500px) to an opacity value (from 1 to 0).
+  // The content will be fully visible at the top and fully transparent after scrolling 500px.
+  const contentOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+  const contentScale = useTransform(scrollY, [0, 500], [1, 0.95]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    setMessage('');
+
+    try {
+      if (!email || !email.includes('@')) {
+        throw new Error('Please enter a valid email.');
+      }
+
+      await api.apps.saveEmail({ email, slug: app.slug });
+
+      setStatus('success');
+      setMessage(`Thanks for joining the ${app.name} waitlist! We'll email you with updates.`);
+    } catch (error: any) {
+      console.error('Error saving email:', error);
+      setStatus('error');
+      setMessage(
+        error?.response?.data?.message ||
+          error.message ||
+          'Something went wrong. Please try again.'
+      );
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      {/* Background Image */}
+      <div
+        className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat bg-fixed filter blur-md scale-105"
+        style={{
+          backgroundImage: `url(${app.themeColor.background})`,
+        }}
+      />
+      {/* Dark Overlay for contrast */}
+      <div className="absolute inset-0 bg-black/50 z-[-1]"></div>
+
+    <div className="min-h-screen flex items-center justify-center p-4">
+        <motion.div
+          style={{
+            opacity: contentOpacity,
+            scale: contentScale,
+          }}
+          className="w-full max-w-md bg-card/70 backdrop-blur-lg rounded-xl shadow-2xl p-8 text-center text-card-foreground border border-white/10"
+        >
+
+        
+      {/* Floating Content Card */}
+        <Image
+          src={app.logoUrl}
+          alt={`${app.name} Logo`}
+          width={80}
+          height={80}
+          className="mx-auto mb-4"
+        />
+        <h1 className="text-4xl font-extrabold mb-2">{app.name}</h1>
+        <p className="text-lg text-muted-foreground mb-4">{app.tagline}</p>
+
+        <div className="text-left text-sm space-y-2 mb-6">
+          <p><strong className="font-semibold">Description:</strong> {app.description}</p>
+          <p><strong className="font-semibold">Target Age:</strong> {app.ageRange}</p>
+          <p><strong className="font-semibold">Launch City:</strong> {app.targetLocation}</p>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-xl font-bold mb-2 text-primary">
+            Join the exclusive {app.targetLocation} beta launch!
+          </h3>
+          <p className="text-sm text-muted-foreground">Be the first to get access and receive special perks.</p>
+        </div>
+
+        {status !== 'success' && (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <Input
+              type="email"
+              placeholder="your.email@example.com"
+              className="text-lg p-6 text-center"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={status === 'loading'}
+              required
+            />
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full text-lg"
+              disabled={status === 'loading'}
+              style={{ backgroundColor: app.themeColor.primary }}
+            >
+              {status === 'loading' ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                'Get Notified'
+              )}
+            </Button>
+          </form>
+        )}
+        
+        {/* Status Messages */}
+        {status === 'success' && (
+            <div className="bg-green-500/20 text-green-300 p-4 rounded-md text-center">
+                <p className="font-bold">Success!</p>
+                <p>{message}</p>
+            </div>
+        )}
+        {status === 'error' && (
+            <div className="bg-red-500/20 text-red-300 p-4 rounded-md">
+                <p>{message}</p>
+            </div>
+        )}
+
+        <div className="mt-8 flex justify-center items-center gap-6 opacity-80">
+          <div className="flex flex-col items-center gap-2">
+            <Image
+              src="/logos/app-store-logo.svg"
+              alt="App Store"
+              width={46}
+              height={46}
+              className="rounded-md"
+            />
+            <span className="text-sm text-muted-foreground">Coming Soon</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <Image
+              src="/logos/google-play-store-logo.svg"
+              alt="Google Play"
+              width={46}
+              height={46}
+              className="rounded-md"
+            />
+            <span className="text-sm text-muted-foreground">Coming Soon</span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+    </div>
+  );
+}
