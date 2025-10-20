@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
-import { ExternalLink, Linkedin, Youtube } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Linkedin, Youtube } from 'lucide-react';
 import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
 import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
 import { usePostHog } from 'posthog-js/react';
@@ -147,10 +147,10 @@ export function LoginContent() {
           
           <header className="mb-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-card-foreground">
-              Automate Software Development with AI
+              Automate Your Next Project with AI
             </h1>
-            <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Welcome to <span className="font-semibold text-primary">prompttosoftware.com</span>. Describe your project, and our autonomous AI system will build, test, and deliver it directly to your GitHub repository.
+            <p className="mt-4 text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+              Describe your software in plain English. Our AI agent handles the code, tests, and bug fixes, delivering a complete project to your GitHub repo.
             </p>
           </header>
 
@@ -186,26 +186,6 @@ export function LoginContent() {
             <p className="text-sm text-muted-foreground">
               Integrates with GitHub, Jira, OpenRouter, and more.
             </p>
-            <div className="flex items-center space-x-4">
-              <a
-                href="/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Terms of Service
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Privacy Policy
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-            </div>
           </div>
         </div>
 
@@ -233,6 +213,46 @@ export function LoginContent() {
         </div>
       </section>
 
+      <section id="pricing" className="py-20 bg-background">
+        <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
+            Transparent Pricing for Autonomous Development
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Build and scale projects affordably. Pay only for active runtime and the AI models you choose—no subscriptions, no hidden fees.
+          </p>
+
+          <div className="mt-8 rounded-lg bg-card p-6 border text-left">
+            <ul className="space-y-4 text-card-foreground">
+              <li className="flex items-start">
+                <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
+                <div>
+                  <strong className="block">Platform Runtime Fee</strong>
+                  A flat rate of $0.50 per hour for each active project. Billed only while your project is running.
+                </div>
+              </li>
+              <li className="flex items-start">
+                <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
+                <div>
+                  <strong className="block">AI API Usage</strong>
+                  Pay the direct cost for any AI APIs used, depending on the models you select. Bring your own API key to waive these fees.
+                </div>
+              </li>
+            </ul>
+
+            <div className="mt-6 text-center text-sm text-card-foreground bg-primary/10 p-4 rounded-md border border-primary/20">
+              <p>
+                A typical autonomous project runs for <strong className="text-primary">less than $1.00 per hour</strong>—including both compute and AI costs.
+              </p>
+            </div>
+
+            <p className="mt-4 text-xs text-muted-foreground text-center">
+              You have full control over spending: set runtime or budget limits, or pause projects anytime.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA Section */}
       <section className="py-20 bg-secondary/50">
         <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -249,60 +269,12 @@ export function LoginContent() {
               <GitHubLogoIcon className="w-8 h-8 mr-3" />
               Get Started with GitHub
             </button>
-            <div className="flex items-center space-x-4">
-               <a
-                href="/terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Terms of Service
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-              <a
-                href="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:underline flex items-center"
-              >
-                Privacy Policy
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-            </div>
+            <p className="text-xs text-muted-foreground pt-2">
+              We request repo access to manage your projects. <br/> We will never store your code.
+            </p>
           </div>
         </div>
       </section>
-
-      <footer className="bg-background">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-center text-sm text-muted-foreground">
-            <span>&copy; {new Date().getFullYear()} PromptToSoftware, LLC. All rights reserved.</span>
-            <div className="flex items-center space-x-4 mt-2 sm:mt-0">
-                <a href="/terms" className="hover:underline">Terms of Service</a>
-                <a href="/privacy" className="hover:underline">Privacy Policy</a>
-                <a
-                  href="https://www.linkedin.com/company/prompttosoftware"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground transition flex items-center"
-                >
-                  <Linkedin className="h-4 w-4 mr-1" />
-                  <span>LinkedIn</span>
-                  <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-
-                <a
-                  href="https://www.youtube.com/@prompttosoftware"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground transition flex items-center"
-                >
-                  <Youtube className="h-4 w-4 mr-1" />
-                  <span>YouTube</span>
-                  <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-            </div>
-        </div>
-      </footer>
     </div>
   );
 }

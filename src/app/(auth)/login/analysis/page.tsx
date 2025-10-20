@@ -2,6 +2,8 @@
 
 import React, { Suspense } from 'react';
 import { GitHubAnalysisLandingPage } from './components/AnalysisContent';
+import LandingPageHeader from '@/app/apps/components/LandingPageHeader';
+import LandingPageFooter from '@/app/apps/components/LandingPageFooter';
 
 // The loading fallback for suspense
 const LoginPageFallback = (
@@ -13,7 +15,9 @@ const LoginPageFallback = (
 export default function AnalysisLoginPage() {
   return (
     <Suspense fallback={LoginPageFallback}>
+      <LandingPageHeader textColor='dark'></LandingPageHeader>
       <GitHubAnalysisLandingPage />
+      <LandingPageFooter></LandingPageFooter>
     </Suspense>
   );
 }

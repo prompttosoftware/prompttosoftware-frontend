@@ -4,6 +4,7 @@ import LandingPageHeader from '../components/LandingPageHeader';
 import LandingPageHero from '../components/LandingPageHero';
 import LandingPageFeatures from '../components/LandingPageFeatures';
 import { Metadata } from 'next';
+import LandingPageFooter from '../components/LandingPageFooter';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -119,7 +120,7 @@ export default async function AppLandingPage({ params }: Props) {
       <LandingPageHeader />
       <LandingPageHero app={appData} />
       <LandingPageFeatures app={appData} />
-      {/* You can add a shared footer component here as well */}
+      <LandingPageFooter></LandingPageFooter>
     </main>
   );
 }

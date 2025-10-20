@@ -257,38 +257,6 @@ export function GitHubAnalysisLandingPage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-background">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-center text-sm text-muted-foreground">
-            <span>&copy; {new Date().getFullYear()} PromptToSoftware, LLC. All rights reserved.</span>
-            <div className="flex items-center space-x-4 mt-2 sm:mt-0">
-                <a href="/terms" className="hover:underline">Terms of Service</a>
-                <a href="/privacy" className="hover:underline">Privacy Policy</a>
-                <a
-                  href="https://www.linkedin.com/company/prompttosoftware"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground transition flex items-center"
-                >
-                  <Linkedin className="h-4 w-4 mr-1" />
-                  <span>LinkedIn</span>
-                  <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-
-                <a
-                  href="https://www.youtube.com/@prompttosoftware"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground transition flex items-center"
-                >
-                  <Youtube className="h-4 w-4 mr-1" />
-                  <span>YouTube</span>
-                  <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-            </div>
-        </div>
-      </footer>
     </div>
   );
 }

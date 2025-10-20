@@ -25,31 +25,6 @@ const lifecycleSteps = [
             </span>
           </li>
         </ul>
-        <div className="rounded-lg bg-muted p-4 border">
-          {/* This pricing box was already well-structured, so we leave it as is. */}
-          <div className="flex items-center gap-3 mb-3">
-            <h4 className="text-lg font-semibold text-card-foreground">Transparent, Usage-Based Pricing</h4>
-          </div>
-          <ul className="space-y-2 text-card-foreground text-sm list-disc pl-5">
-            <li>
-              <strong>Platform Fee:</strong> A flat rate of $0.50 per hour for each active project.
-            </li>
-            <li>
-              <strong>AI API Costs:</strong> You pay the direct cost for any AI API usage. Costs vary by the models you select.
-            </li>
-            <li>
-              <strong>Bring Your Own Key:</strong> Provide your own API key for an AI provider, and the API usage fee for that provider is waived.
-            </li>
-          </ul>
-          <div className="mt-4 text-sm text-card-foreground bg-primary/10 p-3 rounded-md border border-primary/20">
-            <p>
-              <span className="font-semibold text-primary">Affordability in Practice:</span> With default settings, a project often runs for <strong>less than $1.00 per hour</strong>, which includes both the platform fee and typical AI API costs.
-            </p>
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            You have full control over your spending. Set maximum cost and runtime limits to automatically stop a project, or pause it manually at any time.
-          </p>
-        </div>
       </>
     ),
   },

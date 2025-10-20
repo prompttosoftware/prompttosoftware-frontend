@@ -5,9 +5,10 @@ import { AppData } from '@/lib/appsData';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { CircleCheck, Loader2, TriangleAlert } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { api } from '@/lib/api';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface LandingPageHeroProps {
   app: AppData;
@@ -25,8 +26,8 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
   // 2. useTransform maps one value to another.
   // Here, we map the scrollY position (from 0px to 500px) to an opacity value (from 1 to 0).
   // The content will be fully visible at the top and fully transparent after scrolling 500px.
-  const contentOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-  const contentScale = useTransform(scrollY, [0, 500], [1, 0.95]);
+  const contentOpacity = useTransform(scrollY, [200, 500], [1, 0]);
+  const contentScale = useTransform(scrollY, [200, 500], [1, 0.95]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,26 +66,27 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
       {/* Dark Overlay for contrast */}
       <div className="absolute inset-0 bg-black/50 z-[-1]"></div>
 
-    <div className="min-h-screen flex items-center justify-center p-4">
-        <motion.div
-          style={{
-            opacity: contentOpacity,
-            scale: contentScale,
-          }}
-          className="w-full max-w-md bg-card/70 backdrop-blur-lg rounded-xl shadow-2xl p-8 text-center text-card-foreground border border-white/10"
-        >
-
-        
       {/* Floating Content Card */}
+      <motion.div
+        style={{
+          opacity: contentOpacity,
+          scale: contentScale,
+        }}
+        // Reduced card padding from p-8 to p-6
+        className="w-full max-w-md bg-card/70 backdrop-blur-lg rounded-xl shadow-2xl p-6 text-center text-card-foreground border border-white/10"
+      >
         <Image
           src={app.logoUrl}
           alt={`${app.name} Logo`}
-          width={80}
-          height={80}
-          className="mx-auto mb-4"
+          // Reduced logo size from 80x80 to 64x64
+          width={64}
+          height={64}
+          className="mx-auto mb-3"
         />
-        <h1 className="text-4xl font-extrabold mb-2">{app.name}</h1>
-        <p className="text-lg text-muted-foreground mb-4">{app.tagline}</p>
+        {/* Reduced heading from text-4xl to text-3xl */}
+        <h1 className="text-3xl font-extrabold mb-2">{app.name}</h1>
+        {/* Reduced tagline from text-lg to text-base */}
+        <p className="text-base text-muted-foreground mb-4">{app.tagline}</p>
 
         <div className="text-left text-sm space-y-2 mb-6">
           <p><strong className="font-semibold">Description:</strong> {app.description}</p>
@@ -93,7 +95,8 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
         </div>
 
         <div className="mb-6">
-          <h3 className="text-xl font-bold mb-2 text-primary">
+          {/* Reduced heading from text-xl to text-lg */}
+          <h3 className="text-lg font-bold mb-2 text-primary">
             Join the exclusive {app.targetLocation} beta launch!
           </h3>
           <p className="text-sm text-muted-foreground">Be the first to get access and receive special perks.</p>
@@ -104,7 +107,8 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
             <Input
               type="email"
               placeholder="your.email@example.com"
-              className="text-lg p-6 text-center"
+              // Standardized input size and reduced font-size
+              className="h-12 text-base text-center"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={status === 'loading'}
@@ -112,8 +116,8 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
             />
             <Button
               type="submit"
-              size="lg"
-              className="w-full text-lg"
+              // Standardized button size and reduced font-size
+              className="w-full h-12 text-base"
               disabled={status === 'loading'}
               style={{ backgroundColor: app.themeColor.primary }}
             >
@@ -125,27 +129,38 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
             </Button>
           </form>
         )}
+
+        <div className='py-2'></div>
         
         {/* Status Messages */}
         {status === 'success' && (
-            <div className="bg-green-500/20 text-green-300 p-4 rounded-md text-center">
-                <p className="font-bold">Success!</p>
-                <p>{message}</p>
-            </div>
-        )}
-        {status === 'error' && (
-            <div className="bg-red-500/20 text-red-300 p-4 rounded-md">
-                <p>{message}</p>
-            </div>
+        <Alert variant="success" className="text-left">
+            <CircleCheck className="h-4 w-4" />
+            <AlertTitle className="font-bold">Success!</AlertTitle>
+            <AlertDescription>
+            {message}
+            </AlertDescription>
+        </Alert>
         )}
 
-        <div className="mt-8 flex justify-center items-center gap-6 opacity-80">
+        {status === 'error' && (
+        <Alert variant="destructive" className="text-left">
+            <TriangleAlert className="h-4 w-4" />
+            <AlertTitle className="font-bold">Oops! Something went wrong.</AlertTitle>
+            <AlertDescription>
+            {message}
+            </AlertDescription>
+        </Alert>
+        )}
+
+        <div className="mt-8 flex justify-center items-center gap-4 opacity-80">
           <div className="flex flex-col items-center gap-2">
             <Image
               src="/logos/app-store-logo.svg"
               alt="App Store"
-              width={46}
-              height={46}
+              // Reduced store logo size
+              width={40}
+              height={40}
               className="rounded-md"
             />
             <span className="text-sm text-muted-foreground">Coming Soon</span>
@@ -154,15 +169,15 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
             <Image
               src="/logos/google-play-store-logo.svg"
               alt="Google Play"
-              width={46}
-              height={46}
+              // Reduced store logo size
+              width={40}
+              height={40}
               className="rounded-md"
             />
             <span className="text-sm text-muted-foreground">Coming Soon</span>
           </div>
         </div>
       </motion.div>
-    </div>
     </div>
   );
 }

@@ -6,13 +6,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4',
   {
     variants: {
       variant: {
-        default: 'bg-background text-foreground',
+        default: 'bg-background text-foreground [&>svg]:text-foreground',
+        // --- IMPROVED DESTRUCTIVE VARIANT ---
+        // Added a dark, semi-opaque background and brighter text/icon colors for contrast
         destructive:
-          'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+          'border-red-500/50 bg-red-950/80 text-red-200 [&>svg]:text-red-400',
+        // --- NEW SUCCESS VARIANT ---
+        // Created a dedicated variant for success messages
+        success:
+          'border-emerald-500/50 bg-emerald-950/80 text-emerald-200 [&>svg]:text-emerald-400',
       },
     },
     defaultVariants: {
