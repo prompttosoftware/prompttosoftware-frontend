@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
-import { CheckCircle2, ExternalLink, Linkedin, Youtube } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
 import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
 import { usePostHog } from 'posthog-js/react';

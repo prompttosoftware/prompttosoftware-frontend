@@ -183,7 +183,6 @@ const ChatClient: React.FC<ChatClientProps> = ({ chatId: initialChatId, initialC
       }
 
   } else {
-        // This logic for existing chats was already good
         const tempUserMessage: ChatMessageType = {
             _id: `optimistic-${Date.now()}`,
             chatId: chatId, sender: 'user', content, createdAt: new Date(),

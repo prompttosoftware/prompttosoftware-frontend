@@ -2,22 +2,26 @@
 
 import Image from 'next/image';
 import { AppData } from '@/lib/appsData';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CircleCheck, Loader2, TriangleAlert } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { api } from '@/lib/api';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { usePostHog } from 'posthog-js/react';
+import { useSearchParams } from 'next/navigation';
 
 interface LandingPageHeroProps {
   app: AppData;
 }
 
 export default function LandingPageHero({ app }: LandingPageHeroProps) {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const posthog = usePostHog();
 
   // --- Animation Hooks ---
   // 1. useScroll captures scroll information.
@@ -28,6 +32,27 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
   // The content will be fully visible at the top and fully transparent after scrolling 500px.
   const contentOpacity = useTransform(scrollY, [200, 500], [1, 0]);
   const contentScale = useTransform(scrollY, [200, 500], [1, 0.95]);
+
+  useEffect(() => {
+        // This runs only once when the component mounts
+        const utm_source = searchParams.get('utm_source');
+        const utm_medium = searchParams.get('utm_medium');
+        const utm_campaign = searchParams.get('utm_campaign');
+    
+        const analytics_props = {
+          utm_source,
+          utm_medium,
+          utm_campaign,
+        };
+    
+        // Track the page view event with UTMs
+        posthog?.capture('default_landing_page_viewed', analytics_props);
+    
+        // Persist UTMs in session storage to survive the GitHub redirect
+        if (utm_source) {
+          sessionStorage.setItem('utm_params', JSON.stringify(analytics_props));
+        }
+      }, [searchParams, posthog]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +66,15 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
 
       await api.apps.saveEmail({ email, slug: app.slug });
 
+      // Retrieve UTMs from session storage
+      const storedUtmParams = sessionStorage.getItem('utm_params');
+      const campaign_metadata = storedUtmParams ? JSON.parse(storedUtmParams) : {};
+
+      posthog?.capture('user_signed_up', {
+        ...campaign_metadata,
+        from_ad: !!campaign_metadata.utm_source,
+      });
+
       setStatus('success');
       setMessage(`Thanks for joining the ${app.name} waitlist! We'll email you with updates.`);
     } catch (error: any) {
@@ -51,6 +85,7 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
           error.message ||
           'Something went wrong. Please try again.'
       );
+      posthog?.capture('signup_failed', { error_message: error.message });
     }
   };
 
