@@ -83,7 +83,7 @@ export const apps: AppData[] = [
     logoUrl: '/logos/frogchat-logo.svg',
     tagline: 'RIBBIT RIBBIT RISE UP',
     ageRange: '18+',
-    targetLocation: 'Chicago',
+    targetLocation: 'Memphis',
     description:
       'End to end encryption. Chat with everyone in your vicinity. Send invites to activities, alert what’s happening, or just have a good time. Pass along the most important messages.',
     themeColor: {
