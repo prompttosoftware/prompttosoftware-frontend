@@ -263,7 +263,10 @@ export function LoginContent() {
                 <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
                 <div>
                   <strong className="block">Platform Runtime Fee</strong>
-                  A flat rate of $0.50 per hour for each active project. Billed only while your project is running.
+                  A flat rate of $0.50 per hour for each active project.
+                  <span className="block text-muted-foreground text-sm mt-1">
+                    Most autonomous projects cost <strong className="text-primary">under $1/hour</strong> total.
+                  </span>
                 </div>
               </li>
               <li className="flex items-start">
@@ -274,12 +277,6 @@ export function LoginContent() {
                 </div>
               </li>
             </ul>
-
-            <div className="mt-6 text-center text-sm text-card-foreground bg-primary/10 p-4 rounded-md border border-primary/20">
-              <p>
-                A typical autonomous project runs for <strong className="text-primary">less than $1.00 per hour</strong>—including both compute and AI costs.
-              </p>
-            </div>
 
             <p className="mt-4 text-xs text-muted-foreground text-center">
               You have full control over spending: set runtime or budget limits, or pause projects anytime.

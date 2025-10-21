@@ -58,7 +58,7 @@ const mapProjectToFormData = (project: Project): Partial<ProjectFormData> => {
         type: repo.url ? 'existing' : 'new',
         
         // Map all the common fields.
-        _id: repo._id,
+        _id: repo._id ?? repo.id,
         url: repo.url,
         name: repo.name,
         organization: repo.organization,

@@ -245,33 +245,34 @@ export function GitHubAnalysisLandingPage() {
 
       <section id="pricing" className="py-20 bg-background">
         <div className="max-w-2xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">Simple Pricing After Your Free Run</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Loved your free analysis? Continue using our service with transparent, pay-as-you-go pricing. No subscriptions, no surprises.
-            </p>
-            <div className="mt-8 rounded-lg bg-card p-6 border text-left">
-              <ul className="space-y-4 text-card-foreground">
-                <li className="flex items-start">
-                  <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
-                  <div>
-                    <strong className="block">Direct AI API Costs</strong>
-                    You only pay the pass-through cost for the AI models used.
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
-                  <div>
-                    <strong className="block">Compute Runtime Fee</strong>
-                    A small fee for the 5-10 minutes of virtual machine time.
-                  </div>
-                </li>
-              </ul>
-              <div className="mt-6 text-center text-sm text-card-foreground bg-primary/10 p-4 rounded-md border border-primary/20">
-                <p>
-                  A complete analysis for a medium-sized project typically costs <strong className="text-primary">less than a dollar.</strong>
-                </p>
-              </div>
-            </div>
+          <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
+            Simple Pricing After Your Free Run
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Loved your free analysis? Continue using our service with transparent, pay-as-you-go pricing. No subscriptions, no surprises.
+          </p>
+
+          <div className="mt-8 rounded-lg bg-card p-6 border text-left">
+            <ul className="space-y-4 text-card-foreground">
+              <li className="flex items-start">
+                <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
+                <div>
+                  <strong className="block">Direct AI API Costs</strong>
+                  You only pay the pass-through cost for the AI models used.
+                </div>
+              </li>
+              <li className="flex items-start">
+                <CheckCircle2 className="w-5 h-5 mr-3 mt-1 text-primary flex-shrink-0" />
+                <div>
+                  <strong className="block">Compute Runtime Fee</strong>
+                  A small fee for the 5–10 minutes of virtual machine time.
+                  <span className="block text-muted-foreground text-sm mt-1">
+                    A complete analysis for a medium-sized project typically costs <strong className="text-primary">under $1</strong>.
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
 

@@ -41,6 +41,12 @@ export default function LandingPageFooter() {
               Analysis
             </Link>
             <Link
+              href="/apps"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Apps
+            </Link>
+            <Link
               href="/about"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >

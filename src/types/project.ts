@@ -71,6 +71,7 @@ export interface GithubRepository {
  */
 export interface IRepository {
   _id?: any,
+  id?: any,
   url?: string,
   name?: string,
   organization?: string,
@@ -126,7 +127,7 @@ export type DevMode = 'auto' | 'general_purpose' | 'write_test_repeat';
  * Represents the full details of a project.
  */
 export interface Project {
-  _id: string; // MongoDB ObjectId
+  _id: string;
   name: string;
   status: Status;
   desiredStatus?: Status;

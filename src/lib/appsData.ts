@@ -10,11 +10,13 @@ export interface AppData {
   logoUrl: string;
   tagline: string;
   ageRange: string;
-  targetLocation: string; // We'll use this to dynamically insert the city name
+  targetLocation: string;
+  status: string;
+  releaseDate?: string;
   description: string;
   themeColor: {
-    primary: string; // e.g., hsl(142.1 76.2% 36.3%) for a green button
-    background: string; // e.g., /img/foodie-bg.jpg
+    primary: string;
+    background: string;
   };
   features: AppFeature[];
 }
@@ -28,6 +30,7 @@ export const apps: AppData[] = [
     tagline: 'Introductions made easy. Friends. Networking. Dating.',
     ageRange: '18+',
     targetLocation: 'Madison',
+    status: 'coming soon',
     description:
       'Get notified when near someone looking for the same thing as you. Whether that be an activity, dinner, a new client, or even a business partner, Lily help\'s you connect in person as you pass on the street.',
     themeColor: {
@@ -84,6 +87,7 @@ export const apps: AppData[] = [
     tagline: 'RIBBIT RIBBIT RISE UP',
     ageRange: '18+',
     targetLocation: 'Memphis',
+    status: 'coming soon',
     description:
       'End to end encryption. Chat with everyone in your vicinity. Send invites to activities, alert what’s happening, or just have a good time. Pass along the most important messages.',
     themeColor: {
