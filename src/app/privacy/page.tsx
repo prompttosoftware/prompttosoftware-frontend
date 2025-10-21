@@ -1,9 +1,19 @@
 // src/app/privacy/page.tsx
-import React from "react";
+import React, { Suspense } from "react";
+import LandingPageHeader from '../apps/components/LandingPageHeader';
+import LandingPageFooter from '../apps/components/LandingPageFooter';
+
+const AppPageFallback = (
+  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+    Loading...
+  </div>
+);
 
 export default function Privacy() {
   return (
-    // Updated container classes for better layout and readability on a long document
+    <Suspense fallback={AppPageFallback}>
+    <main>
+    <LandingPageHeader textColor='dark' />
     <div className="min-h-screen bg-background text-foreground flex justify-center p-4 sm:p-8">
       <div className="prose dark:prose-invert max-w-4xl w-full py-12">
         {/* Main Title */}
@@ -193,5 +203,8 @@ export default function Privacy() {
         </p>
       </div>
     </div>
+    <LandingPageFooter></LandingPageFooter>
+    </main>
+    </Suspense>
   );
 }

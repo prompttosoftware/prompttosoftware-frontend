@@ -273,8 +273,6 @@ export const statusConfig = {
   error: { className: 'bg-red-500', label: 'Error' },
 };
 
-const MAX_INSTALLATIONS = 20;
-
 export const formSchema = z.object({
   description: z.string().min(10, { message: 'Project description must be at least 10 characters.' }),
   maxRuntimeHours: z.number().min(0.01, { message: 'Must be a positive number.' }),
@@ -317,7 +315,7 @@ export const formSchema = z.object({
     }),
     installations: z.array(
       z.object({ name: z.string().min(1) })
-    ).max(MAX_INSTALLATIONS, `Cannot add more than ${MAX_INSTALLATIONS} installations.`),
+    ),
     jiraLinked: z.boolean(),
     jiraProjectKey: z.string().optional(),
     testLevel: z.enum(['standard', 'none', 'required']).default('standard'),

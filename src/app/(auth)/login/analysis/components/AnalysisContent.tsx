@@ -7,13 +7,14 @@ import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
 import { 
   CheckCircle2,
-  ExternalLink,
-  Linkedin,
-  Youtube,
+  MessageCircle,
+  Network,
+  ScanSearch,
+  TerminalSquare,
 } from 'lucide-react';
 import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
-import AnalysisAccordion from './AnalysisAccordion';
 import { usePostHog } from 'posthog-js/react';
+import YouTubeEmbed from '@/components/ui/presentation/YoutubeEmbed';
 
 export function GitHubAnalysisLandingPage() {
   const router = useRouter();
@@ -170,14 +171,6 @@ export function GitHubAnalysisLandingPage() {
                 <span>No credit card required</span>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
-                Terms of Service <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:underline flex items-center">
-                Privacy Policy <ExternalLink className="ml-1 h-3 w-3" />
-              </a>
-            </div>
           </div>
         </div>
 
@@ -188,18 +181,65 @@ export function GitHubAnalysisLandingPage() {
         </div>
       </main>
 
-      {/* Features Section */}
       <section id="features" className="py-20 bg-secondary/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
-              What Your Free Analysis Includes
+              See Your Codebase in a New Light
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Our AI goes beyond static analysis to understand your code's purpose, structure, and health.
+            <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
+              Our AI agent doesn't just read your code—it understands it. Watch how it provides a complete architectural overview and actionable insights.
             </p>
           </div>
-          <AnalysisAccordion />
+
+          {/* YouTube Video Embed */}
+          <div className="max-w-4xl mx-auto mb-16 shadow-2xl rounded-lg overflow-hidden border border-border">
+            <YouTubeEmbed videoId="bAtQf8nA-Fg" />
+          </div>
+
+          {/* Key Features */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 text-center">
+            {/* Feature 1 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <ScanSearch className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">Code & Security Audit</h3>
+              <p className="text-muted-foreground">
+                Find bugs, inconsistencies, and security vulnerabilities before they become a problem.
+              </p>
+            </div>
+            {/* Feature 2 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <Network className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">AI-Generated Docs</h3>
+              <p className="text-muted-foreground">
+                Get a complete, hierarchical description tree of your project, perfect for onboarding.
+              </p>
+            </div>
+            {/* Feature 3 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <TerminalSquare className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">Build Simulation</h3>
+              <p className="text-muted-foreground">
+                Verify your project's setup as the AI attempts to build, run, and test it from scratch.
+              </p>
+            </div>
+            {/* Feature 4 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <MessageCircle className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">Interactive Report</h3>
+              <p className="text-muted-foreground">
+                Receive a full report and chat with the AI to get advice and fixes for any issues found.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

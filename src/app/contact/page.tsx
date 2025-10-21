@@ -1,11 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { api } from '@/lib/api'; // uses your httpClient
+import { api } from '@/lib/api';
+import LandingPageHeader from '../apps/components/LandingPageHeader';
+import LandingPageFooter from '../apps/components/LandingPageFooter';
+
+const AppPageFallback = (
+  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+    Loading...
+  </div>
+);
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
@@ -33,6 +41,9 @@ export default function ContactPage() {
   };
 
   return (
+    <Suspense fallback={AppPageFallback}>
+    <main>
+    <LandingPageHeader textColor='dark' />
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
       <div className="w-full max-w-lg bg-card p-8 rounded-xl shadow-lg border">
         <h1 className="text-3xl font-bold mb-4 text-center">Contact Us</h1>
@@ -62,5 +73,8 @@ export default function ContactPage() {
         )}
       </div>
     </div>
+    <LandingPageFooter></LandingPageFooter>
+    </main>
+    </Suspense>
   );
 }

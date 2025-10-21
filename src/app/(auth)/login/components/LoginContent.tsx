@@ -5,10 +5,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSuccessMessageStore } from '@/store/successMessageStore';
 import { GitHubLogoIcon } from '@/components/icons/GitHubLogoIcon';
-import { CheckCircle2 } from 'lucide-react';
-import { ProjectLifecycleAccordion } from './ProjectLifecycleAccordian';
+import { CheckCircle2, GitBranch, RefreshCw, Sparkles } from 'lucide-react';
 import { TUTORIAL_CONTEXT_COOKIE } from '@/lib/tutorialSteps';
 import { usePostHog } from 'posthog-js/react';
+import YouTubeEmbed from '@/components/ui/presentation/YoutubeEmbed';
 
 export function LoginContent() {
   const router = useRouter();
@@ -196,20 +196,55 @@ export function LoginContent() {
         </div>
       </main>
 
-      {/* Features Section - Below the fold */}
       <section id="how-it-works" className="py-20 bg-secondary/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight text-card-foreground sm:text-4xl">
-              A Hands-Free Development Cycle
+              How It Works in 90 Seconds
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              From idea to a living project, powered by AI.
+            <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
+              From a simple prompt to a fully functional application. Watch how our AI agent handles the entire development lifecycle for you.
             </p>
           </div>
-          
-          <ProjectLifecycleAccordion />
 
+          {/* YouTube Video Embed */}
+          <div className="max-w-4xl mx-auto mb-16 shadow-2xl rounded-lg overflow-hidden border border-border">
+            <YouTubeEmbed videoId="Xz0kmz6kxxA" />
+          </div>
+
+          {/* Key Features / Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-center">
+            {/* Step 1 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <Sparkles className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">1. Define & Launch</h3>
+              <p className="text-muted-foreground">
+                Describe your project in plain English. Our AI agent creates the repository, writes code, and builds the entire project from scratch.
+              </p>
+            </div>
+            {/* Step 2 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <GitBranch className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">2. Collaborate & Iterate</h3>
+              <p className="text-muted-foreground">
+                The AI works like a junior developer, committing code, opening pull requests, and syncing with your team's changes in GitHub & Jira.
+              </p>
+            </div>
+            {/* Step 3 */}
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-5">
+                <RefreshCw className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">3. Evolve & Maintain</h3>
+              <p className="text-muted-foreground">
+                When a task is done, give a new instruction to add features, fix bugs, or make improvements. The AI picks up right where it left off.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

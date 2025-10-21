@@ -1,9 +1,6 @@
-// app/help/HelpContentDisplay.tsx
 'use client';
 
 import React, { useState } from 'react';
-// You would need an icon library like lucide-react or heroicons
-// import { Menu, X } from 'lucide-react'; 
 
 interface HelpMenuItem {
   name: string;

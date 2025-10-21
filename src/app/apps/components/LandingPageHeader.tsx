@@ -58,6 +58,13 @@ export default function LandingPageHeader({ textColor = 'light' }: LandingPageHe
             asChild
             className={cn('transition-colors', hasScrolled ? buttonText.scrolled : buttonText.normal)}
           >
+            <Link href="/about">About</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            asChild
+            className={cn('transition-colors', hasScrolled ? buttonText.scrolled : buttonText.normal)}
+          >
             <Link href="/contact">Contact</Link>
           </Button>
         </nav>
