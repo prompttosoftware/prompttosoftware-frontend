@@ -3,6 +3,19 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* Scale down the base font size for all devices */
+html {
+  font-size: 93.75%; /* Calculates to 15px (instead of the default 16px) */
+}
+
+/* Optional: Scale down further for very small screens (mobile-first approach) */
+@media (max-width: 640px) {
+  html {
+    /* For screens smaller than Tailwind's 'sm' breakpoint */
+    font-size: 87.5%; /* Calculates to 14px */
+  }
+}
+
 @layer base {
   :root {
     /* Light theme */

@@ -30,8 +30,8 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
   // 2. useTransform maps one value to another.
   // Here, we map the scrollY position (from 0px to 500px) to an opacity value (from 1 to 0).
   // The content will be fully visible at the top and fully transparent after scrolling 500px.
-  const contentOpacity = useTransform(scrollY, [200, 500], [1, 0]);
-  const contentScale = useTransform(scrollY, [200, 500], [1, 0.95]);
+  const contentOpacity = useTransform(scrollY, [200, 500], [1, 1]);
+  const contentScale = useTransform(scrollY, [200, 500], [1, 1]);
 
   useEffect(() => {
         // This runs only once when the component mounts
@@ -91,15 +91,6 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      {/* Background Image */}
-      <div
-        className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat bg-fixed filter blur-md scale-105"
-        style={{
-          backgroundImage: `url(${app.themeColor.background})`,
-        }}
-      />
-      {/* Dark Overlay for contrast */}
-      <div className="absolute inset-0 bg-black/50 z-[-1]"></div>
 
       {/* Floating Content Card */}
       <motion.div
@@ -107,34 +98,35 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
           opacity: contentOpacity,
           scale: contentScale,
         }}
-        // Reduced card padding from p-8 to p-6
         className="w-full max-w-md bg-card/70 backdrop-blur-lg rounded-xl shadow-2xl p-6 text-center text-card-foreground border border-white/10"
       >
         <Image
           src={app.logoUrl}
           alt={`${app.name} Logo`}
-          // Reduced logo size from 80x80 to 64x64
           width={64}
           height={64}
           className="mx-auto mb-3"
         />
-        {/* Reduced heading from text-4xl to text-3xl */}
         <h1 className="text-3xl font-extrabold mb-2">{app.name}</h1>
-        {/* Reduced tagline from text-lg to text-base */}
         <p className="text-base text-muted-foreground mb-4">{app.tagline}</p>
 
-        <div className="text-left text-sm space-y-2 mb-6">
-          <p><strong className="font-semibold">Description:</strong> {app.description}</p>
-          <p><strong className="font-semibold">Target Age:</strong> {app.ageRange}</p>
-          <p><strong className="font-semibold">Launch City:</strong> {app.targetLocation}</p>
+        <div className="text-left mb-6">
+
+            {/* 2. Key Selling Points (The most critical element to save vertical space) */}
+            <ul className="text-sm space-y-2 list-disc pl-5">
+                {app.description.points.map((point, index) => (
+                    <li key={index} className="text-card-foreground/80" dangerouslySetInnerHTML={{ __html: point }} />
+                ))}
+            </ul>
         </div>
 
-        <div className="mb-6">
-          {/* Reduced heading from text-xl to text-lg */}
-          <h3 className="text-lg font-bold mb-2 text-primary">
-            Join the exclusive {app.targetLocation} beta launch!
-          </h3>
-          <p className="text-sm text-muted-foreground">Be the first to get access and receive special perks.</p>
+        <div className="mb-4">
+            <h3 className="text-xl font-bold text-primary">
+                {app.callToAction}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+                Be the first to get early access and special perks.
+            </p>
         </div>
 
         {status !== 'success' && (
@@ -151,7 +143,6 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
             />
             <Button
               type="submit"
-              // Standardized button size and reduced font-size
               className="w-full h-12 text-base"
               disabled={status === 'loading'}
               style={{ backgroundColor: app.themeColor.primary }}
@@ -188,30 +179,14 @@ export default function LandingPageHero({ app }: LandingPageHeroProps) {
         </Alert>
         )}
 
-        <div className="mt-8 flex justify-center items-center gap-4 opacity-80">
-          <div className="flex flex-col items-center gap-2">
-            <Image
-              src="/logos/app-store-logo.svg"
-              alt="App Store"
-              // Reduced store logo size
-              width={40}
-              height={40}
-              className="rounded-md"
-            />
-            <span className="text-sm text-muted-foreground">Coming Soon</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <Image
-              src="/logos/google-play-store-logo.svg"
-              alt="Google Play"
-              // Reduced store logo size
-              width={40}
-              height={40}
-              className="rounded-md"
-            />
-            <span className="text-sm text-muted-foreground">Coming Soon</span>
-          </div>
-        </div>
+        <div className='py-2'></div>
+
+        {/* 5. Footer Details (Removed logos, using simple text footnote) */}
+        <p className="text-xs text-muted-foreground mt-6 opacity-60">
+            Available for iOS and Android (Coming Soon).
+            <br />
+            Target: {app.ageRange} in {app.targetLocation}.
+        </p>
       </motion.div>
     </div>
   );

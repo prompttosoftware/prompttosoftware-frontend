@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${app.name} | ${app.tagline}`,
-    description: app.description,
+    description: app.tagline
   };
 }
 
@@ -125,9 +125,8 @@ export default async function AppLandingPage({ params }: Props) {
       */}
       <style>{`:root { --primary-color: ${appData.themeColor.primary}; }`}</style>
       
-      <LandingPageHeader />
+      <LandingPageHeader textColor='dark' />
       <LandingPageHero app={appData} />
-      <LandingPageFeatures app={appData} />
       <LandingPageFooter></LandingPageFooter>
     </main>
     </Suspense>

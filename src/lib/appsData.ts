@@ -13,7 +13,8 @@ export interface AppData {
   targetLocation: string;
   status: string;
   releaseDate?: string;
-  description: string;
+  callToAction: string;
+  description: { points: string[]};
   themeColor: {
     primary: string;
     background: string;
@@ -31,8 +32,12 @@ export const apps: AppData[] = [
     ageRange: '18+',
     targetLocation: 'Madison',
     status: 'coming soon',
-    description:
-      'Get notified when near someone looking for the same thing as you. Whether that be an activity, dinner, a new client, or even a business partner, Lily help\'s you connect in person as you pass on the street.',
+    callToAction: 'Join the exclusive Madison beta launch!',
+    description: {
+      points: [
+        'Get notified when near someone looking for the same thing as you. Whether that be an activity, dinner, a new client, or even a business partner, Lily help\'s you connect in person as you pass on the street.',
+      ]
+    },
     themeColor: {
       primary: 'hsl(139 59% 55%)',
       background: '/backgrounds/greeting.jpg',
@@ -84,12 +89,19 @@ export const apps: AppData[] = [
     slug: 'frog-chat',
     name: 'Frog Chat',
     logoUrl: '/logos/frogchat-logo.svg',
-    tagline: 'RIBBIT RIBBIT RISE UP',
+    tagline: 'End to End Encrypted Proximity Chat',
     ageRange: '18+',
     targetLocation: 'Memphis',
     status: 'coming soon',
-    description:
-      'End to end encryption. Chat with everyone in your vicinity. Send invites to activities, alert what’s happening, or just have a good time. Pass along the most important messages.',
+    callToAction: 'Join the beta and test the most secure chat on the block.',
+
+    description: {
+        points: [
+            "Unprecedented Privacy: Hybrid Geohash ensures <strong>zero server storage</strong> of your precise GPS.",
+            "Secure & Ephemeral: Messages are E2EE and <strong>instantly deleted</strong> from our queue upon delivery.",
+            "Connect Locally: Set your chat range from a <strong>40m building</strong> up to <strong>5km city-wide</strong>."
+        ]
+    },
     themeColor: {
       primary: 'hsl(135 100% 63%)',
       background: '/backgrounds/frogrevolution.jpg',

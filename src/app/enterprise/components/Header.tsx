@@ -41,32 +41,18 @@ export default function LandingPageHeader({ textColor = 'light' }: LandingPageHe
     >
       <div className="container mx-auto flex justify-between items-center px-4">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logos/company-logo.svg" alt="PromptToSoftware Logo" width={32} height={32} />
+          <Image src="/logos/company-logo.svg" alt="PTS Automation Logo" width={32} height={32} />
           <span
             className={cn(
               'text-lg font-bold hidden sm:block transition-colors',
               hasScrolled ? baseText.scrolled : baseText.normal
             )}
           >
-            PromptToSoftware
+            PTS Automation
           </span>
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-4">
-          <Button
-            variant="ghost"
-            asChild
-            className={cn('transition-colors', hasScrolled ? buttonText.scrolled : buttonText.normal)}
-          >
-            <Link href="/enterprise">Enterprise</Link>
-          </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className={cn('transition-colors', hasScrolled ? buttonText.scrolled : buttonText.normal)}
-          >
-            <Link href="/apps">Apps</Link>
-          </Button>
           <Button
             variant="ghost"
             asChild
